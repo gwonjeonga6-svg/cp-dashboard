@@ -102,7 +102,7 @@ tr:hover td { background:#FAFBFD; }
 /* AI 패널 */
 #aiPanel { display:none; background:linear-gradient(135deg,#EFF6FF,#F0FDF4); border-bottom:1px solid #DBEAFE; padding:12px 32px; }
 #aiPanel .ai-title { font-size:11px; font-weight:700; color:#1B3A6B; margin-bottom:8px; }
-#aiText { font-size:12px; color:#1E293B; line-height:1.6; white-space:pre-wrap; outline:none; cursor:text; }
+#aiText { font-size:12px; color:#1E293B; line-height:1.6; white-space:pre-wrap; outline:none; min-height:60px; background:#fff; border-radius:8px; padding:10px 12px; border:1px solid #DBEAFE; cursor:text; user-select:text; }
 
 /* 빈 상태 */
 .empty { text-align:center; padding:60px 20px; color:#94A3B8; }
@@ -278,7 +278,7 @@ tr:hover td { background:#FAFBFD; }
   </div>
   <div style="display:flex;gap:8px;padding-right:8px">
     <button class="btn-ai" onclick="generateReport()">✨ AI 보고서</button>
-    <button class="btn-print" onclick="window.print()">🖨️ 출력</button>
+    <button class="btn-print" onclick="doPrint()">🖨️ 출력</button>
   </div>
 </div>
 
@@ -778,6 +778,7 @@ function renderCharts() {
     },
     options:{
       responsive:true,
+      cutout:'55%',
       plugins:{
         legend:{ position:'right', labels:{ font:{ size:11 }, boxWidth:14 } },
         tooltip:{ callbacks:{ label: ctx => ctx.label + ': ' + ctx.parsed + '건 (' + Math.round(ctx.parsed/dropped.length*100) + '%)' } }
@@ -1096,27 +1097,29 @@ function renderRawTab() {
   ).join('');
 }
 
-// ── 도넛 중앙 숫자 플러그인 ──
+// ── 도넛 중앙 숫자 플러그인 (전역 등록) ──
 const doughnutCenterPlugin = {
   id:'doughnutCenter',
   afterDraw(chart) {
     if (chart.config.type !== 'doughnut') return;
-    const { ctx, chartArea:{ left, right, top, bottom } } = chart;
-    const cx = (left + right) / 2;
-    const cy = (top + bottom) / 2;
-    const total = chart.data.datasets[0].data.reduce((s,v) => s+v, 0);
+    const { ctx, chartArea } = chart;
+    if (!chartArea) return;
+    const cx = (chartArea.left + chartArea.right) / 2;
+    const cy = (chartArea.top + chartArea.bottom) / 2;
+    const total = chart.data.datasets[0].data.reduce((s,v) => s + (v||0), 0);
     ctx.save();
-    ctx.font = 'bold 18px Noto Sans KR, sans-serif';
+    ctx.font = 'bold 16px Noto Sans KR, sans-serif';
     ctx.fillStyle = '#1E293B';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(total + '건', cx, cy - 8);
-    ctx.font = '11px Noto Sans KR, sans-serif';
+    ctx.font = '10px Noto Sans KR, sans-serif';
     ctx.fillStyle = '#64748B';
-    ctx.fillText('중단 합계', cx, cy + 12);
+    ctx.fillText('중단 합계', cx, cy + 10);
     ctx.restore();
   }
 };
+Chart.register(doughnutCenterPlugin);
 
 // ── 인쇄용 차트 렌더링 ──
 function renderPrintCharts() {
@@ -1203,7 +1206,6 @@ function renderPrintCharts() {
   const ctx3 = document.getElementById('printChartDrop');
   if (ctx3) charts['printChartDrop'] = new Chart(ctx3, {
     type:'doughnut',
-    plugins:[doughnutCenterPlugin],
     data:{
       labels: rKeys.map(k=>k+' ('+reasonMap[k]+'건, '+Math.round(reasonMap[k]/dropped.length*100)+'%)'),
       datasets:[{ data:rKeys.map(k=>reasonMap[k]), backgroundColor:pieColors.slice(0,rKeys.length) }]
@@ -1241,28 +1243,39 @@ function renderPrintCharts() {
   }
 }
 
-// ── 인쇄 전 처리 ──
-window.onbeforeprint = () => {
+// ── 인쇄 처리 ──
+function doPrint() {
+  // 인쇄용 페이지 표시
   document.getElementById('print-page1').style.display = 'block';
   document.getElementById('print-page2').style.display = 'grid';
   document.getElementById('print-page3').style.display = 'grid';
-  document.querySelector('.no-print-hide').style.display = 'none';
+  const noprint = document.querySelector('.no-print-hide');
+  if (noprint) noprint.style.display = 'none';
   document.querySelectorAll('.chart-grid').forEach(el => el.style.display = 'none');
+
   // AI 텍스트 동기화
   const aiSrc = document.getElementById('aiText');
   const aiDst = document.getElementById('print-ai-text');
-  if (aiSrc && aiDst && aiSrc.textContent.trim() && aiSrc.textContent !== '분석 중입니다...') {
+  if (aiSrc && aiDst && aiSrc.textContent.trim() && !aiSrc.textContent.includes('분석 중')) {
     aiDst.textContent = aiSrc.textContent;
   }
-};
 
-window.onafterprint = () => {
-  document.getElementById('print-page1').style.display = 'none';
-  document.getElementById('print-page2').style.display = 'none';
-  document.getElementById('print-page3').style.display = 'none';
-  document.querySelector('.no-print-hide').style.display = '';
-  document.querySelectorAll('.chart-grid').forEach(el => el.style.display = '');
-};
+  // 차트 렌더링 완료 후 인쇄
+  setTimeout(() => {
+    window.print();
+    // 인쇄 후 복원
+    setTimeout(() => {
+      document.getElementById('print-page1').style.display = 'none';
+      document.getElementById('print-page2').style.display = 'none';
+      document.getElementById('print-page3').style.display = 'none';
+      if (noprint) noprint.style.display = '';
+      document.querySelectorAll('.chart-grid').forEach(el => el.style.display = '');
+    }, 500);
+  }, 800);
+}
+
+window.onbeforeprint = () => {};
+window.onafterprint = () => {};
 function toggleTable(id) {
   const el = document.getElementById(id);
   if (!el) return;

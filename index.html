@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CP 모니터링 대시보드 — 좋은삼선병원</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Noto Sans KR','맑은 고딕',sans-serif; background:#F0F4F8; color:#1E293B; font-size:14px; }
+
+.header {
+  background:linear-gradient(135deg,#1B3A6B 0%,#1E5FA8 100%);
+  color:#fff; padding:18px 32px;
+  display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;
+}
+.header-left h1 { font-size:20px; font-weight:700; }
+.header-left .sub { font-size:12px; color:#A8C4E8; margin-top:3px; }
+.header-right { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.hbadge { background:rgba(255,255,255,0.15); border-radius:10px; padding:8px 16px; text-align:center; min-width:80px; }
+.hbadge .num { font-size:20px; font-weight:700; }
+.hbadge .lbl { font-size:11px; color:#A8C4E8; margin-top:1px; }
+.hbadge.ok .num { color:#6EE7B7; }
+.hbadge.ng .num { color:#FCA5A5; }
+.hbadge.bl .num { color:#93C5FD; }
+
+/* 업로드 */
+.upload-panel { background:#fff; border-bottom:1px solid #E2E8F0; padding:0 32px; }
+.upload-toggle { display:flex; align-items:center; gap:8px; padding:10px 0; cursor:pointer; font-size:13px; color:#64748B; user-select:none; }
+.upload-toggle .arrow { transition:transform .2s; }
+.upload-toggle.open .arrow { transform:rotate(90deg); }
+.upload-body { display:none; padding:12px 0 18px; }
+.upload-body.show { display:block; }
+
+/* 기간 버튼 */
+.period-btns { display:flex; gap:5px; margin-bottom:12px; align-items:center; flex-wrap:wrap; }
+.period-btns span { font-size:12px; color:#64748B; margin-right:2px; }
+.pbtn { padding:5px 11px; border-radius:6px; border:1px solid #E2E8F0; font-size:12px; cursor:pointer; color:#64748B; background:#fff; font-family:inherit; transition:all .15s; }
+.pbtn:hover { border-color:#1B3A6B; color:#1B3A6B; }
+.pbtn-active { background:#1B3A6B !important; color:#fff !important; border-color:#1B3A6B !important; font-weight:700; }
+
+#dropZone { display:block; border:2px dashed #CBD5E1; border-radius:10px; padding:24px; text-align:center; cursor:pointer; transition:all .2s; background:#FAFBFD; }
+#dropZone:hover { border-color:#1B3A6B; background:#EFF6FF; }
+.upload-status { font-size:12px; margin-top:6px; display:none; }
+.upload-help { font-size:11px; color:#94A3B8; margin-top:6px; line-height:1.6; }
+
+/* 탭 */
+.tabs { background:#fff; border-bottom:2px solid #E2E8F0; display:flex; padding:0 32px; overflow-x:auto; justify-content:space-between; align-items:center; }
+.tab { padding:13px 16px; font-size:13px; cursor:pointer; color:#64748B; border-bottom:3px solid transparent; margin-bottom:-2px; white-space:nowrap; }
+.tab.active { color:#1B3A6B; border-bottom-color:#1B3A6B; font-weight:700; }
+.tab:hover:not(.active) { color:#1B3A6B; background:#F8FAFC; }
+.btn-ai { background:#1B3A6B; color:#fff; border:none; border-radius:7px; padding:7px 16px; font-size:12px; cursor:pointer; font-family:inherit; white-space:nowrap; }
+.btn-print { background:#F1F5F9; border:1px solid #E2E8F0; color:#475569; border-radius:7px; padding:7px 14px; font-size:12px; cursor:pointer; font-family:inherit; }
+
+/* 컨텐츠 */
+.content { padding:20px 32px 40px; }
+.pane { display:none; }
+.pane.active { display:block; }
+
+/* 카드 */
+.summary { display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:20px; }
+.card { background:#fff; border-radius:12px; padding:18px 20px; box-shadow:0 1px 3px rgba(0,0,0,.07); }
+.card .val { font-size:28px; font-weight:700; margin-bottom:2px; }
+.card .lbl { font-size:12px; color:#64748B; }
+.card .sub { font-size:11px; color:#94A3B8; margin-top:2px; }
+.card.c1 .val { color:#1B3A6B; }
+.card.c2 .val { color:#16A34A; }
+.card.c3 .val { color:#DC2626; }
+.card.c4 .val { color:#2563EB; }
+.card.c5 .val { color:#7C3AED; }
+
+.goal-bar-wrap { margin-top:8px; }
+.goal-bar-bg { background:#E2E8F0; border-radius:99px; height:6px; overflow:hidden; }
+.goal-bar-fill { height:100%; border-radius:99px; transition:width 1s ease; }
+.goal-label { display:flex; justify-content:space-between; font-size:10px; color:#94A3B8; margin-top:3px; }
+
+/* 섹션 */
+.section { background:#fff; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,.07); margin-bottom:16px; overflow:hidden; }
+.section-header { padding:13px 18px; font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px; border-bottom:1px solid #F1F5F9; flex-wrap:wrap; }
+.dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+
+/* 차트 그리드 */
+.chart-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+.chart-box { background:#fff; border-radius:12px; padding:18px; box-shadow:0 1px 3px rgba(0,0,0,.07); }
+.chart-box h4 { font-size:13px; font-weight:700; color:#1E293B; margin-bottom:14px; }
+
+/* 테이블 */
+table { width:100%; border-collapse:collapse; font-size:12.5px; }
+th { background:#F8FAFC; color:#64748B; font-weight:600; padding:9px 13px; text-align:left; border-bottom:1px solid #E2E8F0; white-space:nowrap; }
+td { padding:9px 13px; border-bottom:1px solid #F8FAFC; vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:#FAFBFD; }
+.badge-ok { background:#DCFCE7; color:#16A34A; border-radius:5px; padding:2px 8px; font-size:11px; font-weight:700; }
+.badge-ng { background:#FEE2E2; color:#DC2626; border-radius:5px; padding:2px 8px; font-size:11px; font-weight:700; }
+.badge-na { background:#F1F5F9; color:#94A3B8; border-radius:5px; padding:2px 8px; font-size:11px; font-weight:700; }
+
+/* 토글 버튼 */
+.toggle-btn { background:#F1F5F9; border:1px solid #E2E8F0; color:#475569; border-radius:6px; padding:4px 12px; font-size:11px; cursor:pointer; font-family:inherit; margin-left:auto; }
+.toggle-btn:hover { background:#E2E8F0; }
+
+/* AI 패널 */
+#aiPanel { display:none; background:linear-gradient(135deg,#EFF6FF,#F0FDF4); border-bottom:1px solid #DBEAFE; padding:12px 32px; }
+#aiPanel .ai-title { font-size:11px; font-weight:700; color:#1B3A6B; margin-bottom:8px; }
+#aiText { font-size:12px; color:#1E293B; line-height:1.6; white-space:pre-wrap; outline:none; cursor:text; }
+
+/* 빈 상태 */
+.empty { text-align:center; padding:60px 20px; color:#94A3B8; }
+.empty .emoji { font-size:40px; margin-bottom:12px; }
+
+/* 반응형 */
+@media(max-width:900px) {
+  .summary { grid-template-columns:repeat(3,1fr); }
+  .chart-grid { grid-template-columns:1fr; }
+  .content { padding:16px; }
+  .header, .upload-panel, .tabs { padding-left:16px; padding-right:16px; }
+}
+
+/* 인쇄 — 세로 A4 */
+@media print {
+  * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+  .upload-panel, .tabs, .btn-ai, .btn-print, .toggle-btn, #aiPanel { display:none !important; }
+  body { background:#fff; font-size:11px; }
+  .header { background:#1B3A6B !important; padding:10px 20px; }
+  .pane { display:none !important; }
+  .pane.active { display:block !important; }
+  .content { padding:10px 14px; }
+  .summary { grid-template-columns:repeat(5,1fr); gap:8px; }
+  .card { box-shadow:none; border:1px solid #E2E8F0; padding:10px; }
+  .card .val { font-size:20px; }
+  .chart-grid { grid-template-columns:1fr; gap:10px; }
+  .chart-box { box-shadow:none; border:1px solid #E2E8F0; padding:12px; page-break-inside:avoid; }
+  .section { box-shadow:none; border:1px solid #E2E8F0; page-break-inside:avoid; }
+  table { font-size:10px; }
+  th { font-size:10px; padding:6px 8px; }
+  td { padding:5px 8px; font-size:10px; }
+  @page { size:A4 portrait; margin:12mm; }
+}
+</style>
+</head>
+<body>
+
+<!-- 헤더 -->
+<div class="header">
+  <div class="header-left">
+    <h1>🏥 CP 모니터링 대시보드</h1>
+    <div class="sub">
+      <span id="hospitalName" contenteditable="true" onblur="saveInfo()"
+        style="outline:none;cursor:text;border-bottom:1px dashed rgba(255,255,255,0.3)">좋은삼선병원</span>
+      <span id="deptName" contenteditable="true" onblur="saveInfo()"
+        style="outline:none;cursor:text;border-bottom:1px dashed rgba(255,255,255,0.3);margin-left:4px"> QPS팀</span>
+      · <span id="periodLabel">전체</span>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="hbadge"><div class="num" id="h-total">—</div><div class="lbl">대상건수</div></div>
+    <div class="hbadge bl"><div class="num" id="h-apply">—</div><div class="lbl">적용건수</div></div>
+    <div class="hbadge ok"><div class="num" id="h-applyR">—</div><div class="lbl">적용률</div></div>
+    <div class="hbadge ok"><div class="num" id="h-completeR">—</div><div class="lbl">완료율</div></div>
+    <div class="hbadge ng"><div class="num" id="h-drop">—</div><div class="lbl">중단건수</div></div>
+  </div>
+</div>
+
+<!-- AI 패널 -->
+<div id="aiPanel">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+    <div style="flex:1">
+      <div class="ai-title">✨ AI CP 모니터링 보고서</div>
+      <div id="aiText" contenteditable="true"></div>
+    </div>
+    <button onclick="document.getElementById('aiPanel').style.display='none'"
+      style="background:none;border:none;color:#94A3B8;cursor:pointer;font-size:18px;padding:0;flex-shrink:0">✕</button>
+  </div>
+</div>
+
+<!-- 업로드 패널 -->
+<div class="upload-panel">
+  <div class="upload-toggle" id="uploadToggle" onclick="toggleUpload()">
+    <span class="arrow">▶</span>
+    <span>📋 데이터 업로드 (구글시트 2026 전체 탭 xlsx)</span>
+    <span style="margin-left:auto;font-size:11px;color:#94A3B8">클릭해서 열기</span>
+  </div>
+  <div class="upload-body" id="uploadBody">
+    <div style="font-size:12px;color:#64748B;margin-bottom:10px">
+      구글시트 <b>2026 전체 탭</b>을 xlsx로 다운받아 한 번만 올리면 돼요. 기간 버튼으로 필터링됩니다.
+    </div>
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.html,.htm" style="display:none" onchange="handleFile(event)">
+    <label for="fileInput" id="dropZone">
+      <div style="font-size:28px;margin-bottom:8px">📂</div>
+      <div style="font-size:13px;font-weight:600;color:#1B3A6B">구글시트 2026 탭 xlsx 파일을 올려주세요</div>
+      <div style="font-size:11px;color:#94A3B8;margin-top:6px">파일 → 다운로드 → xlsx</div>
+    </label>
+    <div class="upload-status" id="uploadStatus"></div>
+    <div class="upload-help">
+      💡 퇴원일 기준으로 월/분기 필터링됩니다. 컬럼 필수: 차트번호, 환자명, 진료과, 주치의, 수술명, 퇴원일, CP코드, CP대상(Y/N), CP적용(Y/N), 완료여부(Y/N), 중단사유, 재원일수, 사용일수
+    </div>
+  </div>
+</div>
+
+<!-- 기간 버튼 -->
+<div style="background:#fff;border-bottom:1px solid #E2E8F0;padding:10px 32px;">
+  <div class="period-btns">
+    <span>기간:</span>
+    <button class="pbtn pbtn-active" onclick="selectPeriod('전체',this)">전체</button>
+    <span style="color:#E2E8F0">|</span>
+    <button class="pbtn" onclick="selectPeriod('1월',this)">1월</button>
+    <button class="pbtn" onclick="selectPeriod('2월',this)">2월</button>
+    <button class="pbtn" onclick="selectPeriod('3월',this)">3월</button>
+    <button class="pbtn" onclick="selectPeriod('4월',this)">4월</button>
+    <button class="pbtn" onclick="selectPeriod('5월',this)">5월</button>
+    <button class="pbtn" onclick="selectPeriod('6월',this)">6월</button>
+    <button class="pbtn" onclick="selectPeriod('7월',this)">7월</button>
+    <button class="pbtn" onclick="selectPeriod('8월',this)">8월</button>
+    <button class="pbtn" onclick="selectPeriod('9월',this)">9월</button>
+    <button class="pbtn" onclick="selectPeriod('10월',this)">10월</button>
+    <button class="pbtn" onclick="selectPeriod('11월',this)">11월</button>
+    <button class="pbtn" onclick="selectPeriod('12월',this)">12월</button>
+    <span style="color:#E2E8F0">|</span>
+    <button class="pbtn" onclick="selectPeriod('1분기',this)">1분기</button>
+    <button class="pbtn" onclick="selectPeriod('2분기',this)">2분기</button>
+    <button class="pbtn" onclick="selectPeriod('3분기',this)">3분기</button>
+    <button class="pbtn" onclick="selectPeriod('4분기',this)">4분기</button>
+    <span style="color:#E2E8F0">|</span>
+    <button class="pbtn" onclick="selectPeriod('상반기',this)">상반기</button>
+    <button class="pbtn" onclick="selectPeriod('하반기',this)">하반기</button>
+    <button class="pbtn" onclick="selectPeriod('연간',this)">연간</button>
+  </div>
+</div>
+
+<!-- 탭 -->
+<div class="tabs">
+  <div style="display:flex">
+    <div class="tab active" onclick="showTab('overview',this)">📊 종합현황</div>
+    <div class="tab" onclick="showTab('cp5',this)">🔬 5종 CP 분석</div>
+    <div class="tab" onclick="showTab('doctor',this)">👨‍⚕️ 의사별 현황</div>
+    <div class="tab" onclick="showTab('drop',this)">⚠️ 중단 분석</div>
+    <div class="tab" onclick="showTab('stay',this)">🏨 재원/항생제</div>
+    <div class="tab" onclick="showTab('raw',this)">📋 원시데이터</div>
+  </div>
+  <div style="display:flex;gap:8px;padding-right:8px">
+    <button class="btn-ai" onclick="generateReport()">✨ AI 보고서</button>
+    <button class="btn-print" onclick="window.print()">🖨️ 출력</button>
+  </div>
+</div>
+
+<!-- 컨텐츠 -->
+<div class="content">
+
+  <!-- 종합현황 -->
+  <div class="pane active" id="pane-overview">
+    <div class="summary">
+      <div class="card c1"><div class="val" id="ov-total">—</div><div class="lbl">전체 대상 건수</div></div>
+      <div class="card c4"><div class="val" id="ov-apply">—</div><div class="lbl">CP 적용 건수</div></div>
+      <div class="card c2">
+        <div class="val" id="ov-applyR">—</div><div class="lbl">적용률</div>
+        <div class="goal-bar-wrap">
+          <div class="goal-bar-bg"><div class="goal-bar-fill" id="bar-apply" style="width:0%;background:#16A34A"></div></div>
+          <div class="goal-label"><span>0%</span><span>목표 80%</span></div>
+        </div>
+      </div>
+      <div class="card c2">
+        <div class="val" id="ov-completeR">—</div><div class="lbl">완료율</div>
+        <div class="goal-bar-wrap">
+          <div class="goal-bar-bg"><div class="goal-bar-fill" id="bar-complete" style="width:0%;background:#2563EB"></div></div>
+          <div class="goal-label"><span>0%</span><span>목표 70%</span></div>
+        </div>
+      </div>
+      <div class="card c3"><div class="val" id="ov-drop">—</div><div class="lbl">중단 건수</div><div class="sub" id="ov-dropR">—</div></div>
+    </div>
+    <div class="chart-grid">
+      <div class="chart-box">
+        <h4>📈 질환별 적용률 / 완료율</h4>
+        <canvas id="chartCP5"></canvas>
+      </div>
+      <div class="chart-box">
+        <h4>👨‍⚕️ 의사별 적용률 / 완료율</h4>
+        <canvas id="chartDoctor"></canvas>
+      </div>
+    </div>
+    <div class="chart-grid">
+      <div class="chart-box">
+        <h4>⚠️ 중단 사유 분포</h4>
+        <canvas id="chartDrop"></canvas>
+      </div>
+      <div class="chart-box">
+        <h4>🏨 질환별 평균 재원일수 / 항생제 사용일수</h4>
+        <canvas id="chartStay"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5종 CP 분석 -->
+  <div class="pane" id="pane-cp5"><div id="cp5-content"></div></div>
+
+  <!-- 의사별 현황 -->
+  <div class="pane" id="pane-doctor"><div id="doctor-content"></div></div>
+
+  <!-- 중단 분석 -->
+  <div class="pane" id="pane-drop"><div id="drop-content"></div></div>
+
+  <!-- 재원/항생제 -->
+  <div class="pane" id="pane-stay"><div id="stay-content"></div></div>
+
+  <!-- 원시데이터 -->
+  <div class="pane" id="pane-raw">
+    <div class="section">
+      <div class="section-header"><span class="dot" style="background:#1B3A6B"></span>전체 데이터 <span id="raw-count" style="font-size:11px;font-weight:400;color:#94A3B8;margin-left:4px"></span></div>
+      <div style="overflow-x:auto"><table id="rawTable"><thead></thead><tbody></tbody></table></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let allData = [];      // 전체 raw 데이터
+let filteredData = []; // 기간 필터된 데이터
+let currentPeriod = '전체';
+const CP5 = ['TKRA','ARCR','HWR','MENISECTOMY','VP/KP'];
+const DROP_REASONS = ['염증수치','감염','합병증','수술변경/취소','입/퇴원 일정 변경','기타'];
+let charts = {};
+
+// ── 기간 필터링 ──
+const PERIOD_MONTHS = {
+  '전체': null,
+  '1월':[1],'2월':[2],'3월':[3],'4월':[4],'5월':[5],'6월':[6],
+  '7월':[7],'8월':[8],'9월':[9],'10월':[10],'11월':[11],'12월':[12],
+  '1분기':[1,2,3],'2분기':[4,5,6],'3분기':[7,8,9],'4분기':[10,11,12],
+  '상반기':[1,2,3,4,5,6],'하반기':[7,8,9,10,11,12],'연간':[1,2,3,4,5,6,7,8,9,10,11,12]
+};
+
+function selectPeriod(period, btn) {
+  currentPeriod = period;
+  document.getElementById('periodLabel').textContent = period === '전체' ? '전체' : '2026년 ' + period;
+  document.querySelectorAll('.pbtn').forEach(b => b.classList.remove('pbtn-active'));
+  if (btn) btn.classList.add('pbtn-active');
+  applyFilter();
+}
+
+function applyFilter() {
+  const months = PERIOD_MONTHS[currentPeriod];
+  if (!months) {
+    filteredData = [...allData];
+  } else {
+    filteredData = allData.filter(x => {
+      if (!x.dischargeDate) return false;
+      const m = x.dischargeDate.getMonth() + 1;
+      return months.includes(m);
+    });
+  }
+  renderAll();
+}
+
+// ── 퇴원일 파싱 ──
+function parseDate(val) {
+  if (!val) return null;
+  const s = String(val).trim();
+  // YYYY-MM-DD 또는 YYYY.MM.DD 또는 엑셀 숫자
+  if (/^\d{4}[-./]\d{1,2}[-./]\d{1,2}/.test(s)) {
+    const d = new Date(s.replace(/\./g, '-'));
+    return isNaN(d) ? null : d;
+  }
+  // 엑셀 serial number
+  const n = parseFloat(s);
+  if (!isNaN(n) && n > 40000) {
+    return new Date(Math.round((n - 25569) * 86400 * 1000));
+  }
+  return null;
+}
+
+// ── 업로드 토글 ──
+function toggleUpload() {
+  document.getElementById('uploadToggle').classList.toggle('open');
+  document.getElementById('uploadBody').classList.toggle('show');
+}
+
+function showStatus(msg, isErr) {
+  const el = document.getElementById('uploadStatus');
+  el.style.display = 'block';
+  el.style.color = isErr ? '#DC2626' : '#16A34A';
+  el.textContent = msg;
+  if (!isErr) setTimeout(() => el.style.display = 'none', 4000);
+}
+
+// ── 파일 처리 ──
+function handleFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const ext = file.name.toLowerCase();
+  if (ext.endsWith('.xlsx') || ext.endsWith('.xls')) parseXlsx(file);
+  else if (ext.endsWith('.html') || ext.endsWith('.htm')) parseHtml(file);
+  else showStatus('⚠️ xlsx 또는 html 파일만 지원합니다.', true);
+}
+
+function parseXlsx(file) {
+  showStatus('📖 엑셀 읽는 중...');
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(new Uint8Array(e.target.result), { type:'array' });
+      // '2026' 탭 우선, 없으면 첫 번째
+      const sheetName = wb.SheetNames.find(s => s === '2026' || s.includes('2026')) || wb.SheetNames[0];
+      const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { header:1, defval:'' });
+      processRows(rows, file.name, sheetName);
+    } catch(err) { showStatus('⚠️ 파일 오류: ' + err.message, true); }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function parseHtml(file) {
+  showStatus('📖 HTML 읽는 중...');
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const doc = new DOMParser().parseFromString(e.target.result, 'text/html');
+      const rows = [...doc.querySelectorAll('tr')].map(tr =>
+        [...tr.querySelectorAll('td,th')].map(c => c.textContent.trim())
+      );
+      processRows(rows, file.name, '');
+    } catch(err) { showStatus('⚠️ 파일 오류: ' + err.message, true); }
+  };
+  reader.readAsText(file, 'utf-8');
+}
+
+function processRows(rows, filename, sheetName) {
+  // 헤더 찾기
+  let hIdx = -1, hRow = null;
+  for (let i = 0; i < Math.min(rows.length, 10); i++) {
+    const r = rows[i].map(c => String(c).trim());
+    if (r.some(c => c === '차트번호' || c === 'CP코드' || c === '환자명')) {
+      hIdx = i; hRow = r; break;
+    }
+  }
+  if (!hRow) { showStatus('⚠️ 헤더 없음 (차트번호/CP코드 열 필요)', true); return; }
+
+  const fi = (...names) => {
+    for (const n of names) {
+      const i = hRow.findIndex(h => h.includes(n));
+      if (i >= 0) return i;
+    }
+    return -1;
+  };
+
+  const cols = {
+    id: fi('차트번호'), name: fi('환자명'), dept: fi('진료과'), doctor: fi('주치의'),
+    surgery: fi('수술명'), admit: fi('내원일'), discharge: fi('퇴원일'),
+    los: fi('재원일수'), dm: fi('DM'), cpCode: fi('CP코드'),
+    cpTarget: fi('CP대상'), exclude: fi('제외사유'),
+    cpApply: fi('CP적용'), noApply: fi('미적용사유'),
+    complete: fi('완료여부'), dropReason: fi('중단사유'),
+    abxDays: fi('사용일수'), note: fi('비고'),
+  };
+
+  const parsed = [];
+  for (let i = hIdx + 1; i < rows.length; i++) {
+    const row = rows[i];
+    const g = ci => (ci >= 0 && ci < row.length) ? String(row[ci]).trim() : '';
+    const cpTarget = g(cols.cpTarget).toUpperCase();
+    if (cpTarget !== 'Y') continue;
+    let cpCode = g(cols.cpCode).toUpperCase().replace(/\s/g,'');
+    if (!cpCode || cpCode === 'CP코드') continue;
+
+    // CP코드 정규화
+    if (cpCode === 'VP' || cpCode === 'KP' || cpCode === 'VP/KP') cpCode = 'VP/KP';
+    if (cpCode.includes('TKRA')) cpCode = 'TKRA';
+    else if (cpCode.includes('ARCR')) cpCode = 'ARCR';
+    else if (cpCode.includes('HWR')) cpCode = 'HWR';
+    else if (cpCode.includes('MENIS')) cpCode = 'MENISECTOMY';
+
+    const dischargeDate = parseDate(g(cols.discharge));
+    const losRaw = parseFloat(g(cols.los));
+    const abxRaw = parseFloat(g(cols.abxDays));
+    const cpApply = g(cols.cpApply).toUpperCase() === 'Y';
+    const complete = g(cols.complete).toUpperCase() === 'Y';
+
+    parsed.push({
+      id: g(cols.id), name: g(cols.name), dept: g(cols.dept), doctor: g(cols.doctor),
+      surgery: g(cols.surgery), admit: g(cols.admit),
+      discharge: g(cols.discharge), dischargeDate,
+      los: isNaN(losRaw) ? null : losRaw,
+      cpCode, cpApply, complete,
+      dropReason: cpApply && !complete ? (g(cols.dropReason) || '기타') : '',
+      abxDays: isNaN(abxRaw) ? null : abxRaw,
+      note: g(cols.note),
+    });
+  }
+
+  if (!parsed.length) { showStatus('⚠️ CP대상(Y) 데이터 없음', true); return; }
+  allData = parsed;
+
+  document.getElementById('dropZone').innerHTML =
+    '<div style="font-size:20px;margin-bottom:6px">✅</div>' +
+    '<div style="font-size:13px;font-weight:600;color:#16A34A">' + filename +
+    (sheetName ? ' · ' + sheetName + ' 탭' : '') + '</div>' +
+    '<div style="font-size:11px;color:#94A3B8;margin-top:4px">총 ' + parsed.length + '건 로드 · 클릭해서 교체</div>';
+
+  showStatus('✅ ' + parsed.length + '건 로드 완료! 기간 버튼으로 필터링하세요.');
+  applyFilter();
+}
+
+// ── 전체 렌더링 ──
+function renderAll() {
+  const d = filteredData;
+  if (!d.length) {
+    ['h-total','h-apply','h-applyR','h-completeR','h-drop',
+     'ov-total','ov-apply','ov-applyR','ov-completeR','ov-drop'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = '—';
+    });
+    return;
+  }
+
+  const total = d.length;
+  const applied = d.filter(x => x.cpApply).length;
+  const completed = d.filter(x => x.cpApply && x.complete).length;
+  const dropped = d.filter(x => x.cpApply && !x.complete).length;
+  const applyR = (applied/total*100).toFixed(1);
+  const completeR = applied ? (completed/applied*100).toFixed(1) : '0.0';
+  const dropR = applied ? (dropped/applied*100).toFixed(1) : '0.0';
+
+  // 헤더
+  document.getElementById('h-total').textContent = total;
+  document.getElementById('h-apply').textContent = applied;
+  document.getElementById('h-applyR').textContent = applyR + '%';
+  document.getElementById('h-completeR').textContent = completeR + '%';
+  document.getElementById('h-drop').textContent = dropped;
+
+  // 카드
+  document.getElementById('ov-total').textContent = total;
+  document.getElementById('ov-apply').textContent = applied;
+  document.getElementById('ov-applyR').textContent = applyR + '%';
+  document.getElementById('ov-completeR').textContent = completeR + '%';
+  document.getElementById('ov-drop').textContent = dropped;
+  document.getElementById('ov-dropR').textContent = '중단율 ' + dropR + '%';
+
+  setTimeout(() => {
+    const b1 = document.getElementById('bar-apply');
+    const b2 = document.getElementById('bar-complete');
+    if (b1) b1.style.width = Math.min(parseFloat(applyR),100) + '%';
+    if (b2) b2.style.width = Math.min(parseFloat(completeR),100) + '%';
+  }, 100);
+
+  renderCharts();
+  renderCP5Tab();
+  renderDoctorTab();
+  renderDropTab();
+  renderStayTab();
+  renderRawTab();
+}
+
+// ── 차트 공통 ──
+function destroyChart(id) {
+  if (charts[id]) { try { charts[id].destroy(); } catch(e){} delete charts[id]; }
+}
+
+// datalabels 플러그인 없이 수동으로 위에 레이블 표시
+const dataLabelPlugin = {
+  id:'topLabel',
+  afterDatasetsDraw(chart) {
+    const { ctx } = chart;
+    chart.data.datasets.forEach((ds, di) => {
+      const meta = chart.getDatasetMeta(di);
+      meta.data.forEach((bar, i) => {
+        const val = ds.data[i];
+        if (val === null || val === undefined || val === 0) return;
+        ctx.save();
+        ctx.font = 'bold 10px Noto Sans KR, sans-serif';
+        ctx.fillStyle = '#334155';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText(val + '%', bar.x, bar.y - 2);
+        ctx.restore();
+      });
+    });
+  }
+};
+
+function renderCharts() {
+  const d = filteredData;
+
+  // ── CP5 바 차트 ──
+  const cp5Data = CP5.map(cp => {
+    const items = d.filter(x => x.cpCode === cp);
+    const total = items.length;
+    const applied = items.filter(x => x.cpApply).length;
+    const completed = items.filter(x => x.cpApply && x.complete).length;
+    return {
+      total,
+      applyR: total ? Math.round(applied/total*100) : 0,
+      completeR: applied ? Math.round(completed/applied*100) : 0,
+    };
+  });
+
+  destroyChart('chartCP5');
+  const ctx1 = document.getElementById('chartCP5');
+  if (ctx1) charts['chartCP5'] = new Chart(ctx1, {
+    type:'bar',
+    plugins:[dataLabelPlugin],
+    data:{
+      labels: CP5.map((c,i) => c + '\n(' + cp5Data[i].total + '건)'),
+      datasets:[
+        { label:'적용률(%)', data:cp5Data.map(x=>x.applyR), backgroundColor:'#3B82F6BB', borderRadius:4 },
+        { label:'완료율(%)', data:cp5Data.map(x=>x.completeR), backgroundColor:'#EF4444BB', borderRadius:4 },
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{ legend:{ labels:{ font:{ size:11 } } },
+        tooltip:{ callbacks:{ label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y + '%' } }
+      },
+      scales:{
+        y:{ max:100, ticks:{ callback:v=>v+'%', font:{ size:10 } }, grid:{ color:'#F1F5F9' } },
+        x:{ ticks:{ font:{ size:10 } } }
+      }
+    }
+  });
+
+  // ── 의사별 바 차트 ──
+  const doctors = [...new Set(d.map(x=>x.doctor).filter(Boolean))];
+  const docData = doctors.map(doc => {
+    const items = d.filter(x=>x.doctor===doc);
+    const applied = items.filter(x=>x.cpApply).length;
+    const completed = items.filter(x=>x.cpApply&&x.complete).length;
+    return {
+      doc, total:items.length,
+      applyR: items.length ? Math.round(applied/items.length*100) : 0,
+      completeR: applied ? Math.round(completed/applied*100) : 0,
+    };
+  });
+
+  destroyChart('chartDoctor');
+  const ctx2 = document.getElementById('chartDoctor');
+  if (ctx2) charts['chartDoctor'] = new Chart(ctx2, {
+    type:'bar',
+    plugins:[dataLabelPlugin],
+    data:{
+      labels: docData.map(x=>x.doc+'\n('+x.total+'건)'),
+      datasets:[
+        { label:'적용률(%)', data:docData.map(x=>x.applyR), backgroundColor:'#8B5CF6BB', borderRadius:4 },
+        { label:'완료율(%)', data:docData.map(x=>x.completeR), backgroundColor:'#F59E0BBB', borderRadius:4 },
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{ legend:{ labels:{ font:{ size:11 } } },
+        tooltip:{ callbacks:{ label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y + '%' } }
+      },
+      scales:{
+        y:{ max:100, ticks:{ callback:v=>v+'%', font:{ size:10 } }, grid:{ color:'#F1F5F9' } },
+        x:{ ticks:{ font:{ size:10 } } }
+      }
+    }
+  });
+
+  // ── 중단 사유 도넛 ──
+  const dropped = d.filter(x=>x.cpApply&&!x.complete);
+  const reasonMap = {};
+  dropped.forEach(x => {
+    const key = DROP_REASONS.find(k=>(x.dropReason||'').includes(k))||'기타';
+    reasonMap[key] = (reasonMap[key]||0)+1;
+  });
+  const rKeys = Object.keys(reasonMap);
+  const pieColors = ['#EF4444','#F97316','#EAB308','#22C55E','#3B82F6','#8B5CF6'];
+
+  destroyChart('chartDrop');
+  const ctx3 = document.getElementById('chartDrop');
+  if (ctx3) charts['chartDrop'] = new Chart(ctx3, {
+    type:'doughnut',
+    data:{
+      labels: rKeys.map(k=>k+' ('+reasonMap[k]+'건)'),
+      datasets:[{ data:rKeys.map(k=>reasonMap[k]), backgroundColor:pieColors.slice(0,rKeys.length) }]
+    },
+    options:{
+      responsive:true,
+      plugins:{
+        legend:{ position:'right', labels:{ font:{ size:11 }, boxWidth:14 } },
+        tooltip:{ callbacks:{ label: ctx => ctx.label + ': ' + ctx.parsed + '건 (' + Math.round(ctx.parsed/dropped.length*100) + '%)' } }
+      }
+    }
+  });
+
+  // ── 재원/항생제 바 차트 ──
+  const stayData = CP5.map(cp => {
+    const items = d.filter(x=>x.cpCode===cp&&x.los!==null);
+    const abxItems = d.filter(x=>x.cpCode===cp&&x.abxDays!==null);
+    const avgLos = items.length ? Math.round(items.reduce((s,x)=>s+x.los,0)/items.length*10)/10 : 0;
+    const avgAbx = abxItems.length ? Math.round(abxItems.reduce((s,x)=>s+x.abxDays,0)/abxItems.length*10)/10 : 0;
+    return { avgLos, avgAbx };
+  });
+
+  const stayLabelPlugin = {
+    id:'stayLabel',
+    afterDatasetsDraw(chart) {
+      const { ctx } = chart;
+      chart.data.datasets.forEach((ds, di) => {
+        const meta = chart.getDatasetMeta(di);
+        meta.data.forEach((bar, i) => {
+          const val = ds.data[i];
+          if (!val) return;
+          ctx.save();
+          ctx.font = 'bold 10px Noto Sans KR';
+          ctx.fillStyle = '#334155';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          ctx.fillText(val + '일', bar.x, bar.y - 2);
+          ctx.restore();
+        });
+      });
+    }
+  };
+
+  destroyChart('chartStay');
+  const ctx4 = document.getElementById('chartStay');
+  if (ctx4) charts['chartStay'] = new Chart(ctx4, {
+    type:'bar',
+    plugins:[stayLabelPlugin],
+    data:{
+      labels: CP5,
+      datasets:[
+        { label:'평균 재원일수', data:stayData.map(x=>x.avgLos), backgroundColor:'#06B6D4BB', borderRadius:4 },
+        { label:'평균 항생제(일)', data:stayData.map(x=>x.avgAbx), backgroundColor:'#10B981BB', borderRadius:4 },
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{ legend:{ labels:{ font:{ size:11 } } },
+        tooltip:{ callbacks:{ label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y + '일' } }
+      },
+      scales:{
+        y:{ ticks:{ callback:v=>v+'일', font:{ size:10 } }, grid:{ color:'#F1F5F9' } },
+        x:{ ticks:{ font:{ size:10 } } }
+      }
+    }
+  });
+}
+
+// ── 5종 CP 탭 ──
+function renderCP5Tab() {
+  const container = document.getElementById('cp5-content');
+  container.innerHTML = '';
+  CP5.forEach(cp => {
+    const items = filteredData.filter(x=>x.cpCode===cp);
+    if (!items.length) return;
+    const applied = items.filter(x=>x.cpApply).length;
+    const completed = items.filter(x=>x.cpApply&&x.complete).length;
+    const dropped = applied - completed;
+    const applyR = (applied/items.length*100).toFixed(1);
+    const completeR = applied ? (completed/applied*100).toFixed(1) : '0.0';
+    const applyBadge = parseFloat(applyR)>=80 ? '<span class="badge-ok">✓ 목표달성</span>' : '<span class="badge-ng">✗ 목표미달</span>';
+    const completeBadge = parseFloat(completeR)>=70 ? '<span class="badge-ok">✓ 목표달성</span>' : '<span class="badge-ng">✗ 목표미달</span>';
+
+    const tableId = 'cp5-table-' + cp;
+    const rows = items.map(x =>
+      `<tr>
+        <td>${x.id}</td><td>${x.name}</td><td>${x.doctor}</td>
+        <td style="font-size:11px">${x.surgery.substring(0,30)}</td>
+        <td>${x.discharge}</td>
+        <td style="text-align:center">${x.los!==null?x.los+'일':'—'}</td>
+        <td style="text-align:center">${x.cpApply?'<span class="badge-ok">적용</span>':'<span class="badge-ng">미적용</span>'}</td>
+        <td style="text-align:center">${x.cpApply?(x.complete?'<span class="badge-ok">완료</span>':'<span class="badge-ng">중단</span>'):'—'}</td>
+        <td>${x.dropReason||'—'}</td>
+        <td style="text-align:center">${x.abxDays!==null?x.abxDays+'일':'—'}</td>
+      </tr>`
+    ).join('');
+
+    const sec = document.createElement('div');
+    sec.className = 'section';
+    sec.innerHTML = `
+      <div class="section-header">
+        <span class="dot" style="background:#3B82F6"></span>
+        <b>${cp}</b>
+        <span style="font-size:11px;font-weight:400;color:#64748B">${items.length}건</span>
+        <span style="display:flex;gap:6px;align-items:center;font-size:12px;font-weight:400;flex-wrap:wrap">
+          적용률 <b>${applyR}%</b>${applyBadge}
+          완료율 <b>${completeR}%</b>${completeBadge}
+          중단 <b>${dropped}건</b>
+        </span>
+        <button class="toggle-btn" onclick="toggleTable('${tableId}')">환자 상세 보기/숨기기</button>
+      </div>
+      <div id="${tableId}" style="display:none;overflow-x:auto">
+        <table>
+          <thead><tr>
+            <th>차트번호</th><th>환자명</th><th>주치의</th><th>수술명</th>
+            <th>퇴원일</th><th>재원일수</th><th>CP적용</th><th>완료여부</th><th>중단사유</th><th>항생제(일)</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+    container.appendChild(sec);
+  });
+  if (!container.innerHTML) container.innerHTML = '<div class="empty"><div class="emoji">📂</div><p>데이터를 업로드해주세요</p></div>';
+}
+
+// ── 의사별 탭 ──
+function renderDoctorTab() {
+  const container = document.getElementById('doctor-content');
+  const doctors = [...new Set(filteredData.map(x=>x.doctor).filter(Boolean))];
+  if (!doctors.length) { container.innerHTML = '<div class="empty"><div class="emoji">📂</div><p>데이터를 업로드해주세요</p></div>'; return; }
+
+  const summaryRows = doctors.map(doc => {
+    const items = filteredData.filter(x=>x.doctor===doc);
+    const cpCells = CP5.map(cp => {
+      const sub = items.filter(x=>x.cpCode===cp);
+      if (!sub.length) return '<td style="color:#94A3B8;text-align:center;font-size:11px">—</td>';
+      const app = sub.filter(x=>x.cpApply).length;
+      const comp = sub.filter(x=>x.cpApply&&x.complete).length;
+      const ar = Math.round(app/sub.length*100);
+      const cr = app ? Math.round(comp/app*100) : 0;
+      return `<td style="text-align:center;font-size:11px"><b>${ar}%</b><br><span style="color:#64748B">${cr}%</span></td>`;
+    }).join('');
+
+    const total = items.length;
+    const applied = items.filter(x=>x.cpApply).length;
+    const completed = items.filter(x=>x.cpApply&&x.complete).length;
+    const ar = total ? Math.round(applied/total*100) : 0;
+    const cr = applied ? Math.round(completed/applied*100) : 0;
+    const tableId = 'doc-table-' + doc.replace(/\s/g,'');
+
+    const detailRows = items.map(x =>
+      `<tr>
+        <td>${x.id}</td><td>${x.name}</td><td>${x.cpCode}</td>
+        <td style="font-size:11px">${x.surgery.substring(0,25)}</td>
+        <td>${x.discharge}</td>
+        <td style="text-align:center">${x.los!==null?x.los+'일':'—'}</td>
+        <td style="text-align:center">${x.cpApply?'<span class="badge-ok">Y</span>':'<span class="badge-ng">N</span>'}</td>
+        <td style="text-align:center">${x.cpApply?(x.complete?'<span class="badge-ok">Y</span>':'<span class="badge-ng">N</span>'):'—'}</td>
+        <td>${x.dropReason||'—'}</td>
+      </tr>`
+    ).join('');
+
+    return `
+      <tr style="background:#F8FAFC">
+        <td><b>${doc}</b></td>
+        <td style="text-align:center">${total}</td>
+        <td style="text-align:center">${applied}</td>
+        <td style="text-align:center"><b>${ar}%</b> ${ar>=80?'<span class="badge-ok">✓</span>':'<span class="badge-ng">✗</span>'}</td>
+        <td style="text-align:center"><b>${cr}%</b> ${cr>=70?'<span class="badge-ok">✓</span>':'<span class="badge-ng">✗</span>'}</td>
+        ${cpCells}
+        <td><button class="toggle-btn" onclick="toggleTable('${tableId}')">상세</button></td>
+      </tr>
+      <tr id="${tableId}" style="display:none">
+        <td colspan="10" style="padding:0;background:#FAFBFD">
+          <table>
+            <thead><tr style="background:#EFF6FF">
+              <th>차트번호</th><th>환자명</th><th>CP</th><th>수술명</th>
+              <th>퇴원일</th><th>재원일수</th><th>CP적용</th><th>완료</th><th>중단사유</th>
+            </tr></thead>
+            <tbody>${detailRows}</tbody>
+          </table>
+        </td>
+      </tr>`;
+  }).join('');
+
+  container.innerHTML = `<div class="section">
+    <div class="section-header"><span class="dot" style="background:#8B5CF6"></span>의사별 CP 현황</div>
+    <div style="overflow-x:auto"><table>
+      <thead><tr>
+        <th>주치의</th><th>전체</th><th>적용</th><th>적용률</th><th>완료율</th>
+        <th>TKRA<br><small>적용/완료</small></th><th>ARCR</th><th>HWR</th><th>MENIS</th><th>VP/KP</th><th></th>
+      </tr></thead>
+      <tbody>${summaryRows}</tbody>
+    </table></div>
+  </div>`;
+}
+
+// ── 중단 분석 탭 ──
+function renderDropTab() {
+  const container = document.getElementById('drop-content');
+  const dropped = filteredData.filter(x=>x.cpApply&&!x.complete);
+  if (!dropped.length) { container.innerHTML = '<div class="empty"><div class="emoji">✅</div><p>중단 환자가 없습니다</p></div>'; return; }
+
+  const reasonMap = {};
+  dropped.forEach(x => {
+    const key = DROP_REASONS.find(k=>(x.dropReason||'').includes(k))||'기타';
+    if (!reasonMap[key]) reasonMap[key] = { total:0, items:[] };
+    reasonMap[key].total++;
+    reasonMap[key].items.push(x);
+  });
+
+  const summaryRows = Object.entries(reasonMap).sort((a,b)=>b[1].total-a[1].total).map(([r,info]) => {
+    const pct = (info.total/dropped.length*100).toFixed(1);
+    const tableId = 'drop-' + r.replace(/[^a-zA-Z가-힣]/g,'');
+    const detailRows = info.items.map(x =>
+      `<tr>
+        <td>${x.id}</td><td>${x.name}</td><td>${x.doctor}</td>
+        <td>${x.cpCode}</td><td>${x.note?x.note.substring(0,50):'—'}</td>
+      </tr>`
+    ).join('');
+    return `
+      <tr style="background:#F8FAFC">
+        <td><b>${r}</b></td>
+        <td style="text-align:center"><b>${info.total}건</b></td>
+        <td style="text-align:center">${pct}%</td>
+        <td><button class="toggle-btn" onclick="toggleTable('${tableId}')">환자 보기</button></td>
+      </tr>
+      <tr id="${tableId}" style="display:none">
+        <td colspan="4" style="padding:0;background:#FFF7F7">
+          <table>
+            <thead><tr style="background:#FEE2E2">
+              <th>차트번호</th><th>환자명</th><th>주치의</th><th>CP</th><th>비고</th>
+            </tr></thead>
+            <tbody>${detailRows}</tbody>
+          </table>
+        </td>
+      </tr>`;
+  }).join('');
+
+  container.innerHTML = `<div class="section">
+    <div class="section-header"><span class="dot" style="background:#EF4444"></span>중단 사유 분석 (총 ${dropped.length}건)</div>
+    <table>
+      <thead><tr><th>사유</th><th>건수</th><th>비율</th><th></th></tr></thead>
+      <tbody>${summaryRows}</tbody>
+    </table>
+  </div>`;
+}
+
+// ── 재원/항생제 탭 ──
+function renderStayTab() {
+  const container = document.getElementById('stay-content');
+  if (!filteredData.length) { container.innerHTML = '<div class="empty"><div class="emoji">📂</div><p>데이터를 업로드해주세요</p></div>'; return; }
+
+  const cpRows = CP5.map(cp => {
+    const items = filteredData.filter(x=>x.cpCode===cp);
+    if (!items.length) return '';
+    const losItems = items.filter(x=>x.los!==null);
+    const abxItems = items.filter(x=>x.abxDays!==null);
+    const avgLos = losItems.length ? (losItems.reduce((s,x)=>s+x.los,0)/losItems.length).toFixed(1) : '—';
+    const avgAbx = abxItems.length ? (abxItems.reduce((s,x)=>s+x.abxDays,0)/abxItems.length).toFixed(1) : '—';
+    const minLos = losItems.length ? Math.min(...losItems.map(x=>x.los)) : '—';
+    const maxLos = losItems.length ? Math.max(...losItems.map(x=>x.los)) : '—';
+    return `<tr>
+      <td><b>${cp}</b></td>
+      <td style="text-align:center">${items.length}</td>
+      <td style="text-align:center"><b>${avgLos}일</b></td>
+      <td style="text-align:center">${minLos}일</td>
+      <td style="text-align:center">${maxLos}일</td>
+      <td style="text-align:center"><b>${avgAbx}일</b></td>
+    </tr>`;
+  }).join('');
+
+  const doctors = [...new Set(filteredData.map(x=>x.doctor).filter(Boolean))];
+  const docRows = doctors.map(doc => {
+    const items = filteredData.filter(x=>x.doctor===doc&&x.los!==null);
+    const abxItems = filteredData.filter(x=>x.doctor===doc&&x.abxDays!==null);
+    const avgLos = items.length ? (items.reduce((s,x)=>s+x.los,0)/items.length).toFixed(1) : '—';
+    const avgAbx = abxItems.length ? (abxItems.reduce((s,x)=>s+x.abxDays,0)/abxItems.length).toFixed(1) : '—';
+    return `<tr>
+      <td><b>${doc}</b></td>
+      <td style="text-align:center">${items.length}</td>
+      <td style="text-align:center"><b>${avgLos}일</b></td>
+      <td style="text-align:center"><b>${avgAbx}일</b></td>
+    </tr>`;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="chart-grid">
+      <div class="section">
+        <div class="section-header"><span class="dot" style="background:#06B6D4"></span>질환별 평균 재원 / 항생제</div>
+        <table>
+          <thead><tr><th>CP</th><th>건수</th><th>평균 재원</th><th>최소</th><th>최대</th><th>평균 항생제</th></tr></thead>
+          <tbody>${cpRows}</tbody>
+        </table>
+      </div>
+      <div class="section">
+        <div class="section-header"><span class="dot" style="background:#10B981"></span>의사별 평균 재원 / 항생제</div>
+        <table>
+          <thead><tr><th>주치의</th><th>건수</th><th>평균 재원</th><th>평균 항생제</th></tr></thead>
+          <tbody>${docRows}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+// ── 원시데이터 탭 ──
+function renderRawTab() {
+  const thead = document.querySelector('#rawTable thead');
+  const tbody = document.querySelector('#rawTable tbody');
+  document.getElementById('raw-count').textContent = filteredData.length + '건';
+  thead.innerHTML = '<tr><th>차트번호</th><th>환자명</th><th>주치의</th><th>CP코드</th><th>퇴원일</th><th>재원일수</th><th>CP적용</th><th>완료</th><th>중단사유</th><th>항생제(일)</th></tr>';
+  tbody.innerHTML = filteredData.map(x =>
+    `<tr>
+      <td>${x.id}</td><td>${x.name}</td><td>${x.doctor}</td><td>${x.cpCode}</td>
+      <td>${x.discharge}</td>
+      <td style="text-align:center">${x.los!==null?x.los:'—'}</td>
+      <td style="text-align:center">${x.cpApply?'<span class="badge-ok">Y</span>':'<span class="badge-ng">N</span>'}</td>
+      <td style="text-align:center">${x.cpApply?(x.complete?'<span class="badge-ok">Y</span>':'<span class="badge-ng">N</span>'):'—'}</td>
+      <td>${x.dropReason||'—'}</td>
+      <td style="text-align:center">${x.abxDays!==null?x.abxDays:'—'}</td>
+    </tr>`
+  ).join('');
+}
+
+// ── 테이블 토글 ──
+function toggleTable(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.display = el.style.display === 'none' ? '' : 'none';
+}
+
+// ── 탭 전환 ──
+function showTab(name, el) {
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('pane-'+name).classList.add('active');
+  if (el) el.classList.add('active');
+}
+
+// ── AI 보고서 ──
+async function generateReport() {
+  if (!filteredData.length) { alert('먼저 데이터를 업로드해주세요.'); return; }
+  const panel = document.getElementById('aiPanel');
+  const textEl = document.getElementById('aiText');
+  panel.style.display = 'block';
+  textEl.textContent = '분석 중입니다...';
+
+  const d = filteredData;
+  const total = d.length;
+  const applied = d.filter(x=>x.cpApply).length;
+  const completed = d.filter(x=>x.cpApply&&x.complete).length;
+  const dropped = applied - completed;
+  const applyR = (applied/total*100).toFixed(1);
+  const completeR = applied ? (completed/applied*100).toFixed(1) : '0.0';
+
+  const cp5Lines = CP5.map(cp => {
+    const items = d.filter(x=>x.cpCode===cp);
+    if (!items.length) return null;
+    const app = items.filter(x=>x.cpApply).length;
+    const comp = items.filter(x=>x.cpApply&&x.complete).length;
+    return `  - ${cp}: ${items.length}건, 적용률 ${(app/items.length*100).toFixed(1)}%, 완료율 ${app?(comp/app*100).toFixed(1):'0.0'}%`;
+  }).filter(Boolean).join('\n');
+
+  const reasonMap = {};
+  d.filter(x=>x.cpApply&&!x.complete).forEach(x => {
+    const key = DROP_REASONS.find(k=>(x.dropReason||'').includes(k))||'기타';
+    reasonMap[key] = (reasonMap[key]||0)+1;
+  });
+  const reasonLines = Object.entries(reasonMap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`  - ${k}: ${v}건`).join('\n');
+
+  const hospital = document.getElementById('hospitalName')?.textContent.trim() || '병원';
+  const period = currentPeriod;
+
+  const prompt = `당신은 병원 QPS팀 CP 모니터링 전문 분석가입니다.
+${hospital} 2026년 ${period} CP 모니터링 결과로 보고서 본문을 작성해주세요.
+
+## 전체 현황
+- 대상: ${total}건 / 적용: ${applied}건(${applyR}%) / 완료: ${completed}건(${completeR}%) / 중단: ${dropped}건
+
+## 질환별
+${cp5Lines}
+
+## 중단 사유
+${reasonLines||'없음'}
+
+## 조건
+1. 개요→총괄→질환별→중단사유→향후계획 순서
+2. 적용률 목표 80%, 완료율 목표 70% 달성 여부 명시
+3. 수치 구체적으로 포함, 전문적이되 간결하게
+4. 본문만 작성 (제목 불필요)`;
+
+  try {
+    const res = await fetch('/api/claude', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:1000, messages:[{role:'user',content:prompt}] })
+    });
+    const data = await res.json();
+    textEl.textContent = data.content?.[0]?.text || data.choices?.[0]?.message?.content || '응답 없음';
+  } catch(err) {
+    textEl.textContent = '⚠️ 오류: ' + err.message;
+  }
+}
+
+function saveInfo() {
+  const h = document.getElementById('hospitalName')?.textContent.trim();
+  const d = document.getElementById('deptName')?.textContent.trim();
+  if (h) localStorage.setItem('cp_hospital', h);
+  if (d) localStorage.setItem('cp_dept', d);
+}
+
+window.onload = () => {
+  const h = localStorage.getItem('cp_hospital');
+  const d = localStorage.getItem('cp_dept');
+  if (h) document.getElementById('hospitalName').textContent = h;
+  if (d) document.getElementById('deptName').textContent = d;
+  toggleUpload();
+};
+</script>
+</body>
+</html>

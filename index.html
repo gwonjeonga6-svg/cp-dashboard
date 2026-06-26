@@ -119,21 +119,60 @@ tr:hover td { background:#FAFBFD; }
 /* 인쇄 — 세로 A4 */
 @media print {
   * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
-  .upload-panel, .tabs, .btn-ai, .btn-print, .toggle-btn, #aiPanel { display:none !important; }
+
+  /* 숨김 처리 */
+  .upload-panel, .tabs, .btn-ai, .btn-print, .toggle-btn,
+  .period-bar, #aiPanel { display:none !important; }
+
   body { background:#fff; font-size:11px; }
   .header { background:#1B3A6B !important; padding:10px 20px; }
   .pane { display:none !important; }
   .pane.active { display:block !important; }
-  .content { padding:10px 14px; }
-  .summary { grid-template-columns:repeat(5,1fr); gap:8px; }
+  .content { padding:8px 14px; }
+
+  /* 카드 */
+  .summary { grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:12px; }
   .card { box-shadow:none; border:1px solid #E2E8F0; padding:10px; }
-  .card .val { font-size:20px; }
-  .chart-grid { grid-template-columns:1fr; gap:10px; }
-  .chart-box { box-shadow:none; border:1px solid #E2E8F0; padding:12px; page-break-inside:avoid; }
+  .card .val { font-size:18px; }
+
+  /* ── 1페이지: AI요약 + 카드 ── */
+  #print-page1 { display:block !important; page-break-after:always; }
+
+  /* ── 2페이지: 그래프 2개 나란히 ── */
+  #print-page2 {
+    display:grid !important;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    page-break-after:always;
+  }
+  #print-page2 .chart-box {
+    box-shadow:none; border:1px solid #E2E8F0;
+    padding:12px; break-inside:avoid;
+  }
+  #print-page2 canvas { max-height:240px !important; }
+
+  /* ── 3페이지: 도넛 + 중단 표 나란히 ── */
+  #print-page3 {
+    display:grid !important;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  #print-page3 .chart-box {
+    box-shadow:none; border:1px solid #E2E8F0; padding:12px;
+  }
+  #print-page3 canvas { max-height:260px !important; }
+  #print-page3 .section {
+    box-shadow:none; border:1px solid #E2E8F0;
+  }
+
+  /* 나머지 chart-grid 숨김 */
+  .chart-grid { display:none !important; }
+
   .section { box-shadow:none; border:1px solid #E2E8F0; page-break-inside:avoid; }
   table { font-size:10px; }
   th { font-size:10px; padding:6px 8px; }
   td { padding:5px 8px; font-size:10px; }
+
   @page { size:A4 portrait; margin:12mm; }
 }
 </style>
@@ -198,7 +237,7 @@ tr:hover td { background:#FAFBFD; }
 </div>
 
 <!-- 기간 버튼 -->
-<div style="background:#fff;border-bottom:1px solid #E2E8F0;padding:10px 32px;">
+<div class="period-bar" style="background:#fff;border-bottom:1px solid #E2E8F0;padding:10px 32px;">
   <div class="period-btns">
     <span>기간:</span>
     <button class="pbtn pbtn-active" onclick="selectPeriod('전체',this)">전체</button>
@@ -248,7 +287,60 @@ tr:hover td { background:#FAFBFD; }
 
   <!-- 종합현황 -->
   <div class="pane active" id="pane-overview">
-    <div class="summary">
+
+    <!-- ── 인쇄 1페이지: AI요약 + 카드 ── -->
+    <div id="print-page1" style="display:none">
+      <div style="background:linear-gradient(135deg,#EFF6FF,#F0FDF4);border:1px solid #DBEAFE;border-radius:10px;padding:14px 18px;margin-bottom:14px;">
+        <div style="font-size:11px;font-weight:700;color:#1B3A6B;margin-bottom:8px;">✨ AI CP 모니터링 보고서</div>
+        <div id="print-ai-text" style="font-size:11px;color:#1E293B;line-height:1.7;white-space:pre-wrap;outline:none;cursor:text;" contenteditable="true">AI 보고서를 생성한 후 출력하면 여기에 내용이 표시됩니다.</div>
+      </div>
+      <div class="summary">
+        <div class="card c1"><div class="val" id="p1-total">—</div><div class="lbl">전체 대상 건수</div></div>
+        <div class="card c4"><div class="val" id="p1-apply">—</div><div class="lbl">CP 적용 건수</div></div>
+        <div class="card c2">
+          <div class="val" id="p1-applyR">—</div><div class="lbl">적용률</div>
+          <div class="goal-bar-wrap">
+            <div class="goal-bar-bg"><div class="goal-bar-fill" id="p1-bar-apply" style="width:0%;background:#16A34A"></div></div>
+            <div class="goal-label"><span>0%</span><span>목표 80%</span></div>
+          </div>
+        </div>
+        <div class="card c2">
+          <div class="val" id="p1-completeR">—</div><div class="lbl">완료율</div>
+          <div class="goal-bar-wrap">
+            <div class="goal-bar-bg"><div class="goal-bar-fill" id="p1-bar-complete" style="width:0%;background:#2563EB"></div></div>
+            <div class="goal-label"><span>0%</span><span>목표 70%</span></div>
+          </div>
+        </div>
+        <div class="card c3"><div class="val" id="p1-drop">—</div><div class="lbl">중단 건수</div><div class="sub" id="p1-dropR">—</div></div>
+      </div>
+    </div>
+
+    <!-- ── 인쇄 2페이지: 그래프 2개 나란히 ── -->
+    <div id="print-page2" style="display:none">
+      <div class="chart-box">
+        <h4>📈 질환별 적용률 / 완료율</h4>
+        <canvas id="printChartCP5"></canvas>
+      </div>
+      <div class="chart-box">
+        <h4>👨‍⚕️ 의사별 적용률 / 완료율</h4>
+        <canvas id="printChartDoctor"></canvas>
+      </div>
+    </div>
+
+    <!-- ── 인쇄 3페이지: 도넛 + 중단 표 ── -->
+    <div id="print-page3" style="display:none">
+      <div class="chart-box">
+        <h4>⚠️ 중단 사유 분포</h4>
+        <canvas id="printChartDrop"></canvas>
+      </div>
+      <div class="section">
+        <div class="section-header"><span class="dot" style="background:#EF4444"></span>중단 사유 상세</div>
+        <div id="print-drop-table"></div>
+      </div>
+    </div>
+
+    <!-- ── 화면용 (인쇄 시 숨김) ── -->
+    <div class="summary no-print-hide">
       <div class="card c1"><div class="val" id="ov-total">—</div><div class="lbl">전체 대상 건수</div></div>
       <div class="card c4"><div class="val" id="ov-apply">—</div><div class="lbl">CP 적용 건수</div></div>
       <div class="card c2">
@@ -539,7 +631,22 @@ function renderAll() {
     if (b2) b2.style.width = Math.min(parseFloat(completeR),100) + '%';
   }, 100);
 
+  // 인쇄용 1페이지 카드 동기화
+  ['p1-total','p1-apply','p1-applyR','p1-completeR','p1-drop','p1-dropR'].forEach(id => {
+    const src = id.replace('p1-','ov-');
+    const el = document.getElementById(id);
+    const srcEl = document.getElementById(src);
+    if (el && srcEl) el.textContent = srcEl.textContent;
+  });
+  setTimeout(() => {
+    const b1 = document.getElementById('p1-bar-apply');
+    const b2 = document.getElementById('p1-bar-complete');
+    if (b1) b1.style.width = Math.min(parseFloat(applyR),100) + '%';
+    if (b2) b2.style.width = Math.min(parseFloat(completeR),100) + '%';
+  }, 200);
+
   renderCharts();
+  renderPrintCharts();
   renderCP5Tab();
   renderDoctorTab();
   renderDropTab();
@@ -989,7 +1096,173 @@ function renderRawTab() {
   ).join('');
 }
 
-// ── 테이블 토글 ──
+// ── 도넛 중앙 숫자 플러그인 ──
+const doughnutCenterPlugin = {
+  id:'doughnutCenter',
+  afterDraw(chart) {
+    if (chart.config.type !== 'doughnut') return;
+    const { ctx, chartArea:{ left, right, top, bottom } } = chart;
+    const cx = (left + right) / 2;
+    const cy = (top + bottom) / 2;
+    const total = chart.data.datasets[0].data.reduce((s,v) => s+v, 0);
+    ctx.save();
+    ctx.font = 'bold 18px Noto Sans KR, sans-serif';
+    ctx.fillStyle = '#1E293B';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(total + '건', cx, cy - 8);
+    ctx.font = '11px Noto Sans KR, sans-serif';
+    ctx.fillStyle = '#64748B';
+    ctx.fillText('중단 합계', cx, cy + 12);
+    ctx.restore();
+  }
+};
+
+// ── 인쇄용 차트 렌더링 ──
+function renderPrintCharts() {
+  const d = filteredData;
+  const pieColors = ['#EF4444','#F97316','#EAB308','#22C55E','#3B82F6','#8B5CF6'];
+
+  // CP5 인쇄용
+  const cp5Data = CP5.map(cp => {
+    const items = d.filter(x=>x.cpCode===cp);
+    const applied = items.filter(x=>x.cpApply).length;
+    const completed = items.filter(x=>x.cpApply&&x.complete).length;
+    return {
+      total: items.length,
+      applyR: items.length ? Math.round(applied/items.length*100) : 0,
+      completeR: applied ? Math.round(completed/applied*100) : 0,
+    };
+  });
+
+  destroyChart('printChartCP5');
+  const ctx1 = document.getElementById('printChartCP5');
+  if (ctx1) charts['printChartCP5'] = new Chart(ctx1, {
+    type:'bar', plugins:[dataLabelPlugin],
+    data:{
+      labels: CP5.map((c,i)=>c+'\n('+cp5Data[i].total+'건)'),
+      datasets:[
+        { label:'적용률(%)', data:cp5Data.map(x=>x.applyR), backgroundColor:'#3B82F6BB', borderRadius:4 },
+        { label:'완료율(%)', data:cp5Data.map(x=>x.completeR), backgroundColor:'#EF4444BB', borderRadius:4 },
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{ legend:{ labels:{ font:{ size:10 } } } },
+      scales:{
+        y:{ max:100, ticks:{ callback:v=>v+'%', font:{ size:9 } }, grid:{ color:'#F1F5F9' } },
+        x:{ ticks:{ font:{ size:9 } } }
+      }
+    }
+  });
+
+  // 의사별 인쇄용
+  const doctors = [...new Set(d.map(x=>x.doctor).filter(Boolean))];
+  const docData = doctors.map(doc => {
+    const items = d.filter(x=>x.doctor===doc);
+    const applied = items.filter(x=>x.cpApply).length;
+    const completed = items.filter(x=>x.cpApply&&x.complete).length;
+    return {
+      doc, total:items.length,
+      applyR: items.length ? Math.round(applied/items.length*100) : 0,
+      completeR: applied ? Math.round(completed/applied*100) : 0,
+    };
+  });
+
+  destroyChart('printChartDoctor');
+  const ctx2 = document.getElementById('printChartDoctor');
+  if (ctx2) charts['printChartDoctor'] = new Chart(ctx2, {
+    type:'bar', plugins:[dataLabelPlugin],
+    data:{
+      labels: docData.map(x=>x.doc+'\n('+x.total+'건)'),
+      datasets:[
+        { label:'적용률(%)', data:docData.map(x=>x.applyR), backgroundColor:'#8B5CF6BB', borderRadius:4 },
+        { label:'완료율(%)', data:docData.map(x=>x.completeR), backgroundColor:'#F59E0BBB', borderRadius:4 },
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{ legend:{ labels:{ font:{ size:10 } } } },
+      scales:{
+        y:{ max:100, ticks:{ callback:v=>v+'%', font:{ size:9 } }, grid:{ color:'#F1F5F9' } },
+        x:{ ticks:{ font:{ size:9 } } }
+      }
+    }
+  });
+
+  // 도넛 인쇄용 (중앙 숫자 포함)
+  const dropped = d.filter(x=>x.cpApply&&!x.complete);
+  const reasonMap = {};
+  dropped.forEach(x => {
+    const key = DROP_REASONS.find(k=>(x.dropReason||'').includes(k))||'기타';
+    reasonMap[key] = (reasonMap[key]||0)+1;
+  });
+  const rKeys = Object.keys(reasonMap);
+
+  destroyChart('printChartDrop');
+  const ctx3 = document.getElementById('printChartDrop');
+  if (ctx3) charts['printChartDrop'] = new Chart(ctx3, {
+    type:'doughnut',
+    plugins:[doughnutCenterPlugin],
+    data:{
+      labels: rKeys.map(k=>k+' ('+reasonMap[k]+'건, '+Math.round(reasonMap[k]/dropped.length*100)+'%)'),
+      datasets:[{ data:rKeys.map(k=>reasonMap[k]), backgroundColor:pieColors.slice(0,rKeys.length) }]
+    },
+    options:{
+      responsive:true,
+      cutout:'55%',
+      plugins:{
+        legend:{ position:'bottom', labels:{ font:{ size:10 }, boxWidth:12, padding:10 } },
+        tooltip:{ callbacks:{ label: ctx => ctx.label } }
+      }
+    }
+  });
+
+  // 중단 표 인쇄용
+  const tableEl = document.getElementById('print-drop-table');
+  if (tableEl) {
+    const rows = Object.entries(reasonMap).sort((a,b)=>b[1]-a[1]).map(([r,v]) => {
+      // 질환별 분석
+      const cpBreak = CP5.map(cp => {
+        const cnt = dropped.filter(x=>x.cpCode===cp&&DROP_REASONS.find(k=>(x.dropReason||'').includes(k))===r||(r==='기타'&&!DROP_REASONS.slice(0,-1).some(k=>(x.dropReason||'').includes(k)))&&x.cpCode===cp).length;
+        return cnt > 0 ? cp+' '+cnt : null;
+      }).filter(Boolean).join(', ');
+      return `<tr>
+        <td><b>${r}</b></td>
+        <td style="text-align:center">${v}건</td>
+        <td style="text-align:center">${Math.round(v/dropped.length*100)}%</td>
+        <td style="font-size:10px;color:#64748B">${cpBreak||'—'}</td>
+      </tr>`;
+    }).join('');
+    tableEl.innerHTML = `<table>
+      <thead><tr><th>사유</th><th>건수</th><th>비율</th><th>질환별</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+  }
+}
+
+// ── 인쇄 전 처리 ──
+window.onbeforeprint = () => {
+  document.getElementById('print-page1').style.display = 'block';
+  document.getElementById('print-page2').style.display = 'grid';
+  document.getElementById('print-page3').style.display = 'grid';
+  document.querySelector('.no-print-hide').style.display = 'none';
+  document.querySelectorAll('.chart-grid').forEach(el => el.style.display = 'none');
+  // AI 텍스트 동기화
+  const aiSrc = document.getElementById('aiText');
+  const aiDst = document.getElementById('print-ai-text');
+  if (aiSrc && aiDst && aiSrc.textContent.trim() && aiSrc.textContent !== '분석 중입니다...') {
+    aiDst.textContent = aiSrc.textContent;
+  }
+};
+
+window.onafterprint = () => {
+  document.getElementById('print-page1').style.display = 'none';
+  document.getElementById('print-page2').style.display = 'none';
+  document.getElementById('print-page3').style.display = 'none';
+  document.querySelector('.no-print-hide').style.display = '';
+  document.querySelectorAll('.chart-grid').forEach(el => el.style.display = '');
+};
 function toggleTable(id) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -1063,6 +1336,9 @@ ${reasonLines||'없음'}
     });
     const data = await res.json();
     textEl.textContent = data.content?.[0]?.text || data.choices?.[0]?.message?.content || '응답 없음';
+    // 인쇄용 텍스트 동기화
+    const printAi = document.getElementById('print-ai-text');
+    if (printAi) printAi.textContent = textEl.textContent;
   } catch(err) {
     textEl.textContent = '⚠️ 오류: ' + err.message;
   }

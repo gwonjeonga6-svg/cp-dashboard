@@ -135,10 +135,12 @@ tr:hover td { background:#FAFBFD; }
   .card { box-shadow:none; border:1px solid #E2E8F0; padding:10px; }
   .card .val { font-size:18px; }
 
-  /* ── 1페이지: AI요약 + 카드 ── */
+  /* 인쇄용 페이지: 평소엔 화면 밖에 숨기고, 인쇄 시만 표시 */
+  #print-page1, #print-page2, #print-page3 {
+    position:absolute; left:-9999px; top:0;
+    width:210mm; visibility:hidden;
+  }
   #print-page1 { display:block !important; page-break-after:always; }
-
-  /* ── 2페이지: 그래프 2개 나란히 ── */
   #print-page2 {
     display:grid !important;
     grid-template-columns:1fr 1fr;
@@ -165,8 +167,15 @@ tr:hover td { background:#FAFBFD; }
     box-shadow:none; border:1px solid #E2E8F0;
   }
 
-  /* 나머지 chart-grid 숨김 */
-  .chart-grid { display:none !important; }
+  /* 인쇄 시 위치 복원 */
+  #print-page1, #print-page2, #print-page3 {
+    position:static !important;
+    left:auto !important;
+    visibility:visible !important;
+    width:auto !important;
+  }
+  #print-page2, #print-page3 { display:grid !important; }
+  .no-print-hide, .chart-grid { display:none !important; }
 
   .section { box-shadow:none; border:1px solid #E2E8F0; page-break-inside:avoid; }
   table { font-size:10px; }
@@ -289,7 +298,7 @@ tr:hover td { background:#FAFBFD; }
   <div class="pane active" id="pane-overview">
 
     <!-- ── 인쇄 1페이지: AI요약 + 카드 ── -->
-    <div id="print-page1" style="display:none">
+    <div id="print-page1">
       <div style="background:linear-gradient(135deg,#EFF6FF,#F0FDF4);border:1px solid #DBEAFE;border-radius:10px;padding:14px 18px;margin-bottom:14px;">
         <div style="font-size:11px;font-weight:700;color:#1B3A6B;margin-bottom:8px;">✨ AI CP 모니터링 보고서</div>
         <div id="print-ai-text" style="font-size:11px;color:#1E293B;line-height:1.7;white-space:pre-wrap;outline:none;cursor:text;" contenteditable="true">AI 보고서를 생성한 후 출력하면 여기에 내용이 표시됩니다.</div>
@@ -316,7 +325,7 @@ tr:hover td { background:#FAFBFD; }
     </div>
 
     <!-- ── 인쇄 2페이지: 그래프 2개 나란히 ── -->
-    <div id="print-page2" style="display:none">
+    <div id="print-page2" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
       <div class="chart-box">
         <h4>📈 질환별 적용률 / 완료율</h4>
         <canvas id="printChartCP5"></canvas>
@@ -328,7 +337,7 @@ tr:hover td { background:#FAFBFD; }
     </div>
 
     <!-- ── 인쇄 3페이지: 도넛 + 중단 표 ── -->
-    <div id="print-page3" style="display:none">
+    <div id="print-page3" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
       <div class="chart-box">
         <h4>⚠️ 중단 사유 분포</h4>
         <canvas id="printChartDrop"></canvas>
@@ -1245,37 +1254,14 @@ function renderPrintCharts() {
 
 // ── 인쇄 처리 ──
 function doPrint() {
-  // 인쇄용 페이지 표시
-  document.getElementById('print-page1').style.display = 'block';
-  document.getElementById('print-page2').style.display = 'grid';
-  document.getElementById('print-page3').style.display = 'grid';
-  const noprint = document.querySelector('.no-print-hide');
-  if (noprint) noprint.style.display = 'none';
-  document.querySelectorAll('.chart-grid').forEach(el => el.style.display = 'none');
-
   // AI 텍스트 동기화
   const aiSrc = document.getElementById('aiText');
   const aiDst = document.getElementById('print-ai-text');
   if (aiSrc && aiDst && aiSrc.textContent.trim() && !aiSrc.textContent.includes('분석 중')) {
     aiDst.textContent = aiSrc.textContent;
   }
-
-  // 차트 렌더링 완료 후 인쇄
-  setTimeout(() => {
-    window.print();
-    // 인쇄 후 복원
-    setTimeout(() => {
-      document.getElementById('print-page1').style.display = 'none';
-      document.getElementById('print-page2').style.display = 'none';
-      document.getElementById('print-page3').style.display = 'none';
-      if (noprint) noprint.style.display = '';
-      document.querySelectorAll('.chart-grid').forEach(el => el.style.display = '');
-    }, 500);
-  }, 800);
+  setTimeout(() => window.print(), 300);
 }
-
-window.onbeforeprint = () => {};
-window.onafterprint = () => {};
 function toggleTable(id) {
   const el = document.getElementById(id);
   if (!el) return;

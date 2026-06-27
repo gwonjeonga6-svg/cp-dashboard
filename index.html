@@ -10,17 +10,14 @@
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:'Noto Sans KR','맑은 고딕',sans-serif; background:#F0F4F8; color:#1E293B; font-size:14px; }
 
-.header {
-  background:linear-gradient(135deg,#1B3A6B 0%,#1E5FA8 100%);
-  color:#fff; padding:18px 32px;
-  display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;
-}
+/* 헤더 */
+.header { background:linear-gradient(135deg,#1B3A6B 0%,#1E5FA8 100%); color:#fff; padding:18px 32px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
 .header-left h1 { font-size:20px; font-weight:700; }
 .header-left .sub { font-size:12px; color:#A8C4E8; margin-top:3px; }
 .header-right { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
 .hbadge { background:rgba(255,255,255,0.15); border-radius:10px; padding:8px 16px; text-align:center; min-width:80px; }
 .hbadge .num { font-size:20px; font-weight:700; }
-.hbadge .lbl { font-size:11px; color:#A8C4E8; margin-top:1px; }
+.hbadge .lbl { font-size:11px; color:#A8C4E8; }
 .hbadge.ok .num { color:#6EE7B7; }
 .hbadge.ng .num { color:#FCA5A5; }
 .hbadge.bl .num { color:#93C5FD; }
@@ -32,25 +29,24 @@ body { font-family:'Noto Sans KR','맑은 고딕',sans-serif; background:#F0F4F8
 .upload-toggle.open .arrow { transform:rotate(90deg); }
 .upload-body { display:none; padding:12px 0 18px; }
 .upload-body.show { display:block; }
+#dropZone { display:block; border:2px dashed #CBD5E1; border-radius:10px; padding:24px; text-align:center; cursor:pointer; transition:all .2s; background:#FAFBFD; }
+#dropZone:hover, #dropZone.dragover { border-color:#1B3A6B; background:#EFF6FF; }
+.upload-status { font-size:12px; margin-top:6px; display:none; }
 
 /* 기간 버튼 */
-.period-btns { display:flex; gap:5px; margin-bottom:12px; align-items:center; flex-wrap:wrap; }
+.period-bar { background:#fff; border-bottom:1px solid #E2E8F0; padding:8px 32px; }
+.period-btns { display:flex; gap:5px; align-items:center; flex-wrap:wrap; }
 .period-btns span { font-size:12px; color:#64748B; margin-right:2px; }
-.pbtn { padding:5px 11px; border-radius:6px; border:1px solid #E2E8F0; font-size:12px; cursor:pointer; color:#64748B; background:#fff; font-family:inherit; transition:all .15s; }
+.pbtn { padding:5px 11px; border-radius:6px; border:1px solid #E2E8F0; font-size:12px; cursor:pointer; color:#64748B; background:#fff; font-family:inherit; }
 .pbtn:hover { border-color:#1B3A6B; color:#1B3A6B; }
 .pbtn-active { background:#1B3A6B !important; color:#fff !important; border-color:#1B3A6B !important; font-weight:700; }
-
-#dropZone { display:block; border:2px dashed #CBD5E1; border-radius:10px; padding:24px; text-align:center; cursor:pointer; transition:all .2s; background:#FAFBFD; }
-#dropZone:hover { border-color:#1B3A6B; background:#EFF6FF; }
-.upload-status { font-size:12px; margin-top:6px; display:none; }
-.upload-help { font-size:11px; color:#94A3B8; margin-top:6px; line-height:1.6; }
 
 /* 탭 */
 .tabs { background:#fff; border-bottom:2px solid #E2E8F0; display:flex; padding:0 32px; overflow-x:auto; justify-content:space-between; align-items:center; }
 .tab { padding:13px 16px; font-size:13px; cursor:pointer; color:#64748B; border-bottom:3px solid transparent; margin-bottom:-2px; white-space:nowrap; }
 .tab.active { color:#1B3A6B; border-bottom-color:#1B3A6B; font-weight:700; }
 .tab:hover:not(.active) { color:#1B3A6B; background:#F8FAFC; }
-.btn-ai { background:#1B3A6B; color:#fff; border:none; border-radius:7px; padding:7px 16px; font-size:12px; cursor:pointer; font-family:inherit; white-space:nowrap; }
+.btn-ai { background:#1B3A6B; color:#fff; border:none; border-radius:7px; padding:7px 16px; font-size:12px; cursor:pointer; font-family:inherit; }
 .btn-print { background:#F1F5F9; border:1px solid #E2E8F0; color:#475569; border-radius:7px; padding:7px 14px; font-size:12px; cursor:pointer; font-family:inherit; }
 
 /* 컨텐츠 */
@@ -59,33 +55,24 @@ body { font-family:'Noto Sans KR','맑은 고딕',sans-serif; background:#F0F4F8
 .pane.active { display:block; }
 
 /* 카드 */
-.summary { display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:20px; }
-.card { background:#fff; border-radius:12px; padding:18px 20px; box-shadow:0 1px 3px rgba(0,0,0,.07); }
-.card .val { font-size:28px; font-weight:700; margin-bottom:2px; }
+.summary { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:16px; }
+.card { background:#fff; border-radius:12px; padding:16px 18px; box-shadow:0 1px 3px rgba(0,0,0,.07); }
+.card .val { font-size:26px; font-weight:700; margin-bottom:2px; }
 .card .lbl { font-size:12px; color:#64748B; }
 .card .sub { font-size:11px; color:#94A3B8; margin-top:2px; }
 .card.c1 .val { color:#1B3A6B; }
 .card.c2 .val { color:#16A34A; }
 .card.c3 .val { color:#DC2626; }
 .card.c4 .val { color:#2563EB; }
-.card.c5 .val { color:#7C3AED; }
-
-.goal-bar-wrap { margin-top:8px; }
+.goal-bar-wrap { margin-top:6px; }
 .goal-bar-bg { background:#E2E8F0; border-radius:99px; height:6px; overflow:hidden; }
-.goal-bar-fill { height:100%; border-radius:99px; transition:width 1s ease; }
-.goal-label { display:flex; justify-content:space-between; font-size:10px; color:#94A3B8; margin-top:3px; }
+.goal-bar-fill { height:100%; border-radius:99px; transition:width 1s; }
+.goal-label { display:flex; justify-content:space-between; font-size:10px; color:#94A3B8; margin-top:2px; }
 
 /* 섹션 */
-.section { background:#fff; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,.07); margin-bottom:16px; overflow:hidden; }
-.section-header { padding:13px 18px; font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px; border-bottom:1px solid #F1F5F9; flex-wrap:wrap; }
+.section { background:#fff; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,.07); margin-bottom:14px; overflow:hidden; }
+.section-header { padding:12px 18px; font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px; border-bottom:1px solid #F1F5F9; flex-wrap:wrap; }
 .dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
-
-/* 차트 그리드 */
-.chart-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
-.chart-box { background:#fff; border-radius:12px; padding:18px; box-shadow:0 1px 3px rgba(0,0,0,.07); }
-.chart-box h4 { font-size:13px; font-weight:700; color:#1E293B; margin-bottom:14px; }
-
-/* 테이블 */
 table { width:100%; border-collapse:collapse; font-size:12.5px; }
 th { background:#F8FAFC; color:#64748B; font-weight:600; padding:9px 13px; text-align:left; border-bottom:1px solid #E2E8F0; white-space:nowrap; }
 td { padding:9px 13px; border-bottom:1px solid #F8FAFC; vertical-align:middle; }
@@ -93,100 +80,105 @@ tr:last-child td { border-bottom:none; }
 tr:hover td { background:#FAFBFD; }
 .badge-ok { background:#DCFCE7; color:#16A34A; border-radius:5px; padding:2px 8px; font-size:11px; font-weight:700; }
 .badge-ng { background:#FEE2E2; color:#DC2626; border-radius:5px; padding:2px 8px; font-size:11px; font-weight:700; }
-.badge-na { background:#F1F5F9; color:#94A3B8; border-radius:5px; padding:2px 8px; font-size:11px; font-weight:700; }
-
-/* 토글 버튼 */
 .toggle-btn { background:#F1F5F9; border:1px solid #E2E8F0; color:#475569; border-radius:6px; padding:4px 12px; font-size:11px; cursor:pointer; font-family:inherit; margin-left:auto; }
-.toggle-btn:hover { background:#E2E8F0; }
-
-/* AI 패널 */
-#aiPanel { display:none; background:linear-gradient(135deg,#EFF6FF,#F0FDF4); border-bottom:1px solid #DBEAFE; padding:12px 32px; }
-#aiPanel .ai-title { font-size:11px; font-weight:700; color:#1B3A6B; margin-bottom:8px; }
-#aiText { font-size:12px; color:#1E293B; line-height:1.6; white-space:pre-wrap; outline:none; min-height:60px; background:#fff; border-radius:8px; padding:10px 12px; border:1px solid #DBEAFE; cursor:text; user-select:text; }
-
-/* 빈 상태 */
+.chart-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+.chart-box { background:#fff; border-radius:12px; padding:16px 18px; box-shadow:0 1px 3px rgba(0,0,0,.07); }
+.chart-box h4 { font-size:13px; font-weight:700; margin-bottom:12px; color:#1E293B; }
 .empty { text-align:center; padding:60px 20px; color:#94A3B8; }
 .empty .emoji { font-size:40px; margin-bottom:12px; }
+
+/* ── 보고서 스타일 ── */
+.rpt-section {
+  background:#fff; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,.07);
+  margin-bottom:16px; padding:22px 28px;
+}
+.rpt-title {
+  font-size:15px; font-weight:700; color:#1B3A6B;
+  border-bottom:2px solid #1B3A6B; padding-bottom:8px; margin-bottom:16px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.rpt-sub { font-size:13px; font-weight:700; color:#334155; margin:14px 0 8px; }
+.rpt-analysis {
+  background:#F8FAFC; border-left:3px solid #1B3A6B;
+  border-radius:0 8px 8px 0; padding:12px 16px; margin-top:12px;
+  font-size:12px; color:#334155; line-height:1.8;
+  white-space:pre-wrap; outline:none; cursor:text; min-height:50px;
+  user-select:text;
+}
+.rpt-analysis.loading { color:#94A3B8; font-style:italic; }
+.regen-btn {
+  background:#EFF6FF; border:1px solid #BFDBFE; color:#1D4ED8;
+  border-radius:6px; padding:4px 12px; font-size:11px; cursor:pointer;
+  font-family:inherit; margin-top:6px; display:inline-block;
+}
+
+/* 개요 테이블 */
+.overview-table { width:100%; border-collapse:collapse; font-size:12px; margin-bottom:10px; }
+.overview-table th { background:#1B3A6B; color:#fff; padding:8px 12px; text-align:left; }
+.overview-table td { padding:8px 12px; border-bottom:1px solid #F1F5F9; }
+.overview-table tr:last-child td { border-bottom:none; }
 
 /* 반응형 */
 @media(max-width:900px) {
   .summary { grid-template-columns:repeat(3,1fr); }
   .chart-grid { grid-template-columns:1fr; }
-  .content { padding:16px; }
-  .header, .upload-panel, .tabs { padding-left:16px; padding-right:16px; }
+  .content, .header, .upload-panel, .tabs, .period-bar { padding-left:16px; padding-right:16px; }
 }
 
-/* 인쇄 — 세로 A4 */
+/* ── 인쇄 ── */
 @media print {
   * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
-
-  /* 숨김 처리 */
-  .upload-panel, .tabs, .btn-ai, .btn-print, .toggle-btn,
-  .period-bar, #aiPanel { display:none !important; }
-
+  .upload-panel, .period-bar, .tabs, .btn-ai, .btn-print, .regen-btn, .toggle-btn { display:none !important; }
   body { background:#fff; font-size:11px; }
-  .header { background:#1B3A6B !important; padding:10px 20px; }
+  .header { display:none !important; }
   .pane { display:none !important; }
   .pane.active { display:block !important; }
-  .content { padding:8px 14px; }
+  .content { padding:0; }
 
-  /* 카드 */
-  .summary { grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:12px; }
-  .card { box-shadow:none; border:1px solid #E2E8F0; padding:10px; }
-  .card .val { font-size:18px; }
-
-  /* 인쇄용 페이지: 평소엔 화면 밖에 숨기고, 인쇄 시만 표시 */
-  #print-page1, #print-page2, #print-page3 {
-    position:absolute; left:-9999px; top:0;
-    width:210mm; visibility:hidden;
+  /* 출력 제목 */
+  #printTitle {
+    display:block !important;
+    text-align:center; font-size:18px; font-weight:700;
+    color:#1B3A6B; padding:16px 0 10px;
+    border-bottom:2px solid #1B3A6B; margin-bottom:16px;
   }
-  #print-page1 { display:block !important; page-break-after:always; }
-  #print-page2 {
-    display:grid !important;
-    grid-template-columns:1fr 1fr;
-    gap:14px;
+
+  .rpt-section {
+    box-shadow:none; border:1px solid #E2E8F0;
+    padding:14px 18px; margin-bottom:0;
+    page-break-inside:avoid;
     page-break-after:always;
   }
-  #print-page2 .chart-box {
-    box-shadow:none; border:1px solid #E2E8F0;
-    padding:12px; break-inside:avoid;
-  }
-  #print-page2 canvas { max-height:240px !important; }
+  .rpt-section:last-child { page-break-after:auto; }
+  .rpt-title { font-size:13px; margin-bottom:10px; }
+  .rpt-sub { font-size:12px; margin:10px 0 6px; }
+  .rpt-analysis { font-size:10.5px; line-height:1.7; padding:8px 12px; min-height:0; }
+  canvas { max-height:200px !important; }
 
-  /* ── 3페이지: 도넛 + 중단 표 나란히 ── */
-  #print-page3 {
+  .drop-print-grid {
     display:grid !important;
     grid-template-columns:1fr 1fr;
-    gap:14px;
-  }
-  #print-page3 .chart-box {
-    box-shadow:none; border:1px solid #E2E8F0; padding:12px;
-  }
-  #print-page3 canvas { max-height:260px !important; }
-  #print-page3 .section {
-    box-shadow:none; border:1px solid #E2E8F0;
+    gap:12px; align-items:start;
   }
 
-  /* 인쇄 시 위치 복원 */
-  #print-page1, #print-page2, #print-page3 {
-    position:static !important;
-    left:auto !important;
-    visibility:visible !important;
-    width:auto !important;
-  }
-  #print-page2, #print-page3 { display:grid !important; }
-  .no-print-hide, .chart-grid { display:none !important; }
+  .summary { grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:10px; }
+  .card { box-shadow:none; border:1px solid #E2E8F0; padding:8px 12px; }
+  .card .val { font-size:18px; }
 
-  .section { box-shadow:none; border:1px solid #E2E8F0; page-break-inside:avoid; }
   table { font-size:10px; }
-  th { font-size:10px; padding:6px 8px; }
+  th { font-size:10px; padding:5px 8px; }
   td { padding:5px 8px; font-size:10px; }
 
-  @page { size:A4 portrait; margin:12mm; }
+  .overview-table th { background:#1B3A6B !important; color:#fff !important; }
+
+  @page { size:A4 portrait; margin:15mm 12mm; }
 }
 </style>
 </head>
 <body>
+
+<!-- 인쇄 제목 (화면에서 숨김) -->
+<div id="printTitle" style="display:none"></div>
 
 <!-- 헤더 -->
 <div class="header">
@@ -209,19 +201,7 @@ tr:hover td { background:#FAFBFD; }
   </div>
 </div>
 
-<!-- AI 패널 -->
-<div id="aiPanel">
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-    <div style="flex:1">
-      <div class="ai-title">✨ AI CP 모니터링 보고서</div>
-      <div id="aiText" contenteditable="true"></div>
-    </div>
-    <button onclick="document.getElementById('aiPanel').style.display='none'"
-      style="background:none;border:none;color:#94A3B8;cursor:pointer;font-size:18px;padding:0;flex-shrink:0">✕</button>
-  </div>
-</div>
-
-<!-- 업로드 패널 -->
+<!-- 업로드 -->
 <div class="upload-panel">
   <div class="upload-toggle" id="uploadToggle" onclick="toggleUpload()">
     <span class="arrow">▶</span>
@@ -229,24 +209,19 @@ tr:hover td { background:#FAFBFD; }
     <span style="margin-left:auto;font-size:11px;color:#94A3B8">클릭해서 열기</span>
   </div>
   <div class="upload-body" id="uploadBody">
-    <div style="font-size:12px;color:#64748B;margin-bottom:10px">
-      구글시트 <b>2026 전체 탭</b>을 xlsx로 다운받아 한 번만 올리면 돼요. 기간 버튼으로 필터링됩니다.
-    </div>
+    <div style="font-size:12px;color:#64748B;margin-bottom:10px">구글시트 <b>2026 탭</b>을 xlsx로 한 번 올리면 기간 버튼으로 필터링됩니다.</div>
     <input type="file" id="fileInput" accept=".xlsx,.xls,.html,.htm" style="display:none" onchange="handleFile(event)">
     <label for="fileInput" id="dropZone">
       <div style="font-size:28px;margin-bottom:8px">📂</div>
-      <div style="font-size:13px;font-weight:600;color:#1B3A6B">구글시트 2026 탭 xlsx 파일을 올려주세요</div>
-      <div style="font-size:11px;color:#94A3B8;margin-top:6px">파일 → 다운로드 → xlsx</div>
+      <div style="font-size:13px;font-weight:600;color:#1B3A6B">xlsx 파일을 클릭하거나 드래그해서 올려주세요</div>
+      <div style="font-size:11px;color:#94A3B8;margin-top:4px">파일 → 다운로드 → xlsx</div>
     </label>
     <div class="upload-status" id="uploadStatus"></div>
-    <div class="upload-help">
-      💡 퇴원일 기준으로 월/분기 필터링됩니다. 컬럼 필수: 차트번호, 환자명, 진료과, 주치의, 수술명, 퇴원일, CP코드, CP대상(Y/N), CP적용(Y/N), 완료여부(Y/N), 중단사유, 재원일수, 사용일수
-    </div>
   </div>
 </div>
 
 <!-- 기간 버튼 -->
-<div class="period-bar" style="background:#fff;border-bottom:1px solid #E2E8F0;padding:10px 32px;">
+<div class="period-bar">
   <div class="period-btns">
     <span>기간:</span>
     <button class="pbtn pbtn-active" onclick="selectPeriod('전체',this)">전체</button>
@@ -278,78 +253,40 @@ tr:hover td { background:#FAFBFD; }
 <!-- 탭 -->
 <div class="tabs">
   <div style="display:flex">
-    <div class="tab active" onclick="showTab('overview',this)">📊 종합현황</div>
-    <div class="tab" onclick="showTab('cp5',this)">🔬 5종 CP 분석</div>
-    <div class="tab" onclick="showTab('doctor',this)">👨‍⚕️ 의사별 현황</div>
-    <div class="tab" onclick="showTab('drop',this)">⚠️ 중단 분석</div>
+    <div class="tab active" onclick="showTab('report',this)">📄 결과 보고서</div>
+    <div class="tab" onclick="showTab('cp5',this)">🔬 5종 CP 상세</div>
+    <div class="tab" onclick="showTab('doctor',this)">👨‍⚕️ 의사별</div>
     <div class="tab" onclick="showTab('stay',this)">🏨 재원/항생제</div>
     <div class="tab" onclick="showTab('raw',this)">📋 원시데이터</div>
   </div>
   <div style="display:flex;gap:8px;padding-right:8px">
-    <button class="btn-ai" onclick="generateReport()">✨ AI 보고서</button>
-    <button class="btn-print" onclick="doPrint()">🖨️ 출력</button>
+    <button class="btn-ai" onclick="generateAllReports()">✨ AI 보고서 생성</button>
+    <button class="btn-print" onclick="window.print()">🖨️ 출력/PDF</button>
   </div>
 </div>
 
 <!-- 컨텐츠 -->
 <div class="content">
 
-  <!-- 종합현황 -->
-  <div class="pane active" id="pane-overview">
+<!-- ══ 결과 보고서 탭 ══ -->
+<div class="pane active" id="pane-report">
 
-    <!-- ── 인쇄 1페이지: AI요약 + 카드 ── -->
-    <div id="print-page1">
-      <div style="background:linear-gradient(135deg,#EFF6FF,#F0FDF4);border:1px solid #DBEAFE;border-radius:10px;padding:14px 18px;margin-bottom:14px;">
-        <div style="font-size:11px;font-weight:700;color:#1B3A6B;margin-bottom:8px;">✨ AI CP 모니터링 보고서</div>
-        <div id="print-ai-text" style="font-size:11px;color:#1E293B;line-height:1.7;white-space:pre-wrap;outline:none;cursor:text;" contenteditable="true">AI 보고서를 생성한 후 출력하면 여기에 내용이 표시됩니다.</div>
-      </div>
-      <div class="summary">
-        <div class="card c1"><div class="val" id="p1-total">—</div><div class="lbl">전체 대상 건수</div></div>
-        <div class="card c4"><div class="val" id="p1-apply">—</div><div class="lbl">CP 적용 건수</div></div>
-        <div class="card c2">
-          <div class="val" id="p1-applyR">—</div><div class="lbl">적용률</div>
-          <div class="goal-bar-wrap">
-            <div class="goal-bar-bg"><div class="goal-bar-fill" id="p1-bar-apply" style="width:0%;background:#16A34A"></div></div>
-            <div class="goal-label"><span>0%</span><span>목표 80%</span></div>
-          </div>
-        </div>
-        <div class="card c2">
-          <div class="val" id="p1-completeR">—</div><div class="lbl">완료율</div>
-          <div class="goal-bar-wrap">
-            <div class="goal-bar-bg"><div class="goal-bar-fill" id="p1-bar-complete" style="width:0%;background:#2563EB"></div></div>
-            <div class="goal-label"><span>0%</span><span>목표 70%</span></div>
-          </div>
-        </div>
-        <div class="card c3"><div class="val" id="p1-drop">—</div><div class="lbl">중단 건수</div><div class="sub" id="p1-dropR">—</div></div>
-      </div>
-    </div>
+  <!-- 1. 개요 -->
+  <div class="rpt-section">
+    <div class="rpt-title">1. 개요</div>
+    <table class="overview-table">
+      <tr><th style="width:120px">목적</th><td>질환별 CP 적용 현황 모니터링을 통한 의료 질 향상 및 진료 효율성 증대</td></tr>
+      <tr><th>대상 기간</th><td id="ov-period">—</td></tr>
+      <tr><th>모니터링 CP</th><td id="ov-cpList" contenteditable="true" onblur="saveCPList()" style="outline:none;cursor:text;border-bottom:1px dashed #CBD5E1" title="클릭해서 수정 (쉼표로 구분)">TKRA, ARCR, HWR, MENISECTOMY, VP/KP</td></tr>
+      <tr><th>적용률 목표</th><td><b><span id="ov-applyGoal" contenteditable="true" onblur="saveGoals()" style="outline:none;cursor:text;border-bottom:1px dashed #CBD5E1;color:#1B3A6B" title="클릭해서 수정">80</span>% 이상</b></td></tr>
+      <tr><th>완료율 목표</th><td><b><span id="ov-completeGoal" contenteditable="true" onblur="saveGoals()" style="outline:none;cursor:text;border-bottom:1px dashed #CBD5E1;color:#1B3A6B" title="클릭해서 수정">70</span>% 이상</b></td></tr>
+    </table>
+  </div>
 
-    <!-- ── 인쇄 2페이지: 그래프 2개 나란히 ── -->
-    <div id="print-page2" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-      <div class="chart-box">
-        <h4>📈 질환별 적용률 / 완료율</h4>
-        <canvas id="printChartCP5"></canvas>
-      </div>
-      <div class="chart-box">
-        <h4>👨‍⚕️ 의사별 적용률 / 완료율</h4>
-        <canvas id="printChartDoctor"></canvas>
-      </div>
-    </div>
-
-    <!-- ── 인쇄 3페이지: 도넛 + 중단 표 ── -->
-    <div id="print-page3" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-      <div class="chart-box">
-        <h4>⚠️ 중단 사유 분포</h4>
-        <canvas id="printChartDrop"></canvas>
-      </div>
-      <div class="section">
-        <div class="section-header"><span class="dot" style="background:#EF4444"></span>중단 사유 상세</div>
-        <div id="print-drop-table"></div>
-      </div>
-    </div>
-
-    <!-- ── 화면용 (인쇄 시 숨김) ── -->
-    <div class="summary no-print-hide">
+  <!-- 2. 총괄 현황 -->
+  <div class="rpt-section">
+    <div class="rpt-title">2. 총괄 현황</div>
+    <div class="summary">
       <div class="card c1"><div class="val" id="ov-total">—</div><div class="lbl">전체 대상 건수</div></div>
       <div class="card c4"><div class="val" id="ov-apply">—</div><div class="lbl">CP 적용 건수</div></div>
       <div class="card c2">
@@ -368,994 +305,644 @@ tr:hover td { background:#FAFBFD; }
       </div>
       <div class="card c3"><div class="val" id="ov-drop">—</div><div class="lbl">중단 건수</div><div class="sub" id="ov-dropR">—</div></div>
     </div>
-    <div class="chart-grid">
-      <div class="chart-box">
-        <h4>📈 질환별 적용률 / 완료율</h4>
-        <canvas id="chartCP5"></canvas>
-      </div>
-      <div class="chart-box">
-        <h4>👨‍⚕️ 의사별 적용률 / 완료율</h4>
-        <canvas id="chartDoctor"></canvas>
-      </div>
-    </div>
-    <div class="chart-grid">
-      <div class="chart-box">
-        <h4>⚠️ 중단 사유 분포</h4>
-        <canvas id="chartDrop"></canvas>
-      </div>
-      <div class="chart-box">
-        <h4>🏨 질환별 평균 재원일수 / 항생제 사용일수</h4>
-        <canvas id="chartStay"></canvas>
-      </div>
-    </div>
+    <!-- 대표 5종 요약 테이블 -->
+    <div class="rpt-sub">모니터링 대표 5종 CP 적용률 및 완료율</div>
+    <div style="overflow-x:auto"><table id="summaryTable5">
+      <thead><tr><th>CP명</th><th>대상건수</th><th>적용건수</th><th>완료건수</th><th>중단건수</th><th>적용률</th><th>완료율</th><th>달성(적용)</th><th>달성(완료)</th></tr></thead>
+      <tbody id="summaryTable5Body"></tbody>
+    </table></div>
+    <div class="rpt-analysis loading" id="analysis-summary" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
+    <button class="regen-btn" onclick="genSection('summary')">↺ 재생성</button>
   </div>
 
-  <!-- 5종 CP 분석 -->
-  <div class="pane" id="pane-cp5"><div id="cp5-content"></div></div>
+  <!-- 3. 질환별 상세 분석 -->
+  <div class="rpt-section">
+    <div class="rpt-title">3. 질환별 상세 분석 (모니터링 대표 5종)</div>
+    <div class="rpt-sub">수술별 적용률 / 완료율</div>
+    <canvas id="rptChartCP5" style="max-height:220px;margin-bottom:14px"></canvas>
+    <div class="rpt-sub">의사별 적용률 / 완료율</div>
+    <canvas id="rptChartDoctor" style="max-height:220px;margin-bottom:14px"></canvas>
+    <div class="rpt-analysis loading" id="analysis-cp5" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
+    <button class="regen-btn" onclick="genSection('cp5')">↺ 재생성</button>
+  </div>
 
-  <!-- 의사별 현황 -->
-  <div class="pane" id="pane-doctor"><div id="doctor-content"></div></div>
-
-  <!-- 중단 분석 -->
-  <div class="pane" id="pane-drop"><div id="drop-content"></div></div>
-
-  <!-- 재원/항생제 -->
-  <div class="pane" id="pane-stay"><div id="stay-content"></div></div>
-
-  <!-- 원시데이터 -->
-  <div class="pane" id="pane-raw">
-    <div class="section">
-      <div class="section-header"><span class="dot" style="background:#1B3A6B"></span>전체 데이터 <span id="raw-count" style="font-size:11px;font-weight:400;color:#94A3B8;margin-left:4px"></span></div>
-      <div style="overflow-x:auto"><table id="rawTable"><thead></thead><tbody></tbody></table></div>
+  <!-- 4. Drop 사유 분석 -->
+  <div class="rpt-section">
+    <div class="rpt-title">4. CP 중단(Drop) 사유 분석</div>
+    <div class="drop-print-grid">
+      <div>
+        <div class="rpt-sub">중단 사유 분포</div>
+        <canvas id="rptChartDrop" style="max-height:260px"></canvas>
+      </div>
+      <div>
+        <div class="rpt-sub">중단 사유별 건수</div>
+        <div id="rptDropTable"></div>
+      </div>
     </div>
+    <div class="rpt-analysis loading" id="analysis-drop" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
+    <button class="regen-btn" onclick="genSection('drop')">↺ 재생성</button>
+  </div>
+
+  <!-- 5. 향후 개선 방향 -->
+  <div class="rpt-section">
+    <div class="rpt-title">5. 향후 모니터링 개선 방향</div>
+    <div class="rpt-analysis loading" id="analysis-improve" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
+    <button class="regen-btn" onclick="genSection('improve')">↺ 재생성</button>
   </div>
 
 </div>
 
-<script>
-let allData = [];      // 전체 raw 데이터
-let filteredData = []; // 기간 필터된 데이터
-let currentPeriod = '전체';
-const CP5 = ['TKRA','ARCR','HWR','MENISECTOMY','VP/KP'];
-const DROP_REASONS = ['염증수치','감염','합병증','수술변경/취소','입/퇴원 일정 변경','기타'];
-let charts = {};
+<!-- ══ 5종 CP 상세 ══ -->
+<div class="pane" id="pane-cp5"><div id="cp5-content"></div></div>
 
-// ── 기간 필터링 ──
-const PERIOD_MONTHS = {
-  '전체': null,
-  '1월':[1],'2월':[2],'3월':[3],'4월':[4],'5월':[5],'6월':[6],
+<!-- ══ 의사별 ══ -->
+<div class="pane" id="pane-doctor"><div id="doctor-content"></div></div>
+
+<!-- ══ 재원/항생제 ══ -->
+<div class="pane" id="pane-stay"><div id="stay-content"></div></div>
+
+<!-- ══ 원시데이터 ══ -->
+<div class="pane" id="pane-raw">
+  <div class="section">
+    <div class="section-header"><span class="dot" style="background:#1B3A6B"></span>전체 데이터 <span id="raw-count" style="font-size:11px;font-weight:400;color:#94A3B8;margin-left:4px"></span></div>
+    <div style="overflow-x:auto"><table id="rawTable"><thead></thead><tbody></tbody></table></div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+let allData=[], filteredData=[], currentPeriod='전체';
+const CP5_DEFAULT=['TKRA','ARCR','HWR','MENISECTOMY','VP/KP'];
+let CP5=[...CP5_DEFAULT];
+let APPLY_GOAL=80, COMPLETE_GOAL=70;
+
+function getGoals(){ return{applyGoal:APPLY_GOAL, completeGoal:COMPLETE_GOAL}; }
+
+function saveGoals(){
+  const ag=parseInt(document.getElementById('ov-applyGoal')?.textContent)||80;
+  const cg=parseInt(document.getElementById('ov-completeGoal')?.textContent)||70;
+  APPLY_GOAL=ag; COMPLETE_GOAL=cg;
+  localStorage.setItem('cp_applyGoal',ag);
+  localStorage.setItem('cp_completeGoal',cg);
+  // 목표 바 레이블 업데이트
+  document.querySelectorAll('.goal-label').forEach((el,i)=>{
+    const spans=el.querySelectorAll('span');
+    if(spans[1]) spans[1].textContent='목표 '+(i===0?ag:cg)+'%';
+  });
+  renderAll();
+}
+
+function saveCPList(){
+  const raw=document.getElementById('ov-cpList')?.textContent||'';
+  const list=raw.split(',').map(s=>s.trim().toUpperCase()).filter(Boolean);
+  if(list.length>0){
+    CP5=list;
+    localStorage.setItem('cp_list',JSON.stringify(list));
+    renderAll();
+  }
+}
+
+function loadSettings(){
+  const ag=localStorage.getItem('cp_applyGoal');
+  const cg=localStorage.getItem('cp_completeGoal');
+  const cl=localStorage.getItem('cp_list');
+  if(ag){APPLY_GOAL=parseInt(ag); const el=document.getElementById('ov-applyGoal'); if(el) el.textContent=ag;}
+  if(cg){COMPLETE_GOAL=parseInt(cg); const el=document.getElementById('ov-completeGoal'); if(el) el.textContent=cg;}
+  if(cl){try{CP5=JSON.parse(cl); const el=document.getElementById('ov-cpList'); if(el) el.textContent=CP5.join(', ');}catch(e){}}
+}
+const DROP_REASONS=['염증수치','감염','합병증','수술변경/취소','입/퇴원 일정 변경','기타'];
+let charts={};
+
+const PERIOD_MONTHS={
+  '전체':null,'1월':[1],'2월':[2],'3월':[3],'4월':[4],'5월':[5],'6월':[6],
   '7월':[7],'8월':[8],'9월':[9],'10월':[10],'11월':[11],'12월':[12],
   '1분기':[1,2,3],'2분기':[4,5,6],'3분기':[7,8,9],'4분기':[10,11,12],
   '상반기':[1,2,3,4,5,6],'하반기':[7,8,9,10,11,12],'연간':[1,2,3,4,5,6,7,8,9,10,11,12]
 };
 
-function selectPeriod(period, btn) {
-  currentPeriod = period;
-  document.getElementById('periodLabel').textContent = period === '전체' ? '전체' : '2026년 ' + period;
-  document.querySelectorAll('.pbtn').forEach(b => b.classList.remove('pbtn-active'));
-  if (btn) btn.classList.add('pbtn-active');
+// 도넛 중앙 플러그인
+Chart.register({
+  id:'doughnutCenter',
+  afterDraw(chart){
+    if(chart.config.type!=='doughnut') return;
+    const{ctx,chartArea}=chart; if(!chartArea) return;
+    const cx=(chartArea.left+chartArea.right)/2, cy=(chartArea.top+chartArea.bottom)/2;
+    const total=chart.data.datasets[0].data.reduce((s,v)=>s+(v||0),0);
+    if(!total) return;
+    ctx.save();
+    ctx.font='bold 14px Noto Sans KR,sans-serif'; ctx.fillStyle='#1E293B';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(total+'건',cx,cy-8);
+    ctx.font='10px Noto Sans KR,sans-serif'; ctx.fillStyle='#64748B';
+    ctx.fillText('중단 합계',cx,cy+9);
+    ctx.restore();
+  }
+});
+
+// 막대 위 레이블
+const topLabel={
+  id:'topLabel',
+  afterDatasetsDraw(chart){
+    const{ctx}=chart;
+    chart.data.datasets.forEach((ds,di)=>{
+      chart.getDatasetMeta(di).data.forEach((bar,i)=>{
+        const v=ds.data[i]; if(!v) return;
+        ctx.save(); ctx.font='bold 9px Noto Sans KR'; ctx.fillStyle='#334155';
+        ctx.textAlign='center'; ctx.textBaseline='bottom';
+        ctx.fillText(v+'%',bar.x,bar.y-1); ctx.restore();
+      });
+    });
+  }
+};
+
+function selectPeriod(p,btn){
+  currentPeriod=p;
+  const label=p==='전체'?'전체':'2026년 '+p;
+  document.getElementById('periodLabel').textContent=label;
+  document.getElementById('printTitle').textContent='2026년 '+p+' CP 모니터링 결과 보고';
+  document.getElementById('ov-period').textContent=p==='전체'?'2026년 전체':'2026년 '+p+(p.includes('분기')||p.includes('반기')||p==='연간'?'':'');
+  document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('pbtn-active'));
+  if(btn) btn.classList.add('pbtn-active');
   applyFilter();
 }
 
-function applyFilter() {
-  const months = PERIOD_MONTHS[currentPeriod];
-  if (!months) {
-    filteredData = [...allData];
-  } else {
-    filteredData = allData.filter(x => {
-      if (!x.dischargeDate) return false;
-      const m = x.dischargeDate.getMonth() + 1;
-      return months.includes(m);
-    });
-  }
+function applyFilter(){
+  const months=PERIOD_MONTHS[currentPeriod];
+  filteredData=!months?[...allData]:allData.filter(x=>x.dischargeDate&&months.includes(x.dischargeDate.getMonth()+1));
   renderAll();
 }
 
-// ── 퇴원일 파싱 ──
-function parseDate(val) {
-  if (!val) return null;
-  const s = String(val).trim();
-  // YYYY-MM-DD 또는 YYYY.MM.DD 또는 엑셀 숫자
-  if (/^\d{4}[-./]\d{1,2}[-./]\d{1,2}/.test(s)) {
-    const d = new Date(s.replace(/\./g, '-'));
-    return isNaN(d) ? null : d;
-  }
-  // 엑셀 serial number
-  const n = parseFloat(s);
-  if (!isNaN(n) && n > 40000) {
-    return new Date(Math.round((n - 25569) * 86400 * 1000));
-  }
+function parseDate(v){
+  if(!v) return null;
+  const s=String(v).trim();
+  if(/^\d{4}[-./]\d{1,2}/.test(s)){const d=new Date(s.replace(/\./g,'-')); return isNaN(d)?null:d;}
+  const n=parseFloat(s);
+  if(!isNaN(n)&&n>40000) return new Date(Math.round((n-25569)*86400*1000));
   return null;
 }
 
-// ── 업로드 토글 ──
-function toggleUpload() {
+function toggleUpload(){
   document.getElementById('uploadToggle').classList.toggle('open');
   document.getElementById('uploadBody').classList.toggle('show');
 }
 
-function showStatus(msg, isErr) {
-  const el = document.getElementById('uploadStatus');
-  el.style.display = 'block';
-  el.style.color = isErr ? '#DC2626' : '#16A34A';
-  el.textContent = msg;
-  if (!isErr) setTimeout(() => el.style.display = 'none', 4000);
+function showStatus(msg,isErr){
+  const el=document.getElementById('uploadStatus');
+  el.style.display='block'; el.style.color=isErr?'#DC2626':'#16A34A'; el.textContent=msg;
+  if(!isErr) setTimeout(()=>el.style.display='none',4000);
 }
 
-// ── 파일 처리 ──
-function handleFile(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const ext = file.name.toLowerCase();
-  if (ext.endsWith('.xlsx') || ext.endsWith('.xls')) parseXlsx(file);
-  else if (ext.endsWith('.html') || ext.endsWith('.htm')) parseHtml(file);
-  else showStatus('⚠️ xlsx 또는 html 파일만 지원합니다.', true);
+function handleFile(e){const f=e.target.files[0]; if(f) routeFile(f);}
+function routeFile(f){
+  const n=f.name.toLowerCase();
+  if(n.endsWith('.xlsx')||n.endsWith('.xls')) parseXlsx(f);
+  else if(n.endsWith('.html')||n.endsWith('.htm')) parseHtml(f);
+  else showStatus('⚠️ xlsx 또는 html 파일만 지원합니다.',true);
 }
 
-function parseXlsx(file) {
-  showStatus('📖 엑셀 읽는 중...');
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const wb = XLSX.read(new Uint8Array(e.target.result), { type:'array' });
-      // '2026' 탭 우선, 없으면 첫 번째
-      const sheetName = wb.SheetNames.find(s => s === '2026' || s.includes('2026')) || wb.SheetNames[0];
-      const rows = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { header:1, defval:'' });
-      processRows(rows, file.name, sheetName);
-    } catch(err) { showStatus('⚠️ 파일 오류: ' + err.message, true); }
+function parseXlsx(f){
+  showStatus('📖 읽는 중...');
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+      const sn=wb.SheetNames.find(s=>s==='2026'||s.includes('2026'))||wb.SheetNames[0];
+      processRows(XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,defval:''}),f.name,sn);
+    }catch(err){showStatus('⚠️ '+err.message,true);}
   };
-  reader.readAsArrayBuffer(file);
+  r.readAsArrayBuffer(f);
 }
 
-function parseHtml(file) {
-  showStatus('📖 HTML 읽는 중...');
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const doc = new DOMParser().parseFromString(e.target.result, 'text/html');
-      const rows = [...doc.querySelectorAll('tr')].map(tr =>
-        [...tr.querySelectorAll('td,th')].map(c => c.textContent.trim())
-      );
-      processRows(rows, file.name, '');
-    } catch(err) { showStatus('⚠️ 파일 오류: ' + err.message, true); }
+function parseHtml(f){
+  showStatus('📖 읽는 중...');
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const doc=new DOMParser().parseFromString(e.target.result,'text/html');
+      processRows([...doc.querySelectorAll('tr')].map(tr=>[...tr.querySelectorAll('td,th')].map(c=>c.textContent.trim())),f.name,'');
+    }catch(err){showStatus('⚠️ '+err.message,true);}
   };
-  reader.readAsText(file, 'utf-8');
+  r.readAsText(f,'utf-8');
 }
 
-function processRows(rows, filename, sheetName) {
-  // 헤더 찾기
-  let hIdx = -1, hRow = null;
-  for (let i = 0; i < Math.min(rows.length, 10); i++) {
-    const r = rows[i].map(c => String(c).trim());
-    if (r.some(c => c === '차트번호' || c === 'CP코드' || c === '환자명')) {
-      hIdx = i; hRow = r; break;
-    }
+function processRows(rows,filename,sheetName){
+  let hIdx=-1,hRow=null;
+  for(let i=0;i<Math.min(rows.length,10);i++){
+    const r=rows[i].map(c=>String(c).trim());
+    if(r.some(c=>c==='차트번호'||c==='CP코드'||c==='환자명')){hIdx=i;hRow=r;break;}
   }
-  if (!hRow) { showStatus('⚠️ 헤더 없음 (차트번호/CP코드 열 필요)', true); return; }
-
-  const fi = (...names) => {
-    for (const n of names) {
-      const i = hRow.findIndex(h => h.includes(n));
-      if (i >= 0) return i;
-    }
-    return -1;
+  if(!hRow){showStatus('⚠️ 헤더 없음',true);return;}
+  const fi=(...n)=>{for(const x of n){const i=hRow.findIndex(h=>h.includes(x));if(i>=0)return i;}return -1;};
+  const c={
+    id:fi('차트번호'),name:fi('환자명'),dept:fi('진료과'),doctor:fi('주치의'),
+    surgery:fi('수술명'),discharge:fi('퇴원일'),los:fi('재원일수'),
+    cpCode:fi('CP코드'),cpTarget:fi('CP대상'),cpApply:fi('CP적용'),
+    complete:fi('완료여부'),dropReason:fi('중단사유'),abxDays:fi('사용일수'),note:fi('비고'),
   };
-
-  const cols = {
-    id: fi('차트번호'), name: fi('환자명'), dept: fi('진료과'), doctor: fi('주치의'),
-    surgery: fi('수술명'), admit: fi('내원일'), discharge: fi('퇴원일'),
-    los: fi('재원일수'), dm: fi('DM'), cpCode: fi('CP코드'),
-    cpTarget: fi('CP대상'), exclude: fi('제외사유'),
-    cpApply: fi('CP적용'), noApply: fi('미적용사유'),
-    complete: fi('완료여부'), dropReason: fi('중단사유'),
-    abxDays: fi('사용일수'), note: fi('비고'),
-  };
-
-  const parsed = [];
-  for (let i = hIdx + 1; i < rows.length; i++) {
-    const row = rows[i];
-    const g = ci => (ci >= 0 && ci < row.length) ? String(row[ci]).trim() : '';
-    const cpTarget = g(cols.cpTarget).toUpperCase();
-    if (cpTarget !== 'Y') continue;
-    let cpCode = g(cols.cpCode).toUpperCase().replace(/\s/g,'');
-    if (!cpCode || cpCode === 'CP코드') continue;
-
-    // CP코드 정규화
-    if (cpCode === 'VP' || cpCode === 'KP' || cpCode === 'VP/KP') cpCode = 'VP/KP';
-    if (cpCode.includes('TKRA')) cpCode = 'TKRA';
-    else if (cpCode.includes('ARCR')) cpCode = 'ARCR';
-    else if (cpCode.includes('HWR')) cpCode = 'HWR';
-    else if (cpCode.includes('MENIS')) cpCode = 'MENISECTOMY';
-
-    const dischargeDate = parseDate(g(cols.discharge));
-    const losRaw = parseFloat(g(cols.los));
-    const abxRaw = parseFloat(g(cols.abxDays));
-    const cpApply = g(cols.cpApply).toUpperCase() === 'Y';
-    const complete = g(cols.complete).toUpperCase() === 'Y';
-
+  const g=(row,ci)=>(ci>=0&&ci<row.length)?String(row[ci]).trim():'';
+  const parsed=[];
+  for(let i=hIdx+1;i<rows.length;i++){
+    const row=rows[i];
+    if(g(row,c.cpTarget).toUpperCase()!=='Y') continue;
+    let cp=g(row,c.cpCode).toUpperCase().replace(/\s/g,'');
+    if(!cp||cp==='CP코드') continue;
+    if(cp==='VP'||cp==='KP') cp='VP/KP';
+    if(cp.includes('TKRA')) cp='TKRA';
+    else if(cp.includes('ARCR')) cp='ARCR';
+    else if(cp.includes('HWR')) cp='HWR';
+    else if(cp.includes('MENIS')) cp='MENISECTOMY';
+    const los=parseFloat(g(row,c.los)), abx=parseFloat(g(row,c.abxDays));
+    const apply=g(row,c.cpApply).toUpperCase()==='Y';
+    const comp=g(row,c.complete).toUpperCase()==='Y';
     parsed.push({
-      id: g(cols.id), name: g(cols.name), dept: g(cols.dept), doctor: g(cols.doctor),
-      surgery: g(cols.surgery), admit: g(cols.admit),
-      discharge: g(cols.discharge), dischargeDate,
-      los: isNaN(losRaw) ? null : losRaw,
-      cpCode, cpApply, complete,
-      dropReason: cpApply && !complete ? (g(cols.dropReason) || '기타') : '',
-      abxDays: isNaN(abxRaw) ? null : abxRaw,
-      note: g(cols.note),
+      id:g(row,c.id),name:g(row,c.name),dept:g(row,c.dept),doctor:g(row,c.doctor),
+      surgery:g(row,c.surgery),discharge:g(row,c.discharge),
+      dischargeDate:parseDate(g(row,c.discharge)),
+      los:isNaN(los)?null:los,cpCode:cp,cpApply:apply,complete:comp,
+      dropReason:apply&&!comp?(g(row,c.dropReason)||'기타'):'',
+      abxDays:isNaN(abx)?null:abx,note:g(row,c.note),
     });
   }
-
-  if (!parsed.length) { showStatus('⚠️ CP대상(Y) 데이터 없음', true); return; }
-  allData = parsed;
-
-  document.getElementById('dropZone').innerHTML =
-    '<div style="font-size:20px;margin-bottom:6px">✅</div>' +
-    '<div style="font-size:13px;font-weight:600;color:#16A34A">' + filename +
-    (sheetName ? ' · ' + sheetName + ' 탭' : '') + '</div>' +
-    '<div style="font-size:11px;color:#94A3B8;margin-top:4px">총 ' + parsed.length + '건 로드 · 클릭해서 교체</div>';
-
-  showStatus('✅ ' + parsed.length + '건 로드 완료! 기간 버튼으로 필터링하세요.');
+  if(!parsed.length){showStatus('⚠️ CP대상(Y) 데이터 없음',true);return;}
+  allData=parsed;
+  document.getElementById('dropZone').innerHTML=
+    '<div style="font-size:20px;margin-bottom:6px">✅</div>'+
+    '<div style="font-size:13px;font-weight:600;color:#16A34A">'+filename+(sheetName?' · '+sheetName:'')+'</div>'+
+    '<div style="font-size:11px;color:#94A3B8;margin-top:4px">총 '+parsed.length+'건 · 클릭해서 교체</div>';
+  showStatus('✅ '+parsed.length+'건 로드 완료!');
   applyFilter();
 }
 
-// ── 전체 렌더링 ──
-function renderAll() {
-  const d = filteredData;
-  if (!d.length) {
-    ['h-total','h-apply','h-applyR','h-completeR','h-drop',
-     'ov-total','ov-apply','ov-applyR','ov-completeR','ov-drop'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.textContent = '—';
-    });
-    return;
+function renderAll(){
+  const d=filteredData;
+  if(!d.length) return;
+  const total=d.length, applied=d.filter(x=>x.cpApply).length;
+  const completed=d.filter(x=>x.cpApply&&x.complete).length;
+  const dropped=d.filter(x=>x.cpApply&&!x.complete).length;
+  const applyR=(applied/total*100).toFixed(1);
+  const completeR=applied?(completed/applied*100).toFixed(1):'0.0';
+  const dropR=applied?(dropped/applied*100).toFixed(1):'0.0';
+  const{applyGoal,completeGoal}=getGoals();
+
+  ['h-total','h-apply','h-applyR','h-completeR','h-drop',
+   'ov-total','ov-apply','ov-applyR','ov-completeR','ov-drop'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el) return;
+    if(id.includes('R')||id.includes('rate')) el.textContent=
+      id==='h-applyR'?applyR+'%':id==='h-completeR'?completeR+'%':
+      id==='ov-applyR'?applyR+'%':id==='ov-completeR'?completeR+'%':el.textContent;
+    else el.textContent=
+      id==='h-total'||id==='ov-total'?total:
+      id==='h-apply'||id==='ov-apply'?applied:
+      id==='h-drop'||id==='ov-drop'?dropped:el.textContent;
+  });
+  document.getElementById('h-applyR').textContent=applyR+'%';
+  document.getElementById('h-completeR').textContent=completeR+'%';
+  document.getElementById('h-total').textContent=total;
+  document.getElementById('h-apply').textContent=applied;
+  document.getElementById('h-drop').textContent=dropped;
+  document.getElementById('ov-total').textContent=total;
+  document.getElementById('ov-apply').textContent=applied;
+  document.getElementById('ov-applyR').textContent=applyR+'%';
+  document.getElementById('ov-completeR').textContent=completeR+'%';
+  document.getElementById('ov-drop').textContent=dropped;
+  document.getElementById('ov-dropR').textContent='중단율 '+dropR+'%';
+  setTimeout(()=>{
+    const b1=document.getElementById('bar-apply'),b2=document.getElementById('bar-complete');
+    if(b1) b1.style.width=Math.min(parseFloat(applyR),100)+'%';
+    if(b2) b2.style.width=Math.min(parseFloat(completeR),100)+'%';
+  },100);
+
+  // 5종 요약 테이블
+  const tbody=document.getElementById('summaryTable5Body');
+  if(tbody){
+    tbody.innerHTML=CP5.map(cp=>{
+      const items=d.filter(x=>x.cpCode===cp);
+      const app=items.filter(x=>x.cpApply).length;
+      const comp=items.filter(x=>x.cpApply&&x.complete).length;
+      const drop=app-comp;
+      const ar=items.length?(app/items.length*100).toFixed(1):0;
+      const cr=app?(comp/app*100).toFixed(1):0;
+      return`<tr>
+        <td><b>${cp}</b></td>
+        <td style="text-align:center">${items.length}</td>
+        <td style="text-align:center">${app}</td>
+        <td style="text-align:center">${comp}</td>
+        <td style="text-align:center">${drop}</td>
+        <td style="text-align:center"><b>${ar}%</b></td>
+        <td style="text-align:center"><b>${cr}%</b></td>
+        <td style="text-align:center">${parseFloat(ar)>=applyGoal?'<span class="badge-ok">✓ 달성</span>':'<span class="badge-ng">✗ 미달</span>'}</td>
+        <td style="text-align:center">${parseFloat(cr)>=completeGoal?'<span class="badge-ok">✓ 달성</span>':'<span class="badge-ng">✗ 미달</span>'}</td>
+      </tr>`;
+    }).join('');
   }
 
-  const total = d.length;
-  const applied = d.filter(x => x.cpApply).length;
-  const completed = d.filter(x => x.cpApply && x.complete).length;
-  const dropped = d.filter(x => x.cpApply && !x.complete).length;
-  const applyR = (applied/total*100).toFixed(1);
-  const completeR = applied ? (completed/applied*100).toFixed(1) : '0.0';
-  const dropR = applied ? (dropped/applied*100).toFixed(1) : '0.0';
-
-  // 헤더
-  document.getElementById('h-total').textContent = total;
-  document.getElementById('h-apply').textContent = applied;
-  document.getElementById('h-applyR').textContent = applyR + '%';
-  document.getElementById('h-completeR').textContent = completeR + '%';
-  document.getElementById('h-drop').textContent = dropped;
-
-  // 카드
-  document.getElementById('ov-total').textContent = total;
-  document.getElementById('ov-apply').textContent = applied;
-  document.getElementById('ov-applyR').textContent = applyR + '%';
-  document.getElementById('ov-completeR').textContent = completeR + '%';
-  document.getElementById('ov-drop').textContent = dropped;
-  document.getElementById('ov-dropR').textContent = '중단율 ' + dropR + '%';
-
-  setTimeout(() => {
-    const b1 = document.getElementById('bar-apply');
-    const b2 = document.getElementById('bar-complete');
-    if (b1) b1.style.width = Math.min(parseFloat(applyR),100) + '%';
-    if (b2) b2.style.width = Math.min(parseFloat(completeR),100) + '%';
-  }, 100);
-
-  // 인쇄용 1페이지 카드 동기화
-  ['p1-total','p1-apply','p1-applyR','p1-completeR','p1-drop','p1-dropR'].forEach(id => {
-    const src = id.replace('p1-','ov-');
-    const el = document.getElementById(id);
-    const srcEl = document.getElementById(src);
-    if (el && srcEl) el.textContent = srcEl.textContent;
-  });
-  setTimeout(() => {
-    const b1 = document.getElementById('p1-bar-apply');
-    const b2 = document.getElementById('p1-bar-complete');
-    if (b1) b1.style.width = Math.min(parseFloat(applyR),100) + '%';
-    if (b2) b2.style.width = Math.min(parseFloat(completeR),100) + '%';
-  }, 200);
-
-  renderCharts();
-  renderPrintCharts();
+  renderReportCharts();
   renderCP5Tab();
   renderDoctorTab();
-  renderDropTab();
   renderStayTab();
   renderRawTab();
 }
 
-// ── 차트 공통 ──
-function destroyChart(id) {
-  if (charts[id]) { try { charts[id].destroy(); } catch(e){} delete charts[id]; }
+function dc(id){if(charts[id]){try{charts[id].destroy();}catch(e){}delete charts[id];}}
+
+function renderReportCharts(){
+  const d=filteredData;
+  const pieColors=['#EF4444','#F97316','#EAB308','#22C55E','#3B82F6','#8B5CF6'];
+
+  // CP5
+  const cp5D=CP5.map(cp=>{
+    const items=d.filter(x=>x.cpCode===cp);
+    const app=items.filter(x=>x.cpApply).length;
+    const comp=items.filter(x=>x.cpApply&&x.complete).length;
+    return{total:items.length,ar:items.length?Math.round(app/items.length*100):0,cr:app?Math.round(comp/app*100):0};
+  });
+  dc('rptChartCP5');
+  const c1=document.getElementById('rptChartCP5');
+  if(c1) charts['rptChartCP5']=new Chart(c1,{
+    type:'bar',plugins:[topLabel],
+    data:{labels:CP5.map((c,i)=>c+'\n('+cp5D[i].total+'건)'),datasets:[
+      {label:'적용률(%)',data:cp5D.map(x=>x.ar),backgroundColor:'#3B82F6BB',borderRadius:4},
+      {label:'완료율(%)',data:cp5D.map(x=>x.cr),backgroundColor:'#EF4444BB',borderRadius:4},
+    ]},
+    options:{responsive:true,plugins:{legend:{labels:{font:{size:11}}}},
+      scales:{y:{max:100,ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'#F1F5F9'}},x:{ticks:{font:{size:10}}}}}
+  });
+
+  // 의사별
+  const docs=[...new Set(d.map(x=>x.doctor).filter(Boolean))];
+  const docD=docs.map(doc=>{
+    const items=d.filter(x=>x.doctor===doc);
+    const app=items.filter(x=>x.cpApply).length;
+    const comp=items.filter(x=>x.cpApply&&x.complete).length;
+    return{doc,total:items.length,ar:items.length?Math.round(app/items.length*100):0,cr:app?Math.round(comp/app*100):0};
+  });
+  dc('rptChartDoctor');
+  const c2=document.getElementById('rptChartDoctor');
+  if(c2) charts['rptChartDoctor']=new Chart(c2,{
+    type:'bar',plugins:[topLabel],
+    data:{labels:docD.map(x=>x.doc+'\n('+x.total+'건)'),datasets:[
+      {label:'적용률(%)',data:docD.map(x=>x.ar),backgroundColor:'#8B5CF6BB',borderRadius:4},
+      {label:'완료율(%)',data:docD.map(x=>x.cr),backgroundColor:'#F59E0BBB',borderRadius:4},
+    ]},
+    options:{responsive:true,plugins:{legend:{labels:{font:{size:11}}}},
+      scales:{y:{max:100,ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'#F1F5F9'}},x:{ticks:{font:{size:10}}}}}
+  });
+
+  // 도넛
+  const dropped=d.filter(x=>x.cpApply&&!x.complete);
+  const rMap={};
+  dropped.forEach(x=>{const k=DROP_REASONS.find(r=>(x.dropReason||'').includes(r))||'기타';rMap[k]=(rMap[k]||0)+1;});
+  const rKeys=Object.keys(rMap);
+  dc('rptChartDrop');
+  const c3=document.getElementById('rptChartDrop');
+  if(c3) charts['rptChartDrop']=new Chart(c3,{
+    type:'doughnut',
+    data:{labels:rKeys.map(k=>k+' ('+rMap[k]+'건, '+Math.round(rMap[k]/dropped.length*100)+'%)'),
+      datasets:[{data:rKeys.map(k=>rMap[k]),backgroundColor:pieColors.slice(0,rKeys.length)}]},
+    options:{responsive:true,cutout:'55%',
+      plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12,padding:8}},
+        tooltip:{callbacks:{label:ctx=>ctx.label}}}}
+  });
+
+  // 중단 표
+  const tEl=document.getElementById('rptDropTable');
+  if(tEl){
+    const rows=Object.entries(rMap).sort((a,b)=>b[1]-a[1]).map(([r,v])=>{
+      const cpB=CP5.map(cp=>{
+        const cnt=dropped.filter(x=>x.cpCode===cp&&((DROP_REASONS.find(k=>(x.dropReason||'').includes(k))||'기타')===r)).length;
+        return cnt>0?cp+' '+cnt:null;
+      }).filter(Boolean).join(', ');
+      return`<tr><td><b>${r}</b></td><td style="text-align:center">${v}건</td><td style="text-align:center">${Math.round(v/dropped.length*100)}%</td><td style="font-size:10px;color:#64748B">${cpB||'—'}</td></tr>`;
+    }).join('');
+    tEl.innerHTML=`<table><thead><tr><th>사유</th><th>건수</th><th>비율</th><th>질환별</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
 }
 
-// datalabels 플러그인 없이 수동으로 위에 레이블 표시
-const dataLabelPlugin = {
-  id:'topLabel',
-  afterDatasetsDraw(chart) {
-    const { ctx } = chart;
-    chart.data.datasets.forEach((ds, di) => {
-      const meta = chart.getDatasetMeta(di);
-      meta.data.forEach((bar, i) => {
-        const val = ds.data[i];
-        if (val === null || val === undefined || val === 0) return;
-        ctx.save();
-        ctx.font = 'bold 10px Noto Sans KR, sans-serif';
-        ctx.fillStyle = '#334155';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'bottom';
-        ctx.fillText(val + '%', bar.x, bar.y - 2);
-        ctx.restore();
-      });
-    });
-  }
-};
-
-function renderCharts() {
-  const d = filteredData;
-
-  // ── CP5 바 차트 ──
-  const cp5Data = CP5.map(cp => {
-    const items = d.filter(x => x.cpCode === cp);
-    const total = items.length;
-    const applied = items.filter(x => x.cpApply).length;
-    const completed = items.filter(x => x.cpApply && x.complete).length;
-    return {
-      total,
-      applyR: total ? Math.round(applied/total*100) : 0,
-      completeR: applied ? Math.round(completed/applied*100) : 0,
-    };
+// ── AI 전체 생성 ──
+async function generateAllReports(){
+  ['summary','cp5','drop','improve'].forEach(s=>{
+    const el=document.getElementById('analysis-'+s);
+    if(el){el.textContent='생성 중...';el.classList.add('loading');}
   });
+  for(const s of ['summary','cp5','drop','improve']) await genSection(s);
+}
 
-  destroyChart('chartCP5');
-  const ctx1 = document.getElementById('chartCP5');
-  if (ctx1) charts['chartCP5'] = new Chart(ctx1, {
-    type:'bar',
-    plugins:[dataLabelPlugin],
-    data:{
-      labels: CP5.map((c,i) => c + '\n(' + cp5Data[i].total + '건)'),
-      datasets:[
-        { label:'적용률(%)', data:cp5Data.map(x=>x.applyR), backgroundColor:'#3B82F6BB', borderRadius:4 },
-        { label:'완료율(%)', data:cp5Data.map(x=>x.completeR), backgroundColor:'#EF4444BB', borderRadius:4 },
-      ]
-    },
-    options:{
-      responsive:true,
-      plugins:{ legend:{ labels:{ font:{ size:11 } } },
-        tooltip:{ callbacks:{ label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y + '%' } }
-      },
-      scales:{
-        y:{ max:100, ticks:{ callback:v=>v+'%', font:{ size:10 } }, grid:{ color:'#F1F5F9' } },
-        x:{ ticks:{ font:{ size:10 } } }
-      }
-    }
+async function genSection(section){
+  const target=document.getElementById('analysis-'+section);
+  if(target){target.textContent='생성 중...';target.classList.add('loading');}
+  const d=filteredData;
+  if(!d.length){if(target) target.textContent='데이터를 먼저 업로드해주세요.';return;}
+
+  const total=d.length, applied=d.filter(x=>x.cpApply).length;
+  const completed=d.filter(x=>x.cpApply&&x.complete).length;
+  const dropped=d.filter(x=>x.cpApply&&!x.complete).length;
+  const applyR=(applied/total*100).toFixed(1), completeR=applied?(completed/applied*100).toFixed(1):'0.0';
+  const hospital=document.getElementById('hospitalName')?.textContent.trim()||'병원';
+  const period=currentPeriod;
+
+  const cp5Lines=CP5.map(cp=>{
+    const items=d.filter(x=>x.cpCode===cp);
+    if(!items.length) return null;
+    const app=items.filter(x=>x.cpApply).length, comp=items.filter(x=>x.cpApply&&x.complete).length;
+    return`${cp}: 대상 ${items.length}건, 적용 ${app}건(${items.length?Math.round(app/items.length*100):0}%), 완료 ${comp}건(${app?Math.round(comp/app*100):0}%), 중단 ${app-comp}건`;
+  }).filter(Boolean).join('\n');
+
+  const rMap={};
+  d.filter(x=>x.cpApply&&!x.complete).forEach(x=>{
+    const k=DROP_REASONS.find(r=>(x.dropReason||'').includes(r))||'기타';rMap[k]=(rMap[k]||0)+1;
   });
+  const reasonLines=Object.entries(rMap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${k} ${v}건(${Math.round(v/dropped*100)}%)`).join(', ');
 
-  // ── 의사별 바 차트 ──
-  const doctors = [...new Set(d.map(x=>x.doctor).filter(Boolean))];
-  const docData = doctors.map(doc => {
-    const items = d.filter(x=>x.doctor===doc);
-    const applied = items.filter(x=>x.cpApply).length;
-    const completed = items.filter(x=>x.cpApply&&x.complete).length;
-    return {
-      doc, total:items.length,
-      applyR: items.length ? Math.round(applied/items.length*100) : 0,
-      completeR: applied ? Math.round(completed/applied*100) : 0,
-    };
-  });
+  const{applyGoal:AG,completeGoal:CG}=getGoals();
+  const RULE='한자 사용 금지. 경어체 사용. 수치 구체적으로 포함. 분석 문구만 작성. 불릿 포인트 사용 가능.';
 
-  destroyChart('chartDoctor');
-  const ctx2 = document.getElementById('chartDoctor');
-  if (ctx2) charts['chartDoctor'] = new Chart(ctx2, {
-    type:'bar',
-    plugins:[dataLabelPlugin],
-    data:{
-      labels: docData.map(x=>x.doc+'\n('+x.total+'건)'),
-      datasets:[
-        { label:'적용률(%)', data:docData.map(x=>x.applyR), backgroundColor:'#8B5CF6BB', borderRadius:4 },
-        { label:'완료율(%)', data:docData.map(x=>x.completeR), backgroundColor:'#F59E0BBB', borderRadius:4 },
-      ]
-    },
-    options:{
-      responsive:true,
-      plugins:{ legend:{ labels:{ font:{ size:11 } } },
-        tooltip:{ callbacks:{ label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y + '%' } }
-      },
-      scales:{
-        y:{ max:100, ticks:{ callback:v=>v+'%', font:{ size:10 } }, grid:{ color:'#F1F5F9' } },
-        x:{ ticks:{ font:{ size:10 } } }
-      }
-    }
-  });
+  const prompts={
+    summary:`${hospital} 2026년 ${period} CP 모니터링 총괄 현황을 3~4문장으로 요약하라.
+전체 현황: 대상 ${total}건, 적용 ${applied}건(${applyR}%), 완료 ${completed}건(${completeR}%), 중단 ${dropped}건
+적용률 목표 ${AG}%, 완료율 목표 ${CG}% 달성 여부를 명시하라.
+${RULE}`,
 
-  // ── 중단 사유 도넛 ──
-  const dropped = d.filter(x=>x.cpApply&&!x.complete);
-  const reasonMap = {};
-  dropped.forEach(x => {
-    const key = DROP_REASONS.find(k=>(x.dropReason||'').includes(k))||'기타';
-    reasonMap[key] = (reasonMap[key]||0)+1;
-  });
-  const rKeys = Object.keys(reasonMap);
-  const pieColors = ['#EF4444','#F97316','#EAB308','#22C55E','#3B82F6','#8B5CF6'];
+    cp5:`다음 CP 질환별 및 의사별 현황을 4~6문장으로 분석하라.
+【질환별】
+${cp5Lines}
+적용률 ${AG}% 미만, 완료율 ${CG}% 미만 질환 및 원인을 구체적으로 언급하라.
+의사별 편차 및 특이사항도 포함하라.
+${RULE}`,
 
-  destroyChart('chartDrop');
-  const ctx3 = document.getElementById('chartDrop');
-  if (ctx3) charts['chartDrop'] = new Chart(ctx3, {
-    type:'doughnut',
-    data:{
-      labels: rKeys.map(k=>k+' ('+reasonMap[k]+'건)'),
-      datasets:[{ data:rKeys.map(k=>reasonMap[k]), backgroundColor:pieColors.slice(0,rKeys.length) }]
-    },
-    options:{
-      responsive:true,
-      cutout:'55%',
-      plugins:{
-        legend:{ position:'right', labels:{ font:{ size:11 }, boxWidth:14 } },
-        tooltip:{ callbacks:{ label: ctx => ctx.label + ': ' + ctx.parsed + '건 (' + Math.round(ctx.parsed/dropped.length*100) + '%)' } }
-      }
-    }
-  });
+    drop:`CP 중단 사유 분석 결과를 3~4문장으로 서술하라.
+중단 현황: 총 ${dropped}건 / ${reasonLines}
+주요 중단 원인인 염증수치 관련 질환별 특성(TKRA, ARCR 등)을 분석하라.
+${RULE}`,
 
-  // ── 재원/항생제 바 차트 ──
-  const stayData = CP5.map(cp => {
-    const items = d.filter(x=>x.cpCode===cp&&x.los!==null);
-    const abxItems = d.filter(x=>x.cpCode===cp&&x.abxDays!==null);
-    const avgLos = items.length ? Math.round(items.reduce((s,x)=>s+x.los,0)/items.length*10)/10 : 0;
-    const avgAbx = abxItems.length ? Math.round(abxItems.reduce((s,x)=>s+x.abxDays,0)/abxItems.length*10)/10 : 0;
-    return { avgLos, avgAbx };
-  });
-
-  const stayLabelPlugin = {
-    id:'stayLabel',
-    afterDatasetsDraw(chart) {
-      const { ctx } = chart;
-      chart.data.datasets.forEach((ds, di) => {
-        const meta = chart.getDatasetMeta(di);
-        meta.data.forEach((bar, i) => {
-          const val = ds.data[i];
-          if (!val) return;
-          ctx.save();
-          ctx.font = 'bold 10px Noto Sans KR';
-          ctx.fillStyle = '#334155';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'bottom';
-          ctx.fillText(val + '일', bar.x, bar.y - 2);
-          ctx.restore();
-        });
-      });
-    }
+    improve:`위 분석 결과를 바탕으로 향후 CP 모니터링 개선 방향을 3~4가지 항목으로 제시하라.
+주요 미달 현황: 적용률 ${applyR}%(목표 ${AG}%), 완료율 ${completeR}%(목표 ${CG}%), 중단 주사유: ${Object.entries(rMap).sort((a,b)=>b[1]-a[1])[0]?.[0]||'염증수치'}
+구체적이고 실행 가능한 개선 방향을 제시하라.
+${RULE}`,
   };
 
-  destroyChart('chartStay');
-  const ctx4 = document.getElementById('chartStay');
-  if (ctx4) charts['chartStay'] = new Chart(ctx4, {
-    type:'bar',
-    plugins:[stayLabelPlugin],
-    data:{
-      labels: CP5,
-      datasets:[
-        { label:'평균 재원일수', data:stayData.map(x=>x.avgLos), backgroundColor:'#06B6D4BB', borderRadius:4 },
-        { label:'평균 항생제(일)', data:stayData.map(x=>x.avgAbx), backgroundColor:'#10B981BB', borderRadius:4 },
-      ]
-    },
-    options:{
-      responsive:true,
-      plugins:{ legend:{ labels:{ font:{ size:11 } } },
-        tooltip:{ callbacks:{ label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y + '일' } }
-      },
-      scales:{
-        y:{ ticks:{ callback:v=>v+'일', font:{ size:10 } }, grid:{ color:'#F1F5F9' } },
-        x:{ ticks:{ font:{ size:10 } } }
-      }
-    }
-  });
+  try{
+    const res=await fetch('/api/claude',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:600,messages:[{role:'user',content:prompts[section]}]})
+    });
+    const data=await res.json();
+    const text=data.content?.[0]?.text||data.choices?.[0]?.message?.content||'응답 없음';
+    if(target){target.textContent=text;target.classList.remove('loading');}
+  }catch(err){
+    if(target){target.textContent='⚠️ 오류: '+err.message;target.classList.remove('loading');}
+  }
 }
 
-// ── 5종 CP 탭 ──
-function renderCP5Tab() {
-  const container = document.getElementById('cp5-content');
-  container.innerHTML = '';
-  CP5.forEach(cp => {
-    const items = filteredData.filter(x=>x.cpCode===cp);
-    if (!items.length) return;
-    const applied = items.filter(x=>x.cpApply).length;
-    const completed = items.filter(x=>x.cpApply&&x.complete).length;
-    const dropped = applied - completed;
-    const applyR = (applied/items.length*100).toFixed(1);
-    const completeR = applied ? (completed/applied*100).toFixed(1) : '0.0';
-    const applyBadge = parseFloat(applyR)>=80 ? '<span class="badge-ok">✓ 목표달성</span>' : '<span class="badge-ng">✗ 목표미달</span>';
-    const completeBadge = parseFloat(completeR)>=70 ? '<span class="badge-ok">✓ 목표달성</span>' : '<span class="badge-ng">✗ 목표미달</span>';
-
-    const tableId = 'cp5-table-' + cp;
-    const rows = items.map(x =>
-      `<tr>
-        <td>${x.id}</td><td>${x.name}</td><td>${x.doctor}</td>
-        <td style="font-size:11px">${x.surgery.substring(0,30)}</td>
-        <td>${x.discharge}</td>
-        <td style="text-align:center">${x.los!==null?x.los+'일':'—'}</td>
-        <td style="text-align:center">${x.cpApply?'<span class="badge-ok">적용</span>':'<span class="badge-ng">미적용</span>'}</td>
-        <td style="text-align:center">${x.cpApply?(x.complete?'<span class="badge-ok">완료</span>':'<span class="badge-ng">중단</span>'):'—'}</td>
-        <td>${x.dropReason||'—'}</td>
-        <td style="text-align:center">${x.abxDays!==null?x.abxDays+'일':'—'}</td>
-      </tr>`
-    ).join('');
-
-    const sec = document.createElement('div');
-    sec.className = 'section';
-    sec.innerHTML = `
-      <div class="section-header">
-        <span class="dot" style="background:#3B82F6"></span>
-        <b>${cp}</b>
-        <span style="font-size:11px;font-weight:400;color:#64748B">${items.length}건</span>
-        <span style="display:flex;gap:6px;align-items:center;font-size:12px;font-weight:400;flex-wrap:wrap">
-          적용률 <b>${applyR}%</b>${applyBadge}
-          완료율 <b>${completeR}%</b>${completeBadge}
-          중단 <b>${dropped}건</b>
-        </span>
-        <button class="toggle-btn" onclick="toggleTable('${tableId}')">환자 상세 보기/숨기기</button>
-      </div>
-      <div id="${tableId}" style="display:none;overflow-x:auto">
-        <table>
-          <thead><tr>
-            <th>차트번호</th><th>환자명</th><th>주치의</th><th>수술명</th>
-            <th>퇴원일</th><th>재원일수</th><th>CP적용</th><th>완료여부</th><th>중단사유</th><th>항생제(일)</th>
-          </tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </div>`;
-    container.appendChild(sec);
+// ── 5종 CP 상세 탭 ──
+function renderCP5Tab(){
+  const container=document.getElementById('cp5-content');
+  container.innerHTML='';
+  CP5.forEach(cp=>{
+    const items=filteredData.filter(x=>x.cpCode===cp);
+    if(!items.length) return;
+    const app=items.filter(x=>x.cpApply).length, comp=items.filter(x=>x.cpApply&&x.complete).length;
+    const ar=(app/items.length*100).toFixed(1), cr=app?(comp/app*100).toFixed(1):'0.0';
+    const{applyGoal,completeGoal}=getGoals();
+    const tid='cp5-'+cp.replace(/\//g,'');
+    const rows=items.map(x=>`<tr>
+      <td>${x.id}</td><td>${x.name}</td><td>${x.doctor}</td>
+      <td style="font-size:11px">${x.surgery.substring(0,30)}</td>
+      <td>${x.discharge}</td>
+      <td style="text-align:center">${x.los!==null?x.los+'일':'—'}</td>
+      <td style="text-align:center">${x.cpApply?'<span class="badge-ok">적용</span>':'<span class="badge-ng">미적용</span>'}</td>
+      <td style="text-align:center">${x.cpApply?(x.complete?'<span class="badge-ok">완료</span>':'<span class="badge-ng">중단</span>'):'—'}</td>
+      <td>${x.dropReason||'—'}</td>
+      <td style="text-align:center">${x.abxDays!==null?x.abxDays+'일':'—'}</td>
+    </tr>`).join('');
+    const s=document.createElement('div'); s.className='section';
+    s.innerHTML=`<div class="section-header">
+      <span class="dot" style="background:#3B82F6"></span><b>${cp}</b>
+      <span style="font-size:11px;font-weight:400;color:#64748B">${items.length}건</span>
+      <span style="display:flex;gap:6px;align-items:center;font-size:12px;font-weight:400">
+        적용률 <b>${ar}%</b>${parseFloat(ar)>=applyGoal?'<span class="badge-ok">✓</span>':'<span class="badge-ng">✗</span>'}
+        완료율 <b>${cr}%</b>${parseFloat(cr)>=completeGoal?'<span class="badge-ok">✓</span>':'<span class="badge-ng">✗</span>'}
+      </span>
+      <button class="toggle-btn" onclick="toggleTable('${tid}')">환자 상세 보기/숨기기</button>
+    </div>
+    <div id="${tid}" style="display:none;overflow-x:auto">
+      <table><thead><tr><th>차트번호</th><th>환자명</th><th>주치의</th><th>수술명</th><th>퇴원일</th><th>재원일수</th><th>CP적용</th><th>완료</th><th>중단사유</th><th>항생제(일)</th></tr></thead>
+      <tbody>${rows}</tbody></table>
+    </div>`;
+    container.appendChild(s);
   });
-  if (!container.innerHTML) container.innerHTML = '<div class="empty"><div class="emoji">📂</div><p>데이터를 업로드해주세요</p></div>';
+  if(!container.innerHTML) container.innerHTML='<div class="empty"><div class="emoji">📂</div><p>데이터를 업로드해주세요</p></div>';
 }
 
 // ── 의사별 탭 ──
-function renderDoctorTab() {
-  const container = document.getElementById('doctor-content');
-  const doctors = [...new Set(filteredData.map(x=>x.doctor).filter(Boolean))];
-  if (!doctors.length) { container.innerHTML = '<div class="empty"><div class="emoji">📂</div><p>데이터를 업로드해주세요</p></div>'; return; }
-
-  const summaryRows = doctors.map(doc => {
-    const items = filteredData.filter(x=>x.doctor===doc);
-    const cpCells = CP5.map(cp => {
-      const sub = items.filter(x=>x.cpCode===cp);
-      if (!sub.length) return '<td style="color:#94A3B8;text-align:center;font-size:11px">—</td>';
-      const app = sub.filter(x=>x.cpApply).length;
-      const comp = sub.filter(x=>x.cpApply&&x.complete).length;
-      const ar = Math.round(app/sub.length*100);
-      const cr = app ? Math.round(comp/app*100) : 0;
-      return `<td style="text-align:center;font-size:11px"><b>${ar}%</b><br><span style="color:#64748B">${cr}%</span></td>`;
+function renderDoctorTab(){
+  const container=document.getElementById('doctor-content');
+  const{applyGoal,completeGoal}=getGoals();
+  const docs=[...new Set(filteredData.map(x=>x.doctor).filter(Boolean))];
+  if(!docs.length){container.innerHTML='<div class="empty"><div class="emoji">📂</div><p>데이터를 업로드해주세요</p></div>';return;}
+  const rows=docs.map(doc=>{
+    const items=filteredData.filter(x=>x.doctor===doc);
+    const cpCells=CP5.map(cp=>{
+      const sub=items.filter(x=>x.cpCode===cp);
+      if(!sub.length) return'<td style="color:#94A3B8;text-align:center">—</td>';
+      const app=sub.filter(x=>x.cpApply).length, comp=sub.filter(x=>x.cpApply&&x.complete).length;
+      return`<td style="text-align:center;font-size:11px"><b>${Math.round(app/sub.length*100)}%</b><br><span style="color:#64748B">${app?Math.round(comp/app*100):0}%</span></td>`;
     }).join('');
-
-    const total = items.length;
-    const applied = items.filter(x=>x.cpApply).length;
-    const completed = items.filter(x=>x.cpApply&&x.complete).length;
-    const ar = total ? Math.round(applied/total*100) : 0;
-    const cr = applied ? Math.round(completed/applied*100) : 0;
-    const tableId = 'doc-table-' + doc.replace(/\s/g,'');
-
-    const detailRows = items.map(x =>
-      `<tr>
-        <td>${x.id}</td><td>${x.name}</td><td>${x.cpCode}</td>
-        <td style="font-size:11px">${x.surgery.substring(0,25)}</td>
-        <td>${x.discharge}</td>
-        <td style="text-align:center">${x.los!==null?x.los+'일':'—'}</td>
-        <td style="text-align:center">${x.cpApply?'<span class="badge-ok">Y</span>':'<span class="badge-ng">N</span>'}</td>
-        <td style="text-align:center">${x.cpApply?(x.complete?'<span class="badge-ok">Y</span>':'<span class="badge-ng">N</span>'):'—'}</td>
-        <td>${x.dropReason||'—'}</td>
-      </tr>`
-    ).join('');
-
-    return `
-      <tr style="background:#F8FAFC">
-        <td><b>${doc}</b></td>
-        <td style="text-align:center">${total}</td>
-        <td style="text-align:center">${applied}</td>
-        <td style="text-align:center"><b>${ar}%</b> ${ar>=80?'<span class="badge-ok">✓</span>':'<span class="badge-ng">✗</span>'}</td>
-        <td style="text-align:center"><b>${cr}%</b> ${cr>=70?'<span class="badge-ok">✓</span>':'<span class="badge-ng">✗</span>'}</td>
-        ${cpCells}
-        <td><button class="toggle-btn" onclick="toggleTable('${tableId}')">상세</button></td>
-      </tr>
-      <tr id="${tableId}" style="display:none">
-        <td colspan="10" style="padding:0;background:#FAFBFD">
-          <table>
-            <thead><tr style="background:#EFF6FF">
-              <th>차트번호</th><th>환자명</th><th>CP</th><th>수술명</th>
-              <th>퇴원일</th><th>재원일수</th><th>CP적용</th><th>완료</th><th>중단사유</th>
-            </tr></thead>
-            <tbody>${detailRows}</tbody>
-          </table>
-        </td>
-      </tr>`;
+    const tot=items.length, app=items.filter(x=>x.cpApply).length, comp=items.filter(x=>x.cpApply&&x.complete).length;
+    const ar=tot?Math.round(app/tot*100):0, cr=app?Math.round(comp/app*100):0;
+    const tid='doc-'+doc.replace(/\s/g,'');
+    const drows=items.map(x=>`<tr><td>${x.id}</td><td>${x.name}</td><td>${x.cpCode}</td><td style="font-size:11px">${x.surgery.substring(0,25)}</td><td>${x.discharge}</td><td style="text-align:center">${x.los!==null?x.los+'일':'—'}</td><td style="text-align:center">${x.cpApply?'<span class="badge-ok">Y</span>':'<span class="badge-ng">N</span>'}</td><td style="text-align:center">${x.cpApply?(x.complete?'<span class="badge-ok">Y</span>':'<span class="badge-ng">N</span>'):'—'}</td><td>${x.dropReason||'—'}</td></tr>`).join('');
+    return`<tr style="background:#F8FAFC">
+      <td><b>${doc}</b></td><td style="text-align:center">${tot}</td><td style="text-align:center">${app}</td>
+      <td style="text-align:center"><b>${ar}%</b> ${ar>=applyGoal?'<span class="badge-ok">✓</span>':'<span class="badge-ng">✗</span>'}</td>
+      <td style="text-align:center"><b>${cr}%</b> ${cr>=completeGoal?'<span class="badge-ok">✓</span>':'<span class="badge-ng">✗</span>'}</td>
+      ${cpCells}<td><button class="toggle-btn" onclick="toggleTable('${tid}')">상세</button></td>
+    </tr>
+    <tr id="${tid}" style="display:none"><td colspan="11" style="padding:0;background:#FAFBFD">
+      <table><thead><tr style="background:#EFF6FF"><th>차트번호</th><th>환자명</th><th>CP</th><th>수술명</th><th>퇴원일</th><th>재원일수</th><th>CP적용</th><th>완료</th><th>중단사유</th></tr></thead>
+      <tbody>${drows}</tbody></table></td></tr>`;
   }).join('');
-
-  container.innerHTML = `<div class="section">
-    <div class="section-header"><span class="dot" style="background:#8B5CF6"></span>의사별 CP 현황</div>
-    <div style="overflow-x:auto"><table>
-      <thead><tr>
-        <th>주치의</th><th>전체</th><th>적용</th><th>적용률</th><th>완료율</th>
-        <th>TKRA<br><small>적용/완료</small></th><th>ARCR</th><th>HWR</th><th>MENIS</th><th>VP/KP</th><th></th>
-      </tr></thead>
-      <tbody>${summaryRows}</tbody>
-    </table></div>
-  </div>`;
-}
-
-// ── 중단 분석 탭 ──
-function renderDropTab() {
-  const container = document.getElementById('drop-content');
-  const dropped = filteredData.filter(x=>x.cpApply&&!x.complete);
-  if (!dropped.length) { container.innerHTML = '<div class="empty"><div class="emoji">✅</div><p>중단 환자가 없습니다</p></div>'; return; }
-
-  const reasonMap = {};
-  dropped.forEach(x => {
-    const key = DROP_REASONS.find(k=>(x.dropReason||'').includes(k))||'기타';
-    if (!reasonMap[key]) reasonMap[key] = { total:0, items:[] };
-    reasonMap[key].total++;
-    reasonMap[key].items.push(x);
-  });
-
-  const summaryRows = Object.entries(reasonMap).sort((a,b)=>b[1].total-a[1].total).map(([r,info]) => {
-    const pct = (info.total/dropped.length*100).toFixed(1);
-    const tableId = 'drop-' + r.replace(/[^a-zA-Z가-힣]/g,'');
-    const detailRows = info.items.map(x =>
-      `<tr>
-        <td>${x.id}</td><td>${x.name}</td><td>${x.doctor}</td>
-        <td>${x.cpCode}</td><td>${x.note?x.note.substring(0,50):'—'}</td>
-      </tr>`
-    ).join('');
-    return `
-      <tr style="background:#F8FAFC">
-        <td><b>${r}</b></td>
-        <td style="text-align:center"><b>${info.total}건</b></td>
-        <td style="text-align:center">${pct}%</td>
-        <td><button class="toggle-btn" onclick="toggleTable('${tableId}')">환자 보기</button></td>
-      </tr>
-      <tr id="${tableId}" style="display:none">
-        <td colspan="4" style="padding:0;background:#FFF7F7">
-          <table>
-            <thead><tr style="background:#FEE2E2">
-              <th>차트번호</th><th>환자명</th><th>주치의</th><th>CP</th><th>비고</th>
-            </tr></thead>
-            <tbody>${detailRows}</tbody>
-          </table>
-        </td>
-      </tr>`;
-  }).join('');
-
-  container.innerHTML = `<div class="section">
-    <div class="section-header"><span class="dot" style="background:#EF4444"></span>중단 사유 분석 (총 ${dropped.length}건)</div>
-    <table>
-      <thead><tr><th>사유</th><th>건수</th><th>비율</th><th></th></tr></thead>
-      <tbody>${summaryRows}</tbody>
-    </table>
-  </div>`;
+  container.innerHTML=`<div class="section"><div class="section-header"><span class="dot" style="background:#8B5CF6"></span>의사별 CP 현황</div>
+    <div style="overflow-x:auto"><table><thead><tr><th>주치의</th><th>전체</th><th>적용</th><th>적용률</th><th>완료율</th>
+    <th>TKRA<br><small>적용/완료</small></th><th>ARCR</th><th>HWR</th><th>MENIS</th><th>VP/KP</th><th></th></tr></thead>
+    <tbody>${rows}</tbody></table></div></div>`;
 }
 
 // ── 재원/항생제 탭 ──
-function renderStayTab() {
-  const container = document.getElementById('stay-content');
-  if (!filteredData.length) { container.innerHTML = '<div class="empty"><div class="emoji">📂</div><p>데이터를 업로드해주세요</p></div>'; return; }
-
-  const cpRows = CP5.map(cp => {
-    const items = filteredData.filter(x=>x.cpCode===cp);
-    if (!items.length) return '';
-    const losItems = items.filter(x=>x.los!==null);
-    const abxItems = items.filter(x=>x.abxDays!==null);
-    const avgLos = losItems.length ? (losItems.reduce((s,x)=>s+x.los,0)/losItems.length).toFixed(1) : '—';
-    const avgAbx = abxItems.length ? (abxItems.reduce((s,x)=>s+x.abxDays,0)/abxItems.length).toFixed(1) : '—';
-    const minLos = losItems.length ? Math.min(...losItems.map(x=>x.los)) : '—';
-    const maxLos = losItems.length ? Math.max(...losItems.map(x=>x.los)) : '—';
-    return `<tr>
-      <td><b>${cp}</b></td>
-      <td style="text-align:center">${items.length}</td>
-      <td style="text-align:center"><b>${avgLos}일</b></td>
-      <td style="text-align:center">${minLos}일</td>
-      <td style="text-align:center">${maxLos}일</td>
-      <td style="text-align:center"><b>${avgAbx}일</b></td>
-    </tr>`;
+function renderStayTab(){
+  const container=document.getElementById('stay-content');
+  if(!filteredData.length){container.innerHTML='<div class="empty"><div class="emoji">📂</div><p>데이터를 업로드해주세요</p></div>';return;}
+  const cpRows=CP5.map(cp=>{
+    const items=filteredData.filter(x=>x.cpCode===cp);
+    if(!items.length) return '';
+    const li=items.filter(x=>x.los!==null), ai=items.filter(x=>x.abxDays!==null);
+    const avgL=li.length?(li.reduce((s,x)=>s+x.los,0)/li.length).toFixed(1):'—';
+    const avgA=ai.length?(ai.reduce((s,x)=>s+x.abxDays,0)/ai.length).toFixed(1):'—';
+    return`<tr><td><b>${cp}</b></td><td style="text-align:center">${items.length}</td><td style="text-align:center"><b>${avgL}일</b></td><td style="text-align:center">${li.length?Math.min(...li.map(x=>x.los)):'—'}일</td><td style="text-align:center">${li.length?Math.max(...li.map(x=>x.los)):'—'}일</td><td style="text-align:center"><b>${avgA}일</b></td></tr>`;
   }).join('');
-
-  const doctors = [...new Set(filteredData.map(x=>x.doctor).filter(Boolean))];
-  const docRows = doctors.map(doc => {
-    const items = filteredData.filter(x=>x.doctor===doc&&x.los!==null);
-    const abxItems = filteredData.filter(x=>x.doctor===doc&&x.abxDays!==null);
-    const avgLos = items.length ? (items.reduce((s,x)=>s+x.los,0)/items.length).toFixed(1) : '—';
-    const avgAbx = abxItems.length ? (abxItems.reduce((s,x)=>s+x.abxDays,0)/abxItems.length).toFixed(1) : '—';
-    return `<tr>
-      <td><b>${doc}</b></td>
-      <td style="text-align:center">${items.length}</td>
-      <td style="text-align:center"><b>${avgLos}일</b></td>
-      <td style="text-align:center"><b>${avgAbx}일</b></td>
-    </tr>`;
+  const docs=[...new Set(filteredData.map(x=>x.doctor).filter(Boolean))];
+  const docRows=docs.map(doc=>{
+    const li=filteredData.filter(x=>x.doctor===doc&&x.los!==null);
+    const ai=filteredData.filter(x=>x.doctor===doc&&x.abxDays!==null);
+    return`<tr><td><b>${doc}</b></td><td style="text-align:center">${li.length}</td><td style="text-align:center"><b>${li.length?(li.reduce((s,x)=>s+x.los,0)/li.length).toFixed(1):'—'}일</b></td><td style="text-align:center"><b>${ai.length?(ai.reduce((s,x)=>s+x.abxDays,0)/ai.length).toFixed(1):'—'}일</b></td></tr>`;
   }).join('');
-
-  container.innerHTML = `
-    <div class="chart-grid">
-      <div class="section">
-        <div class="section-header"><span class="dot" style="background:#06B6D4"></span>질환별 평균 재원 / 항생제</div>
-        <table>
-          <thead><tr><th>CP</th><th>건수</th><th>평균 재원</th><th>최소</th><th>최대</th><th>평균 항생제</th></tr></thead>
-          <tbody>${cpRows}</tbody>
-        </table>
-      </div>
-      <div class="section">
-        <div class="section-header"><span class="dot" style="background:#10B981"></span>의사별 평균 재원 / 항생제</div>
-        <table>
-          <thead><tr><th>주치의</th><th>건수</th><th>평균 재원</th><th>평균 항생제</th></tr></thead>
-          <tbody>${docRows}</tbody>
-        </table>
-      </div>
-    </div>`;
+  container.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <div class="section"><div class="section-header"><span class="dot" style="background:#06B6D4"></span>질환별 평균 재원 / 항생제</div>
+      <table><thead><tr><th>CP</th><th>건수</th><th>평균재원</th><th>최소</th><th>최대</th><th>평균항생제</th></tr></thead><tbody>${cpRows}</tbody></table></div>
+    <div class="section"><div class="section-header"><span class="dot" style="background:#10B981"></span>의사별 평균 재원 / 항생제</div>
+      <table><thead><tr><th>주치의</th><th>건수</th><th>평균재원</th><th>평균항생제</th></tr></thead><tbody>${docRows}</tbody></table></div>
+  </div>`;
 }
 
 // ── 원시데이터 탭 ──
-function renderRawTab() {
-  const thead = document.querySelector('#rawTable thead');
-  const tbody = document.querySelector('#rawTable tbody');
-  document.getElementById('raw-count').textContent = filteredData.length + '건';
-  thead.innerHTML = '<tr><th>차트번호</th><th>환자명</th><th>주치의</th><th>CP코드</th><th>퇴원일</th><th>재원일수</th><th>CP적용</th><th>완료</th><th>중단사유</th><th>항생제(일)</th></tr>';
-  tbody.innerHTML = filteredData.map(x =>
-    `<tr>
-      <td>${x.id}</td><td>${x.name}</td><td>${x.doctor}</td><td>${x.cpCode}</td>
-      <td>${x.discharge}</td>
-      <td style="text-align:center">${x.los!==null?x.los:'—'}</td>
-      <td style="text-align:center">${x.cpApply?'<span class="badge-ok">Y</span>':'<span class="badge-ng">N</span>'}</td>
-      <td style="text-align:center">${x.cpApply?(x.complete?'<span class="badge-ok">Y</span>':'<span class="badge-ng">N</span>'):'—'}</td>
-      <td>${x.dropReason||'—'}</td>
-      <td style="text-align:center">${x.abxDays!==null?x.abxDays:'—'}</td>
-    </tr>`
-  ).join('');
+function renderRawTab(){
+  document.getElementById('raw-count').textContent=filteredData.length+'건';
+  document.querySelector('#rawTable thead').innerHTML='<tr><th>차트번호</th><th>환자명</th><th>주치의</th><th>CP코드</th><th>퇴원일</th><th>재원일수</th><th>CP적용</th><th>완료</th><th>중단사유</th><th>항생제(일)</th></tr>';
+  document.querySelector('#rawTable tbody').innerHTML=filteredData.map(x=>`<tr>
+    <td>${x.id}</td><td>${x.name}</td><td>${x.doctor}</td><td>${x.cpCode}</td><td>${x.discharge}</td>
+    <td style="text-align:center">${x.los!==null?x.los:'—'}</td>
+    <td style="text-align:center">${x.cpApply?'<span class="badge-ok">Y</span>':'<span class="badge-ng">N</span>'}</td>
+    <td style="text-align:center">${x.cpApply?(x.complete?'<span class="badge-ok">Y</span>':'<span class="badge-ng">N</span>'):'—'}</td>
+    <td>${x.dropReason||'—'}</td><td style="text-align:center">${x.abxDays!==null?x.abxDays:'—'}</td>
+  </tr>`).join('');
 }
 
-// ── 도넛 중앙 숫자 플러그인 (전역 등록) ──
-const doughnutCenterPlugin = {
-  id:'doughnutCenter',
-  afterDraw(chart) {
-    if (chart.config.type !== 'doughnut') return;
-    const { ctx, chartArea } = chart;
-    if (!chartArea) return;
-    const cx = (chartArea.left + chartArea.right) / 2;
-    const cy = (chartArea.top + chartArea.bottom) / 2;
-    const total = chart.data.datasets[0].data.reduce((s,v) => s + (v||0), 0);
-    ctx.save();
-    ctx.font = 'bold 16px Noto Sans KR, sans-serif';
-    ctx.fillStyle = '#1E293B';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(total + '건', cx, cy - 8);
-    ctx.font = '10px Noto Sans KR, sans-serif';
-    ctx.fillStyle = '#64748B';
-    ctx.fillText('중단 합계', cx, cy + 10);
-    ctx.restore();
-  }
-};
-Chart.register(doughnutCenterPlugin);
+function toggleTable(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'':'none';}
 
-// ── 인쇄용 차트 렌더링 ──
-function renderPrintCharts() {
-  const d = filteredData;
-  const pieColors = ['#EF4444','#F97316','#EAB308','#22C55E','#3B82F6','#8B5CF6'];
-
-  // CP5 인쇄용
-  const cp5Data = CP5.map(cp => {
-    const items = d.filter(x=>x.cpCode===cp);
-    const applied = items.filter(x=>x.cpApply).length;
-    const completed = items.filter(x=>x.cpApply&&x.complete).length;
-    return {
-      total: items.length,
-      applyR: items.length ? Math.round(applied/items.length*100) : 0,
-      completeR: applied ? Math.round(completed/applied*100) : 0,
-    };
-  });
-
-  destroyChart('printChartCP5');
-  const ctx1 = document.getElementById('printChartCP5');
-  if (ctx1) charts['printChartCP5'] = new Chart(ctx1, {
-    type:'bar', plugins:[dataLabelPlugin],
-    data:{
-      labels: CP5.map((c,i)=>c+'\n('+cp5Data[i].total+'건)'),
-      datasets:[
-        { label:'적용률(%)', data:cp5Data.map(x=>x.applyR), backgroundColor:'#3B82F6BB', borderRadius:4 },
-        { label:'완료율(%)', data:cp5Data.map(x=>x.completeR), backgroundColor:'#EF4444BB', borderRadius:4 },
-      ]
-    },
-    options:{
-      responsive:true,
-      plugins:{ legend:{ labels:{ font:{ size:10 } } } },
-      scales:{
-        y:{ max:100, ticks:{ callback:v=>v+'%', font:{ size:9 } }, grid:{ color:'#F1F5F9' } },
-        x:{ ticks:{ font:{ size:9 } } }
-      }
-    }
-  });
-
-  // 의사별 인쇄용
-  const doctors = [...new Set(d.map(x=>x.doctor).filter(Boolean))];
-  const docData = doctors.map(doc => {
-    const items = d.filter(x=>x.doctor===doc);
-    const applied = items.filter(x=>x.cpApply).length;
-    const completed = items.filter(x=>x.cpApply&&x.complete).length;
-    return {
-      doc, total:items.length,
-      applyR: items.length ? Math.round(applied/items.length*100) : 0,
-      completeR: applied ? Math.round(completed/applied*100) : 0,
-    };
-  });
-
-  destroyChart('printChartDoctor');
-  const ctx2 = document.getElementById('printChartDoctor');
-  if (ctx2) charts['printChartDoctor'] = new Chart(ctx2, {
-    type:'bar', plugins:[dataLabelPlugin],
-    data:{
-      labels: docData.map(x=>x.doc+'\n('+x.total+'건)'),
-      datasets:[
-        { label:'적용률(%)', data:docData.map(x=>x.applyR), backgroundColor:'#8B5CF6BB', borderRadius:4 },
-        { label:'완료율(%)', data:docData.map(x=>x.completeR), backgroundColor:'#F59E0BBB', borderRadius:4 },
-      ]
-    },
-    options:{
-      responsive:true,
-      plugins:{ legend:{ labels:{ font:{ size:10 } } } },
-      scales:{
-        y:{ max:100, ticks:{ callback:v=>v+'%', font:{ size:9 } }, grid:{ color:'#F1F5F9' } },
-        x:{ ticks:{ font:{ size:9 } } }
-      }
-    }
-  });
-
-  // 도넛 인쇄용 (중앙 숫자 포함)
-  const dropped = d.filter(x=>x.cpApply&&!x.complete);
-  const reasonMap = {};
-  dropped.forEach(x => {
-    const key = DROP_REASONS.find(k=>(x.dropReason||'').includes(k))||'기타';
-    reasonMap[key] = (reasonMap[key]||0)+1;
-  });
-  const rKeys = Object.keys(reasonMap);
-
-  destroyChart('printChartDrop');
-  const ctx3 = document.getElementById('printChartDrop');
-  if (ctx3) charts['printChartDrop'] = new Chart(ctx3, {
-    type:'doughnut',
-    data:{
-      labels: rKeys.map(k=>k+' ('+reasonMap[k]+'건, '+Math.round(reasonMap[k]/dropped.length*100)+'%)'),
-      datasets:[{ data:rKeys.map(k=>reasonMap[k]), backgroundColor:pieColors.slice(0,rKeys.length) }]
-    },
-    options:{
-      responsive:true,
-      cutout:'55%',
-      plugins:{
-        legend:{ position:'bottom', labels:{ font:{ size:10 }, boxWidth:12, padding:10 } },
-        tooltip:{ callbacks:{ label: ctx => ctx.label } }
-      }
-    }
-  });
-
-  // 중단 표 인쇄용
-  const tableEl = document.getElementById('print-drop-table');
-  if (tableEl) {
-    const rows = Object.entries(reasonMap).sort((a,b)=>b[1]-a[1]).map(([r,v]) => {
-      // 질환별 분석
-      const cpBreak = CP5.map(cp => {
-        const cnt = dropped.filter(x=>x.cpCode===cp&&DROP_REASONS.find(k=>(x.dropReason||'').includes(k))===r||(r==='기타'&&!DROP_REASONS.slice(0,-1).some(k=>(x.dropReason||'').includes(k)))&&x.cpCode===cp).length;
-        return cnt > 0 ? cp+' '+cnt : null;
-      }).filter(Boolean).join(', ');
-      return `<tr>
-        <td><b>${r}</b></td>
-        <td style="text-align:center">${v}건</td>
-        <td style="text-align:center">${Math.round(v/dropped.length*100)}%</td>
-        <td style="font-size:10px;color:#64748B">${cpBreak||'—'}</td>
-      </tr>`;
-    }).join('');
-    tableEl.innerHTML = `<table>
-      <thead><tr><th>사유</th><th>건수</th><th>비율</th><th>질환별</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
-  }
-}
-
-// ── 인쇄 처리 ──
-function doPrint() {
-  // AI 텍스트 동기화
-  const aiSrc = document.getElementById('aiText');
-  const aiDst = document.getElementById('print-ai-text');
-  if (aiSrc && aiDst && aiSrc.textContent.trim() && !aiSrc.textContent.includes('분석 중')) {
-    aiDst.textContent = aiSrc.textContent;
-  }
-  setTimeout(() => window.print(), 300);
-}
-function toggleTable(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.style.display = el.style.display === 'none' ? '' : 'none';
-}
-
-// ── 탭 전환 ──
-function showTab(name, el) {
+function showTab(name,el){
   document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('pane-'+name).classList.add('active');
-  if (el) el.classList.add('active');
+  if(el) el.classList.add('active');
 }
 
-// ── AI 보고서 ──
-async function generateReport() {
-  if (!filteredData.length) { alert('먼저 데이터를 업로드해주세요.'); return; }
-  const panel = document.getElementById('aiPanel');
-  const textEl = document.getElementById('aiText');
-  panel.style.display = 'block';
-  textEl.textContent = '분석 중입니다...';
-
-  const d = filteredData;
-  const total = d.length;
-  const applied = d.filter(x=>x.cpApply).length;
-  const completed = d.filter(x=>x.cpApply&&x.complete).length;
-  const dropped = applied - completed;
-  const applyR = (applied/total*100).toFixed(1);
-  const completeR = applied ? (completed/applied*100).toFixed(1) : '0.0';
-
-  const cp5Lines = CP5.map(cp => {
-    const items = d.filter(x=>x.cpCode===cp);
-    if (!items.length) return null;
-    const app = items.filter(x=>x.cpApply).length;
-    const comp = items.filter(x=>x.cpApply&&x.complete).length;
-    return `  - ${cp}: ${items.length}건, 적용률 ${(app/items.length*100).toFixed(1)}%, 완료율 ${app?(comp/app*100).toFixed(1):'0.0'}%`;
-  }).filter(Boolean).join('\n');
-
-  const reasonMap = {};
-  d.filter(x=>x.cpApply&&!x.complete).forEach(x => {
-    const key = DROP_REASONS.find(k=>(x.dropReason||'').includes(k))||'기타';
-    reasonMap[key] = (reasonMap[key]||0)+1;
-  });
-  const reasonLines = Object.entries(reasonMap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`  - ${k}: ${v}건`).join('\n');
-
-  const hospital = document.getElementById('hospitalName')?.textContent.trim() || '병원';
-  const period = currentPeriod;
-
-  const prompt = `당신은 병원 QPS팀 CP 모니터링 전문 분석가입니다.
-${hospital} 2026년 ${period} CP 모니터링 결과로 보고서 본문을 작성해주세요.
-
-## 전체 현황
-- 대상: ${total}건 / 적용: ${applied}건(${applyR}%) / 완료: ${completed}건(${completeR}%) / 중단: ${dropped}건
-
-## 질환별
-${cp5Lines}
-
-## 중단 사유
-${reasonLines||'없음'}
-
-## 조건
-1. 개요→총괄→질환별→중단사유→향후계획 순서
-2. 적용률 목표 80%, 완료율 목표 70% 달성 여부 명시
-3. 수치 구체적으로 포함, 전문적이되 간결하게
-4. 본문만 작성 (제목 불필요)`;
-
-  try {
-    const res = await fetch('/api/claude', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:1000, messages:[{role:'user',content:prompt}] })
-    });
-    const data = await res.json();
-    textEl.textContent = data.content?.[0]?.text || data.choices?.[0]?.message?.content || '응답 없음';
-    // 인쇄용 텍스트 동기화
-    const printAi = document.getElementById('print-ai-text');
-    if (printAi) printAi.textContent = textEl.textContent;
-  } catch(err) {
-    textEl.textContent = '⚠️ 오류: ' + err.message;
-  }
+function saveInfo(){
+  const h=document.getElementById('hospitalName')?.textContent.trim();
+  const d=document.getElementById('deptName')?.textContent.trim();
+  if(h) localStorage.setItem('cp_hospital',h);
+  if(d) localStorage.setItem('cp_dept',d);
 }
 
-function saveInfo() {
-  const h = document.getElementById('hospitalName')?.textContent.trim();
-  const d = document.getElementById('deptName')?.textContent.trim();
-  if (h) localStorage.setItem('cp_hospital', h);
-  if (d) localStorage.setItem('cp_dept', d);
-}
-
-window.onload = () => {
-  const h = localStorage.getItem('cp_hospital');
-  const d = localStorage.getItem('cp_dept');
-  if (h) document.getElementById('hospitalName').textContent = h;
-  if (d) document.getElementById('deptName').textContent = d;
+window.onload=()=>{
+  loadSettings();
+  const h=localStorage.getItem('cp_hospital'), d=localStorage.getItem('cp_dept');
+  if(h) document.getElementById('hospitalName').textContent=h;
+  if(d) document.getElementById('deptName').textContent=d;
+  // 기본 제목
+  document.getElementById('printTitle').textContent='2026년 전체 CP 모니터링 결과 보고';
   toggleUpload();
+  const zone=document.getElementById('dropZone');
+  if(zone){
+    zone.addEventListener('dragover',e=>{e.preventDefault();e.stopPropagation();zone.classList.add('dragover');});
+    zone.addEventListener('dragleave',e=>{e.preventDefault();zone.classList.remove('dragover');});
+    zone.addEventListener('drop',e=>{
+      e.preventDefault();e.stopPropagation();zone.classList.remove('dragover');
+      const f=e.dataTransfer.files[0]; if(f) routeFile(f);
+    });
+  }
+  document.addEventListener('dragover',e=>e.preventDefault());
+  document.addEventListener('drop',e=>e.preventDefault());
 };
 </script>
 </body>

@@ -146,14 +146,15 @@ tr:hover td { background:#FAFBFD; }
   .rpt-section {
     box-shadow:none; border:1px solid #E2E8F0;
     padding:14px 18px; margin-bottom:0;
-    page-break-inside:avoid;
     page-break-after:always;
   }
   .rpt-section:last-child { page-break-after:auto; }
-  .rpt-title { font-size:13px; margin-bottom:10px; }
-  .rpt-sub { font-size:12px; margin:10px 0 6px; }
+  .rpt-title { font-size:12px; margin-bottom:8px; }
+  .rpt-title + .rpt-title,
+  .rpt-title[style*="margin-top"] { margin-top:14px !important; border-top:1px solid #E2E8F0; padding-top:10px; }
+  .rpt-sub { font-size:11px; margin:8px 0 5px; }
   .rpt-analysis { font-size:10.5px; line-height:1.7; padding:8px 12px; min-height:0; }
-  canvas { max-height:200px !important; }
+  canvas { max-height:180px !important; }
 
   .drop-print-grid {
     display:grid !important;
@@ -271,7 +272,7 @@ tr:hover td { background:#FAFBFD; }
 <!-- ══ 결과 보고서 탭 ══ -->
 <div class="pane active" id="pane-report">
 
-  <!-- 1. 개요 -->
+  <!-- ══ 1페이지: 개요 + 총괄 현황 ══ -->
   <div class="rpt-section">
     <div class="rpt-title">1. 개요</div>
     <table class="overview-table">
@@ -281,11 +282,8 @@ tr:hover td { background:#FAFBFD; }
       <tr><th>적용률 목표</th><td><b><span id="ov-applyGoal" contenteditable="true" onblur="saveGoals()" style="outline:none;cursor:text;border-bottom:1px dashed #CBD5E1;color:#1B3A6B" title="클릭해서 수정">80</span>% 이상</b></td></tr>
       <tr><th>완료율 목표</th><td><b><span id="ov-completeGoal" contenteditable="true" onblur="saveGoals()" style="outline:none;cursor:text;border-bottom:1px dashed #CBD5E1;color:#1B3A6B" title="클릭해서 수정">70</span>% 이상</b></td></tr>
     </table>
-  </div>
 
-  <!-- 2. 총괄 현황 -->
-  <div class="rpt-section">
-    <div class="rpt-title">2. 총괄 현황</div>
+    <div class="rpt-title" style="margin-top:20px">2. 총괄 현황</div>
     <div class="summary">
       <div class="card c1"><div class="val" id="ov-total">—</div><div class="lbl">전체 대상 건수</div></div>
       <div class="card c4"><div class="val" id="ov-apply">—</div><div class="lbl">CP 적용 건수</div></div>
@@ -293,19 +291,18 @@ tr:hover td { background:#FAFBFD; }
         <div class="val" id="ov-applyR">—</div><div class="lbl">적용률</div>
         <div class="goal-bar-wrap">
           <div class="goal-bar-bg"><div class="goal-bar-fill" id="bar-apply" style="width:0%;background:#16A34A"></div></div>
-          <div class="goal-label"><span>0%</span><span>목표 80%</span></div>
+          <div class="goal-label"><span>0%</span><span id="goal-apply-lbl">목표 80%</span></div>
         </div>
       </div>
       <div class="card c2">
         <div class="val" id="ov-completeR">—</div><div class="lbl">완료율</div>
         <div class="goal-bar-wrap">
           <div class="goal-bar-bg"><div class="goal-bar-fill" id="bar-complete" style="width:0%;background:#2563EB"></div></div>
-          <div class="goal-label"><span>0%</span><span>목표 70%</span></div>
+          <div class="goal-label"><span>0%</span><span id="goal-complete-lbl">목표 70%</span></div>
         </div>
       </div>
       <div class="card c3"><div class="val" id="ov-drop">—</div><div class="lbl">중단 건수</div><div class="sub" id="ov-dropR">—</div></div>
     </div>
-    <!-- 대표 5종 요약 테이블 -->
     <div class="rpt-sub">모니터링 대표 5종 CP 적용률 및 완료율</div>
     <div style="overflow-x:auto"><table id="summaryTable5">
       <thead><tr><th>CP명</th><th>대상건수</th><th>적용건수</th><th>완료건수</th><th>중단건수</th><th>적용률</th><th>완료율</th><th>달성(적용)</th><th>달성(완료)</th></tr></thead>
@@ -315,24 +312,24 @@ tr:hover td { background:#FAFBFD; }
     <button class="regen-btn" onclick="genSection('summary')">↺ 재생성</button>
   </div>
 
-  <!-- 3. 질환별 상세 분석 -->
+  <!-- ══ 2페이지: 질환별 상세 분석 ══ -->
   <div class="rpt-section">
     <div class="rpt-title">3. 질환별 상세 분석 (모니터링 대표 5종)</div>
     <div class="rpt-sub">수술별 적용률 / 완료율</div>
-    <canvas id="rptChartCP5" style="max-height:220px;margin-bottom:14px"></canvas>
+    <canvas id="rptChartCP5" style="max-height:200px;margin-bottom:14px"></canvas>
     <div class="rpt-sub">의사별 적용률 / 완료율</div>
-    <canvas id="rptChartDoctor" style="max-height:220px;margin-bottom:14px"></canvas>
+    <canvas id="rptChartDoctor" style="max-height:200px;margin-bottom:14px"></canvas>
     <div class="rpt-analysis loading" id="analysis-cp5" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
     <button class="regen-btn" onclick="genSection('cp5')">↺ 재생성</button>
   </div>
 
-  <!-- 4. Drop 사유 분석 -->
+  <!-- ══ 3페이지: Drop 사유 분석 + 재원/항생제 ══ -->
   <div class="rpt-section">
     <div class="rpt-title">4. CP 중단(Drop) 사유 분석</div>
     <div class="drop-print-grid">
       <div>
         <div class="rpt-sub">중단 사유 분포</div>
-        <canvas id="rptChartDrop" style="max-height:260px"></canvas>
+        <canvas id="rptChartDrop" style="max-height:220px"></canvas>
       </div>
       <div>
         <div class="rpt-sub">중단 사유별 건수</div>
@@ -341,11 +338,25 @@ tr:hover td { background:#FAFBFD; }
     </div>
     <div class="rpt-analysis loading" id="analysis-drop" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
     <button class="regen-btn" onclick="genSection('drop')">↺ 재생성</button>
+
+    <div class="rpt-title" style="margin-top:20px">5. 재원일수 및 항생제 사용 현황</div>
+    <div class="rpt-sub">질환별 평균 재원일수 / 항생제 사용일수</div>
+    <div style="overflow-x:auto"><table id="stayTableCP">
+      <thead><tr><th>CP명</th><th>건수</th><th>평균 재원일수</th><th>최소</th><th>최대</th><th>평균 항생제(일)</th></tr></thead>
+      <tbody id="stayTableCPBody"></tbody>
+    </table></div>
+    <div class="rpt-sub" style="margin-top:12px">의사별 평균 재원일수 / 항생제 사용일수</div>
+    <div style="overflow-x:auto"><table id="stayTableDoc">
+      <thead><tr><th>주치의</th><th>건수</th><th>평균 재원일수</th><th>평균 항생제(일)</th></tr></thead>
+      <tbody id="stayTableDocBody"></tbody>
+    </table></div>
+    <div class="rpt-analysis loading" id="analysis-stay" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
+    <button class="regen-btn" onclick="genSection('stay')">↺ 재생성</button>
   </div>
 
-  <!-- 5. 향후 개선 방향 -->
+  <!-- ══ 4페이지: 향후 모니터링 개선 방향 ══ -->
   <div class="rpt-section">
-    <div class="rpt-title">5. 향후 모니터링 개선 방향</div>
+    <div class="rpt-title">6. 향후 모니터링 개선 방향</div>
     <div class="rpt-analysis loading" id="analysis-improve" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
     <button class="regen-btn" onclick="genSection('improve')">↺ 재생성</button>
   </div>
@@ -639,6 +650,7 @@ function renderAll(){
   }
 
   renderReportCharts();
+  renderStayReportTable();
   renderCP5Tab();
   renderDoctorTab();
   renderStayTab();
@@ -722,11 +734,11 @@ function renderReportCharts(){
 
 // ── AI 전체 생성 ──
 async function generateAllReports(){
-  ['summary','cp5','drop','improve'].forEach(s=>{
+  ['summary','cp5','drop','stay','improve'].forEach(s=>{
     const el=document.getElementById('analysis-'+s);
     if(el){el.textContent='생성 중...';el.classList.add('loading');}
   });
-  for(const s of ['summary','cp5','drop','improve']) await genSection(s);
+  for(const s of ['summary','cp5','drop','stay','improve']) await genSection(s);
 }
 
 async function genSection(section){
@@ -756,7 +768,7 @@ async function genSection(section){
   const reasonLines=Object.entries(rMap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${k} ${v}건(${Math.round(v/dropped*100)}%)`).join(', ');
 
   const{applyGoal:AG,completeGoal:CG}=getGoals();
-  const RULE='한자 사용 금지. 경어체 사용. 수치 구체적으로 포함. 분석 문구만 작성. 불릿 포인트 사용 가능.';
+  const RULE='반드시 순한글과 숫자만 사용하라. 한자, 일본어, 영어 단어(CP명 제외) 절대 사용 금지. 경어체. 수치 포함. 분석 문구만 작성.';
 
   const prompts={
     summary:`${hospital} 2026년 ${period} CP 모니터링 총괄 현황을 3~4문장으로 요약하라.
@@ -776,6 +788,17 @@ ${RULE}`,
 주요 중단 원인인 염증수치 관련 질환별 특성(TKRA, ARCR 등)을 분석하라.
 ${RULE}`,
 
+    stay:`다음 CP 질환별/의사별 평균 재원일수 및 항생제 사용일수를 3~4문장으로 분석하라.
+${CP5.map(cp=>{
+  const items=d.filter(x=>x.cpCode===cp);
+  const li=items.filter(x=>x.los!==null), ai=items.filter(x=>x.abxDays!==null);
+  const avgL=li.length?(li.reduce((s,x)=>s+x.los,0)/li.length).toFixed(1):'없음';
+  const avgA=ai.length?(ai.reduce((s,x)=>s+x.abxDays,0)/ai.length).toFixed(1):'없음';
+  return`${cp}: 평균 재원 ${avgL}일, 평균 항생제 ${avgA}일`;
+}).join('\n')}
+질환 간 차이 및 특이사항 분석, 항생제 사용 적정성 관련 언급 포함.
+${RULE}`,
+
     improve:`위 분석 결과를 바탕으로 향후 CP 모니터링 개선 방향을 3~4가지 항목으로 제시하라.
 주요 미달 현황: 적용률 ${applyR}%(목표 ${AG}%), 완료율 ${completeR}%(목표 ${CG}%), 중단 주사유: ${Object.entries(rMap).sort((a,b)=>b[1]-a[1])[0]?.[0]||'염증수치'}
 구체적이고 실행 가능한 개선 방향을 제시하라.
@@ -792,6 +815,36 @@ ${RULE}`,
     if(target){target.textContent=text;target.classList.remove('loading');}
   }catch(err){
     if(target){target.textContent='⚠️ 오류: '+err.message;target.classList.remove('loading');}
+  }
+}
+
+function renderStayReportTable(){
+  const d=filteredData;
+  // 질환별
+  const cpBody=document.getElementById('stayTableCPBody');
+  if(cpBody){
+    cpBody.innerHTML=CP5.map(cp=>{
+      const items=d.filter(x=>x.cpCode===cp);
+      if(!items.length) return`<tr><td><b>${cp}</b></td><td colspan="5" style="color:#94A3B8;text-align:center">데이터 없음</td></tr>`;
+      const li=items.filter(x=>x.los!==null), ai=items.filter(x=>x.abxDays!==null);
+      const avgL=li.length?(li.reduce((s,x)=>s+x.los,0)/li.length).toFixed(1):'—';
+      const avgA=ai.length?(ai.reduce((s,x)=>s+x.abxDays,0)/ai.length).toFixed(1):'—';
+      const minL=li.length?Math.min(...li.map(x=>x.los)):'—';
+      const maxL=li.length?Math.max(...li.map(x=>x.los)):'—';
+      return`<tr><td><b>${cp}</b></td><td style="text-align:center">${items.length}</td><td style="text-align:center"><b>${avgL}일</b></td><td style="text-align:center">${minL}일</td><td style="text-align:center">${maxL}일</td><td style="text-align:center"><b>${avgA}일</b></td></tr>`;
+    }).join('');
+  }
+  // 의사별
+  const docBody=document.getElementById('stayTableDocBody');
+  if(docBody){
+    const docs=[...new Set(d.map(x=>x.doctor).filter(Boolean))];
+    docBody.innerHTML=docs.map(doc=>{
+      const li=d.filter(x=>x.doctor===doc&&x.los!==null);
+      const ai=d.filter(x=>x.doctor===doc&&x.abxDays!==null);
+      const avgL=li.length?(li.reduce((s,x)=>s+x.los,0)/li.length).toFixed(1):'—';
+      const avgA=ai.length?(ai.reduce((s,x)=>s+x.abxDays,0)/ai.length).toFixed(1):'—';
+      return`<tr><td><b>${doc}</b></td><td style="text-align:center">${li.length}</td><td style="text-align:center"><b>${avgL}일</b></td><td style="text-align:center"><b>${avgA}일</b></td></tr>`;
+    }).join('');
   }
 }
 

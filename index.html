@@ -93,7 +93,7 @@ tr:hover td { background:#FAFBFD; }
   margin-bottom:16px; padding:22px 28px;
 }
 .rpt-title {
-  font-size:17px; font-weight:700; color:#1B3A6B;
+  font-size:20px; font-weight:700; color:#1B3A6B;
   border-bottom:2px solid #1B3A6B; padding-bottom:8px; margin-bottom:16px;
   display:flex; justify-content:space-between; align-items:center;
 }
@@ -149,7 +149,7 @@ tr:hover td { background:#FAFBFD; }
     page-break-after:always;
   }
   .rpt-section:last-child { page-break-after:auto; }
-  .rpt-title { font-size:12px; margin-bottom:8px; }
+  .rpt-title { font-size:14px; margin-bottom:8px; }
   .rpt-title + .rpt-title,
   .rpt-title[style*="margin-top"] { margin-top:14px !important; border-top:1px solid #E2E8F0; padding-top:10px; }
   .rpt-sub { font-size:11px; margin:8px 0 5px; }
@@ -325,13 +325,13 @@ tr:hover td { background:#FAFBFD; }
     <button class="regen-btn" onclick="genSection('cp5')">↺ 재생성</button>
   </div>
 
-  <!-- ══ 3페이지: Drop 사유 분석 + 재원/항생제 ══ -->
+  <!-- ══ 3페이지: Drop사유 + 재원/항생제 + 향후방향 ══ -->
   <div class="rpt-section">
     <div class="rpt-title">4. CP 중단(Drop) 사유 분석</div>
-    <div class="drop-print-grid">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;margin-bottom:12px">
       <div>
         <div class="rpt-sub">중단 사유 분포</div>
-        <canvas id="rptChartDrop" style="max-height:220px"></canvas>
+        <canvas id="rptChartDrop" style="max-height:200px"></canvas>
       </div>
       <div>
         <div class="rpt-sub">중단 사유별 건수</div>
@@ -341,16 +341,16 @@ tr:hover td { background:#FAFBFD; }
     <div class="rpt-analysis loading" id="analysis-drop" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
     <button class="regen-btn" onclick="genSection('drop')">↺ 재생성</button>
 
-    <div class="rpt-title" style="margin-top:20px">5. 재원일수 및 항생제 사용 현황</div>
+    <div class="rpt-title" style="margin-top:18px">5. 재원일수 및 항생제 사용 현황</div>
     <div class="rpt-sub">질환별 평균 재원일수 / 항생제 사용일수</div>
-    <canvas id="rptChartStay" style="max-height:180px;margin-bottom:8px"></canvas>
+    <canvas id="rptChartStay" style="max-height:160px;margin-bottom:8px"></canvas>
     <button class="toggle-btn no-print" onclick="toggleTable('stayDetailWrap')" style="margin-bottom:8px">📋 상세 내역 보기/숨기기</button>
     <div id="stayDetailWrap" style="display:none">
       <div style="overflow-x:auto"><table id="stayTableCP">
         <thead><tr><th>CP명</th><th>건수</th><th>평균 재원일수</th><th>최소</th><th>최대</th><th>평균 항생제(일)</th></tr></thead>
         <tbody id="stayTableCPBody"></tbody>
       </table></div>
-      <div class="rpt-sub" style="margin-top:12px">의사별 평균 재원일수 / 항생제 사용일수</div>
+      <div class="rpt-sub" style="margin-top:10px">의사별 평균 재원일수 / 항생제 사용일수</div>
       <div style="overflow-x:auto"><table id="stayTableDoc">
         <thead><tr><th>주치의</th><th>건수</th><th>평균 재원일수</th><th>평균 항생제(일)</th></tr></thead>
         <tbody id="stayTableDocBody"></tbody>
@@ -358,11 +358,8 @@ tr:hover td { background:#FAFBFD; }
     </div>
     <div class="rpt-analysis loading" id="analysis-stay" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
     <button class="regen-btn" onclick="genSection('stay')">↺ 재생성</button>
-  </div>
 
-  <!-- ══ 4페이지: 향후 모니터링 개선 방향 ══ -->
-  <div class="rpt-section">
-    <div class="rpt-title">6. 향후 모니터링 개선 방향</div>
+    <div class="rpt-title" style="margin-top:18px">6. 향후 모니터링 개선 방향</div>
     <div class="rpt-analysis loading" id="analysis-improve" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
     <button class="regen-btn" onclick="genSection('improve')">↺ 재생성</button>
   </div>

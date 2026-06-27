@@ -272,7 +272,7 @@ tr:hover td { background:#FAFBFD; }
 <!-- ══ 결과 보고서 탭 ══ -->
 <div class="pane active" id="pane-report">
 
-  <!-- ══ 1페이지: 개요 + 총괄 현황 ══ -->
+  <!-- ══ 1페이지: 개요 + 총괄현황 + 질환별 ══ -->
   <div class="rpt-section">
     <div class="rpt-title">1. 개요</div>
     <table class="overview-table">
@@ -283,7 +283,7 @@ tr:hover td { background:#FAFBFD; }
       <tr><th>완료율 목표</th><td><b><span id="ov-completeGoal" contenteditable="true" onblur="saveGoals()" style="outline:none;cursor:text;border-bottom:1px dashed #CBD5E1;color:#1B3A6B" title="클릭해서 수정">70</span>% 이상</b></td></tr>
     </table>
 
-    <div class="rpt-title" style="margin-top:20px">2. 총괄 현황</div>
+    <div class="rpt-title" style="margin-top:16px">2. 총괄 현황</div>
     <div class="summary">
       <div class="card c1"><div class="val" id="ov-total">—</div><div class="lbl">전체 대상 건수</div></div>
       <div class="card c4"><div class="val" id="ov-apply">—</div><div class="lbl">CP 적용 건수</div></div>
@@ -310,17 +310,18 @@ tr:hover td { background:#FAFBFD; }
     </table></div>
     <div class="rpt-analysis loading" id="analysis-summary" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
     <button class="regen-btn" onclick="genSection('summary')">↺ 재생성</button>
-    <div class="rpt-sub" style="margin-top:14px">CP별 적용률 / 완료율 현황</div>
-    <canvas id="rptChartSummary" style="max-height:180px"></canvas>
-  </div>
 
-  <!-- ══ 2페이지: 질환별 상세 분석 ══ -->
-  <div class="rpt-section">
-    <div class="rpt-title">3. 질환별 상세 분석 (모니터링 대표 5종)</div>
-    <div class="rpt-sub">수술별 적용률 / 완료율</div>
-    <canvas id="rptChartCP5" style="max-height:200px;margin-bottom:14px"></canvas>
-    <div class="rpt-sub">의사별 적용률 / 완료율</div>
-    <canvas id="rptChartDoctor" style="max-height:200px;margin-bottom:14px"></canvas>
+    <div class="rpt-title" style="margin-top:16px">3. 질환별 상세 분석 (모니터링 대표 5종)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px">
+      <div>
+        <div class="rpt-sub">수술별 적용률 / 완료율</div>
+        <canvas id="rptChartCP5" style="max-height:160px"></canvas>
+      </div>
+      <div>
+        <div class="rpt-sub">의사별 적용률 / 완료율</div>
+        <canvas id="rptChartDoctor" style="max-height:160px"></canvas>
+      </div>
+    </div>
     <div class="rpt-analysis loading" id="analysis-cp5" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
     <button class="regen-btn" onclick="genSection('cp5')">↺ 재생성</button>
   </div>
@@ -646,8 +647,8 @@ function renderAll(){
         <td style="text-align:center">${drop}</td>
         <td style="text-align:center"><b>${ar}%</b></td>
         <td style="text-align:center"><b>${cr}%</b></td>
-        <td style="text-align:center">${parseFloat(ar)>=applyGoal?'<span class="badge-ok">✓ 달성</span>':'<span class="badge-ng">✗ 미달</span>'}</td>
-        <td style="text-align:center">${parseFloat(cr)>=completeGoal?'<span class="badge-ok">✓ 달성</span>':'<span class="badge-ng">✗ 미달</span>'}</td>
+        <td style="text-align:center">${items.length===0?'<span class="badge-na">해당없음</span>':parseFloat(ar)>=applyGoal?'<span class="badge-ok">✓ 달성</span>':'<span class="badge-ng">✗ 미달</span>'}</td>
+        <td style="text-align:center">${items.length===0?'<span class="badge-na">해당없음</span>':parseFloat(cr)>=completeGoal?'<span class="badge-ok">✓ 달성</span>':'<span class="badge-ng">✗ 미달</span>'}</td>
       </tr>`;
     }).join('');
   }
@@ -664,7 +665,7 @@ function dc(id){if(charts[id]){try{charts[id].destroy();}catch(e){}delete charts
 
 function renderReportCharts(){
   const d=filteredData;
-  const pieColors=['#EF4444','#F97316','#EAB308','#22C55E','#3B82F6','#8B5CF6'];
+  const pieColors=['#F87171','#FB923C','#FBBF24','#4ADE80','#60A5FA','#A78BFA'];
 
   // CP5 데이터 먼저 계산
   const cp5D=CP5.map(cp=>{
@@ -673,28 +674,13 @@ function renderReportCharts(){
     const comp=items.filter(x=>x.cpApply&&x.complete).length;
     return{total:items.length,ar:items.length?Math.round(app/items.length*100):0,cr:app?Math.round(comp/app*100):0};
   });
-
-  // ── 총괄 요약 차트 (테이블 아래) ──
-  dc('rptChartSummary');
-  const cs=document.getElementById('rptChartSummary');
-  if(cs) charts['rptChartSummary']=new Chart(cs,{
-    type:'bar',plugins:[topLabel],
-    data:{labels:CP5.map((c,i)=>c+'\n('+cp5D[i].total+'건)'),datasets:[
-      {label:'적용률(%)',data:cp5D.map(x=>x.ar),backgroundColor:'#3B82F6BB',borderRadius:4},
-      {label:'완료율(%)',data:cp5D.map(x=>x.cr),backgroundColor:'#EF4444BB',borderRadius:4},
-    ]},
-    options:{responsive:true,plugins:{legend:{labels:{font:{size:11}}}},
-      scales:{y:{max:100,ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'#F1F5F9'}},x:{ticks:{font:{size:10}}}}}
-  });
-
-  // CP5
   dc('rptChartCP5');
   const c1=document.getElementById('rptChartCP5');
   if(c1) charts['rptChartCP5']=new Chart(c1,{
     type:'bar',plugins:[topLabel],
     data:{labels:CP5.map((c,i)=>c+'\n('+cp5D[i].total+'건)'),datasets:[
-      {label:'적용률(%)',data:cp5D.map(x=>x.ar),backgroundColor:'#3B82F6BB',borderRadius:4},
-      {label:'완료율(%)',data:cp5D.map(x=>x.cr),backgroundColor:'#EF4444BB',borderRadius:4},
+      {label:'적용률(%)',data:cp5D.map(x=>x.ar),backgroundColor:'#93C5FD',borderRadius:4},
+      {label:'완료율(%)',data:cp5D.map(x=>x.cr),backgroundColor:'#FCA5A5',borderRadius:4},
     ]},
     options:{responsive:true,plugins:{legend:{labels:{font:{size:11}}}},
       scales:{y:{max:100,ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'#F1F5F9'}},x:{ticks:{font:{size:10}}}}}
@@ -713,8 +699,8 @@ function renderReportCharts(){
   if(c2) charts['rptChartDoctor']=new Chart(c2,{
     type:'bar',plugins:[topLabel],
     data:{labels:docD.map(x=>x.doc+'\n('+x.total+'건)'),datasets:[
-      {label:'적용률(%)',data:docD.map(x=>x.ar),backgroundColor:'#8B5CF6BB',borderRadius:4},
-      {label:'완료율(%)',data:docD.map(x=>x.cr),backgroundColor:'#F59E0BBB',borderRadius:4},
+      {label:'적용률(%)',data:docD.map(x=>x.ar),backgroundColor:'#C4B5FD',borderRadius:4},
+      {label:'완료율(%)',data:docD.map(x=>x.cr),backgroundColor:'#FCD34D',borderRadius:4},
     ]},
     options:{responsive:true,plugins:{legend:{labels:{font:{size:11}}}},
       scales:{y:{max:100,ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'#F1F5F9'}},x:{ticks:{font:{size:10}}}}}
@@ -793,8 +779,8 @@ function renderReportCharts(){
   if(c4) charts['rptChartStay']=new Chart(c4,{
     type:'bar',plugins:[stayLabelPlugin],
     data:{labels:CP5,datasets:[
-      {label:'평균 재원일수',data:stayD.map(x=>x.avgL),backgroundColor:'#06B6D4BB',borderRadius:4},
-      {label:'평균 항생제(일)',data:stayD.map(x=>x.avgA),backgroundColor:'#10B981BB',borderRadius:4},
+      {label:'평균 재원일수',data:stayD.map(x=>x.avgL),backgroundColor:'#67E8F9',borderRadius:4},
+      {label:'평균 항생제(일)',data:stayD.map(x=>x.avgA),backgroundColor:'#6EE7B7',borderRadius:4},
     ]},
     options:{responsive:true,plugins:{legend:{labels:{font:{size:11}}}},
       scales:{y:{ticks:{callback:v=>v+'일',font:{size:10}},grid:{color:'#F1F5F9'}},x:{ticks:{font:{size:10}}}}}

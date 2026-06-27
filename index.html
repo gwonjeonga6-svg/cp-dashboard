@@ -669,6 +669,14 @@ function renderReportCharts(){
   const d=filteredData;
   const pieColors=['#EF4444','#F97316','#EAB308','#22C55E','#3B82F6','#8B5CF6'];
 
+  // CP5 데이터 먼저 계산
+  const cp5D=CP5.map(cp=>{
+    const items=d.filter(x=>x.cpCode===cp);
+    const app=items.filter(x=>x.cpApply).length;
+    const comp=items.filter(x=>x.cpApply&&x.complete).length;
+    return{total:items.length,ar:items.length?Math.round(app/items.length*100):0,cr:app?Math.round(comp/app*100):0};
+  });
+
   // ── 총괄 요약 차트 (테이블 아래) ──
   dc('rptChartSummary');
   const cs=document.getElementById('rptChartSummary');
@@ -683,12 +691,6 @@ function renderReportCharts(){
   });
 
   // CP5
-  const cp5D=CP5.map(cp=>{
-    const items=d.filter(x=>x.cpCode===cp);
-    const app=items.filter(x=>x.cpApply).length;
-    const comp=items.filter(x=>x.cpApply&&x.complete).length;
-    return{total:items.length,ar:items.length?Math.round(app/items.length*100):0,cr:app?Math.round(comp/app*100):0};
-  });
   dc('rptChartCP5');
   const c1=document.getElementById('rptChartCP5');
   if(c1) charts['rptChartCP5']=new Chart(c1,{

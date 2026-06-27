@@ -129,7 +129,7 @@ tr:hover td { background:#FAFBFD; }
 @media print {
   * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
   .upload-panel, .period-bar, .tabs, .btn-ai, .btn-print, .regen-btn, .toggle-btn { display:none !important; }
-  body { background:#fff; font-size:11px; }
+  body { background:#fff; font-size:13px; }
   .header { display:none !important; }
   .pane { display:none !important; }
   .pane.active { display:block !important; }
@@ -149,11 +149,10 @@ tr:hover td { background:#FAFBFD; }
     page-break-after:always;
   }
   .rpt-section:last-child { page-break-after:auto; }
-  .rpt-title { font-size:18px; margin-bottom:12px; }
-  .rpt-title + .rpt-title,
+  .rpt-title { font-size:20px; margin-bottom:12px; }
   .rpt-title[style*="margin-top"] { margin-top:32px !important; border-top:2px solid #1B3A6B; padding-top:14px; }
-  .rpt-sub { font-size:11px; margin:8px 0 5px; }
-  .rpt-analysis { font-size:10.5px; line-height:1.7; padding:8px 12px; min-height:0; }
+  .rpt-sub { font-size:13px; margin:10px 0 6px; }
+  .rpt-analysis { font-size:12px; line-height:1.8; padding:10px 14px; min-height:0; }
   canvas { max-height:200px !important; }
 
   .drop-print-grid {
@@ -164,11 +163,11 @@ tr:hover td { background:#FAFBFD; }
 
   .summary { grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:10px; }
   .card { box-shadow:none; border:1px solid #E2E8F0; padding:8px 12px; }
-  .card .val { font-size:18px; }
+  .card .val { font-size:22px; }
 
-  table { font-size:10px; }
-  th { font-size:10px; padding:5px 8px; }
-  td { padding:5px 8px; font-size:10px; }
+  table { font-size:12px; }
+  th { font-size:12px; padding:7px 10px; }
+  td { padding:6px 10px; font-size:12px; }
 
   .overview-table th { background:#1B3A6B !important; color:#fff !important; }
 
@@ -465,9 +464,22 @@ const topLabel={
     chart.data.datasets.forEach((ds,di)=>{
       chart.getDatasetMeta(di).data.forEach((bar,i)=>{
         const v=ds.data[i]; if(!v) return;
-        ctx.save(); ctx.font='bold 9px Noto Sans KR'; ctx.fillStyle='#334155';
+        // 막대 위 % 표시
+        ctx.save();
+        ctx.font='bold 9px Noto Sans KR'; ctx.fillStyle='#334155';
         ctx.textAlign='center'; ctx.textBaseline='bottom';
-        ctx.fillText(v+'%',bar.x,bar.y-1); ctx.restore();
+        ctx.fillText(v+'%',bar.x,bar.y-1);
+        // 막대 안 건수 표시
+        const cnt=ds.counts?.[i];
+        if(cnt!==undefined&&cnt>0){
+          const barH=bar.base-bar.y;
+          if(barH>16){
+            ctx.font='bold 8px Noto Sans KR'; ctx.fillStyle='#fff';
+            ctx.textBaseline='middle';
+            ctx.fillText(cnt+'건',bar.x,bar.y+barH/2);
+          }
+        }
+        ctx.restore();
       });
     });
   }
@@ -674,7 +686,9 @@ function renderReportCharts(){
     const items=d.filter(x=>x.cpCode===cp);
     const app=items.filter(x=>x.cpApply).length;
     const comp=items.filter(x=>x.cpApply&&x.complete).length;
-    return{total:items.length,ar:items.length?Math.round(app/items.length*100):0,cr:app?Math.round(comp/app*100):0};
+    return{total:items.length,applied:app,completed:comp,
+      ar:items.length?Math.round(app/items.length*100):0,
+      cr:app?Math.round(comp/app*100):0};
   });
 
   // 총괄 요약 차트
@@ -683,8 +697,8 @@ function renderReportCharts(){
   if(cs) charts['rptChartSummary']=new Chart(cs,{
     type:'bar',plugins:[topLabel],
     data:{labels:CP5.map((c,i)=>c+'\n('+cp5D[i].total+'건)'),datasets:[
-      {label:'적용률(%)',data:cp5D.map(x=>x.ar),backgroundColor:'#93C5FD',borderRadius:4},
-      {label:'완료율(%)',data:cp5D.map(x=>x.cr),backgroundColor:'#FCA5A5',borderRadius:4},
+      {label:'적용률(%)',data:cp5D.map(x=>x.ar),counts:cp5D.map(x=>x.applied),backgroundColor:'#93C5FD',borderRadius:4},
+      {label:'완료율(%)',data:cp5D.map(x=>x.cr),counts:cp5D.map(x=>x.completed),backgroundColor:'#FCA5A5',borderRadius:4},
     ]},
     options:{responsive:true,plugins:{legend:{labels:{font:{size:11}}}},
       scales:{y:{max:100,ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'#F1F5F9'}},x:{ticks:{font:{size:10}}}}}
@@ -695,8 +709,8 @@ function renderReportCharts(){
   if(c1) charts['rptChartCP5']=new Chart(c1,{
     type:'bar',plugins:[topLabel],
     data:{labels:CP5.map((c,i)=>c+'\n('+cp5D[i].total+'건)'),datasets:[
-      {label:'적용률(%)',data:cp5D.map(x=>x.ar),backgroundColor:'#93C5FD',borderRadius:4},
-      {label:'완료율(%)',data:cp5D.map(x=>x.cr),backgroundColor:'#FCA5A5',borderRadius:4},
+      {label:'적용률(%)',data:cp5D.map(x=>x.ar),counts:cp5D.map(x=>x.applied),backgroundColor:'#93C5FD',borderRadius:4},
+      {label:'완료율(%)',data:cp5D.map(x=>x.cr),counts:cp5D.map(x=>x.completed),backgroundColor:'#FCA5A5',borderRadius:4},
     ]},
     options:{responsive:true,plugins:{legend:{labels:{font:{size:11}}}},
       scales:{y:{max:100,ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'#F1F5F9'}},x:{ticks:{font:{size:10}}}}}
@@ -708,15 +722,17 @@ function renderReportCharts(){
     const items=d.filter(x=>x.doctor===doc);
     const app=items.filter(x=>x.cpApply).length;
     const comp=items.filter(x=>x.cpApply&&x.complete).length;
-    return{doc,total:items.length,ar:items.length?Math.round(app/items.length*100):0,cr:app?Math.round(comp/app*100):0};
+    return{doc,total:items.length,applied:app,completed:comp,
+      ar:items.length?Math.round(app/items.length*100):0,
+      cr:app?Math.round(comp/app*100):0};
   });
   dc('rptChartDoctor');
   const c2=document.getElementById('rptChartDoctor');
   if(c2) charts['rptChartDoctor']=new Chart(c2,{
     type:'bar',plugins:[topLabel],
     data:{labels:docD.map(x=>x.doc+'\n('+x.total+'건)'),datasets:[
-      {label:'적용률(%)',data:docD.map(x=>x.ar),backgroundColor:'#C4B5FD',borderRadius:4},
-      {label:'완료율(%)',data:docD.map(x=>x.cr),backgroundColor:'#FCD34D',borderRadius:4},
+      {label:'적용률(%)',data:docD.map(x=>x.ar),counts:docD.map(x=>x.applied),backgroundColor:'#C4B5FD',borderRadius:4},
+      {label:'완료율(%)',data:docD.map(x=>x.cr),counts:docD.map(x=>x.completed),backgroundColor:'#FCD34D',borderRadius:4},
     ]},
     options:{responsive:true,plugins:{legend:{labels:{font:{size:11}}}},
       scales:{y:{max:100,ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'#F1F5F9'}},x:{ticks:{font:{size:10}}}}}

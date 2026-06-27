@@ -93,7 +93,7 @@ tr:hover td { background:#FAFBFD; }
   margin-bottom:16px; padding:22px 28px;
 }
 .rpt-title {
-  font-size:22px; font-weight:700; color:#1B3A6B;
+  font-size:24px; font-weight:700; color:#1B3A6B;
   border-bottom:2px solid #1B3A6B; padding-bottom:8px; margin-bottom:16px;
   display:flex; justify-content:space-between; align-items:center;
 }
@@ -149,7 +149,7 @@ tr:hover td { background:#FAFBFD; }
     page-break-after:always;
   }
   .rpt-section:last-child { page-break-after:auto; }
-  .rpt-title { font-size:15px; margin-bottom:8px; }
+  .rpt-title { font-size:16px; margin-bottom:10px; }
   .rpt-title + .rpt-title,
   .rpt-title[style*="margin-top"] { margin-top:16px !important; border-top:1px solid #E2E8F0; padding-top:12px; }
   .rpt-sub { font-size:11px; margin:8px 0 5px; }
@@ -283,7 +283,7 @@ tr:hover td { background:#FAFBFD; }
       <tr><th>완료율 목표</th><td><b><span id="ov-completeGoal" contenteditable="true" onblur="saveGoals()" style="outline:none;cursor:text;border-bottom:1px dashed #CBD5E1;color:#1B3A6B" title="클릭해서 수정">70</span>% 이상</b></td></tr>
     </table>
 
-    <div class="rpt-title" style="margin-top:28px">2. 총괄 현황</div>
+    <div class="rpt-title" style="margin-top:36px">2. 총괄 현황</div>
     <div class="summary">
       <div class="card c1"><div class="val" id="ov-total">—</div><div class="lbl">전체 대상 건수</div></div>
       <div class="card c4"><div class="val" id="ov-apply">—</div><div class="lbl">CP 적용 건수</div></div>
@@ -313,7 +313,7 @@ tr:hover td { background:#FAFBFD; }
     <div class="rpt-sub" style="margin-top:12px">CP별 적용률 / 완료율 현황</div>
     <canvas id="rptChartSummary" style="max-height:180px"></canvas>
 
-    <div class="rpt-title" style="margin-top:28px">3. 질환별 상세 분석 (모니터링 대표 5종)</div>
+    <div class="rpt-title" style="margin-top:36px">3. 질환별 상세 분석 (모니터링 대표 5종)</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px">
       <div>
         <div class="rpt-sub">수술별 적용률 / 완료율</div>
@@ -344,7 +344,7 @@ tr:hover td { background:#FAFBFD; }
     <div class="rpt-analysis loading" id="analysis-drop" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
     <button class="regen-btn" onclick="genSection('drop')">↺ 재생성</button>
 
-    <div class="rpt-title" style="margin-top:28px">5. 재원일수 및 항생제 사용 현황</div>
+    <div class="rpt-title" style="margin-top:36px">5. 재원일수 및 항생제 사용 현황</div>
     <div class="rpt-sub">질환별 평균 재원일수 / 항생제 사용일수</div>
     <canvas id="rptChartStay" style="max-height:200px;margin-bottom:8px"></canvas>
     <button class="toggle-btn no-print" onclick="toggleTable('stayDetailWrap')" style="margin-bottom:8px">📋 상세 내역 보기/숨기기</button>
@@ -362,7 +362,7 @@ tr:hover td { background:#FAFBFD; }
     <div class="rpt-analysis loading" id="analysis-stay" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
     <button class="regen-btn" onclick="genSection('stay')">↺ 재생성</button>
 
-    <div class="rpt-title" style="margin-top:28px">6. 향후 모니터링 개선 방향</div>
+    <div class="rpt-title" style="margin-top:36px">6. 향후 모니터링 개선 방향</div>
     <div class="rpt-analysis loading" id="analysis-improve" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
     <button class="regen-btn" onclick="genSection('improve')">↺ 재생성</button>
   </div>

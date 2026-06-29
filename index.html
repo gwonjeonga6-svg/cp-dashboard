@@ -571,18 +571,37 @@ function processRows(rows,filename,sheetName){
     if(cp.includes('TKRA')) cp='TKRA';
     else if(cp.includes('ARCR')) cp='ARCR';
     else if(cp.includes('HWR')) cp='HWR';
-    else if(cp.includes('MENIS')||cp==='MN') cp='MENISECTOMY';
+    else if(cp.includes('MENIS')||cp.includes('MN')) cp='MENISECTOMY';
     const los=parseFloat(g(row,c.los)),abx=parseFloat(g(row,c.abxDays));
     const apply=g(row,c.cpApply).toUpperCase()==='Y';
     const comp=g(row,c.complete).toUpperCase()==='Y';
     const docName=g(row,c.doctor).trim();
     if(docName==='김대경') continue;
-    parsed.push({id:g(row,c.id),name:g(row,c.name),dept:g(row,c.dept),doctor:docName,
+    const chartNo=g(row,c.id); // 차트번호
+    parsed.push({id:chartNo,name:g(row,c.name),dept:g(row,c.dept),doctor:docName,
       surgery:g(row,c.surgery),discharge:g(row,c.discharge),dischargeDate:parseDate(g(row,c.discharge)),
       los:isNaN(los)?null:los,cpCode:cp,cpRaw:cpRaw,cpApply:apply,complete:comp,
-      dropReason:apply&&!comp?(g(row,c.dropReason)||'기타'):'',abxDays:isNaN(abx)?null:abx,note:g(row,c.note)});
+      dropReason:apply&&!comp?(g(row,c.dropReason)||'기타'):'',abxDays:isNaN(abx)?null:abx,note:g(row,c.note),
+      isBilateral:false});
   }
   if(!parsed.length){showStatus('⚠️ CP대상(Y) 데이터 없음',true);return;}
+
+  // ── 양측 판별 ──
+  // 조건1: cpRaw에 TKRAB 포함
+  // 조건2: 동일 차트번호 + TKRA + 적용Y 2건 이상
+  const chartApplyCnt={};
+  parsed.forEach(x=>{
+    if(x.cpCode==='TKRA'&&x.cpApply){
+      chartApplyCnt[x.id]=(chartApplyCnt[x.id]||0)+1;
+    }
+  });
+  parsed.forEach(x=>{
+    if(x.cpCode!=='TKRA') return;
+    const raw=x.cpRaw.replace(/\s/g,'').toUpperCase();
+    if(raw.includes('TKRAB')||raw.includes('TKRA(B)')){x.isBilateral=true;return;}
+    if(x.cpApply&&(chartApplyCnt[x.id]||0)>=2) x.isBilateral=true;
+  });
+
   allData=parsed;
   document.getElementById('dropZone').innerHTML=
     '<div style="font-size:18px;margin-bottom:4px">✅</div>'+
@@ -595,9 +614,27 @@ function processRows(rows,filename,sheetName){
 // ── 메인 렌더 ──
 function renderAll(){
   const d=filteredData; if(!d.length) return;
-  const total=d.length,applied=d.filter(x=>x.cpApply).length;
-  const completed=d.filter(x=>x.cpApply&&x.complete).length;
-  const dropped=d.filter(x=>x.cpApply&&!x.complete).length;
+
+  // 환자수 기준 집계 (양측은 차트번호로 중복 제거)
+  const patientMap={};
+  d.forEach(x=>{
+    const key=x.cpCode+'_'+x.id;
+    if(!patientMap[key]) patientMap[key]={...x,rows:[x]};
+    else patientMap[key].rows.push(x);
+  });
+  const patients=Object.values(patientMap);
+
+  // TKRA 환자수 기준
+  const tkraPats=patients.filter(p=>p.cpCode==='TKRA');
+  const tkraApplied=tkraPats.filter(p=>p.rows.some(r=>r.cpApply)).length;
+  const tkraComp=tkraPats.filter(p=>p.rows.some(r=>r.cpApply)&&p.rows.filter(r=>r.cpApply).every(r=>r.complete)).length;
+
+  // 전체 통계 (TKRA 환자수 기준 + 나머지 건수 기준)
+  const nonTkra=d.filter(x=>x.cpCode!=='TKRA');
+  const total=tkraPats.length+nonTkra.length;
+  const applied=tkraApplied+nonTkra.filter(x=>x.cpApply).length;
+  const completed=tkraComp+nonTkra.filter(x=>x.cpApply&&x.complete).length;
+  const dropped=applied-completed;
   const aR=(applied/total*100).toFixed(1),cR=applied?(completed/applied*100).toFixed(1):'0.0';
   const dR=applied?(dropped/applied*100).toFixed(1):'0.0';
 
@@ -620,16 +657,28 @@ function renderAll(){
   const tbody=document.getElementById('tbl5Body');
   if(tbody){
     tbody.innerHTML=CP5.map(cp=>{
-      const items=d.filter(x=>x.cpCode===cp);
-      const app=items.filter(x=>x.cpApply).length;
-      const comp=items.filter(x=>x.cpApply&&x.complete).length;
-      const drop=app-comp;
-      const ar=items.length?(app/items.length*100).toFixed(1):0;
-      const cr=app?(comp/app*100).toFixed(1):0;
-      const na=items.length===0;
+      let tot,app,comp,drop,ar,cr;
+      if(cp==='TKRA'){
+        // 환자수 기준
+        const pats=tkraPats;
+        tot=pats.length;
+        app=pats.filter(p=>p.rows.some(r=>r.cpApply)).length;
+        comp=pats.filter(p=>p.rows.some(r=>r.cpApply)&&p.rows.filter(r=>r.cpApply).every(r=>r.complete)).length;
+        drop=app-comp;
+        ar=tot?(app/tot*100).toFixed(1):0;
+        cr=app?(comp/app*100).toFixed(1):0;
+      } else {
+        const items=d.filter(x=>x.cpCode===cp);
+        tot=items.length; app=items.filter(x=>x.cpApply).length;
+        comp=items.filter(x=>x.cpApply&&x.complete).length;
+        drop=app-comp;
+        ar=tot?(app/tot*100).toFixed(1):0;
+        cr=app?(comp/app*100).toFixed(1):0;
+      }
+      const na=tot===0;
       return`<tr>
         <td><b>${cp}</b></td>
-        <td style="text-align:center">${items.length}</td>
+        <td style="text-align:center">${tot}</td>
         <td style="text-align:center">${app}</td>
         <td style="text-align:center">${comp}</td>
         <td style="text-align:center">${drop}</td>
@@ -654,8 +703,16 @@ function renderCharts(){
   const d=filteredData;
   const pc=['#93C5FD','#FCA5A5','#C4B5FD','#FCD34D','#67E8F9','#6EE7B7'];
 
-  // CP5 데이터
+  // CP5 데이터 (TKRA 환자수 기준)
+  const tkraPatsAll=Object.values(d.filter(x=>x.cpCode==='TKRA').reduce((m,x)=>{
+    if(!m[x.id])m[x.id]={...x,rows:[x]};else m[x.id].rows.push(x);return m;},{}));
   const cp5D=CP5.map(cp=>{
+    if(cp==='TKRA'){
+      const pats=tkraPatsAll;
+      const app=pats.filter(p=>p.rows.some(r=>r.cpApply)).length;
+      const comp=pats.filter(p=>p.rows.some(r=>r.cpApply)&&p.rows.filter(r=>r.cpApply).every(r=>r.complete)).length;
+      return{total:pats.length,app,comp,ar:pats.length?pct(app,pats.length):0,cr:app?pct(comp,app):0};
+    }
     const items=d.filter(x=>x.cpCode===cp);
     const app=items.filter(x=>x.cpApply).length;
     const comp=items.filter(x=>x.cpApply&&x.complete).length;
@@ -667,7 +724,7 @@ function renderCharts(){
   const cs=document.getElementById('cSummary');
   if(cs) charts['cSummary']=new Chart(cs,{
     type:'bar',plugins:[barLabel],
-    data:{labels:CP5.map((c,i)=>c+'\n('+cp5D[i].total+'건)'),datasets:[
+    data:{labels:CP5.map((c,i)=>c+'\n('+cp5D[i].total+'명)'),datasets:[
       {label:'적용률(%)',data:cp5D.map(x=>x.ar),counts:cp5D.map(x=>x.app),backgroundColor:'#93C5FD',borderRadius:4},
       {label:'완료율(%)',data:cp5D.map(x=>x.cr),counts:cp5D.map(x=>x.comp),backgroundColor:'#FCA5A5',borderRadius:4},
     ]},
@@ -675,14 +732,44 @@ function renderCharts(){
       scales:{y:{max:100,ticks:{display:false},grid:{display:false}},x:{ticks:{font:{size:11,weight:'bold'},maxRotation:0}}},barPercentage:0.6,categoryPercentage:0.7}
   });
 
-  // 수술별 차트
+  // 수술별 차트 - TKRA 편측/양측 분리
+  const uniPats=tkraPatsAll.filter(p=>!p.isBilateral);
+  const biPats=tkraPatsAll.filter(p=>p.isBilateral);
+  const uniApp=uniPats.filter(p=>p.rows.some(r=>r.cpApply)).length;
+  const uniComp=uniPats.filter(p=>p.rows.some(r=>r.cpApply)&&p.rows.filter(r=>r.cpApply).every(r=>r.complete)).length;
+  const biApp=biPats.filter(p=>p.rows.some(r=>r.cpApply)).length;
+  const biComp=biPats.filter(p=>p.rows.some(r=>r.cpApply)&&p.rows.filter(r=>r.cpApply).every(r=>r.complete)).length;
+  const uniAr=uniPats.length?pct(uniApp,uniPats.length):0;
+  const uniCr=uniApp?pct(uniComp,uniApp):0;
+  const biAr=biPats.length?pct(biApp,biPats.length):0;
+  const biCr=biApp?pct(biComp,biApp):0;
+
+  // TKRA 제외한 나머지 CP
+  const otherCPs=CP5.filter(c=>c!=='TKRA');
+  const otherD=otherCPs.map(cp=>{
+    const items=d.filter(x=>x.cpCode===cp);
+    const app=items.filter(x=>x.cpApply).length;
+    const comp=items.filter(x=>x.cpApply&&x.complete).length;
+    return{total:items.length,app,comp,ar:items.length?pct(app,items.length):0,cr:app?pct(comp,app):0};
+  });
+
+  const cp5Labels=[
+    'TKRA(편측)\n('+uniPats.length+'명)',
+    'TKRA(양측)\n('+biPats.length+'명)',
+    ...otherCPs.map((c,i)=>c+'\n('+otherD[i].total+'건)')
+  ];
+  const cp5Ar=[uniAr,biAr,...otherD.map(x=>x.ar)];
+  const cp5Cr=[uniCr,biCr,...otherD.map(x=>x.cr)];
+  const cp5AppCnt=[uniApp,biApp,...otherD.map(x=>x.app)];
+  const cp5CompCnt=[uniComp,biComp,...otherD.map(x=>x.comp)];
+
   dc('cCP5');
   const c1=document.getElementById('cCP5');
   if(c1) charts['cCP5']=new Chart(c1,{
     type:'bar',plugins:[barLabel],
-    data:{labels:CP5.map((c,i)=>c+'\n('+cp5D[i].total+'건)'),datasets:[
-      {label:'적용률(%)',data:cp5D.map(x=>x.ar),counts:cp5D.map(x=>x.app),backgroundColor:'#93C5FD',borderRadius:4},
-      {label:'완료율(%)',data:cp5D.map(x=>x.cr),counts:cp5D.map(x=>x.comp),backgroundColor:'#FCA5A5',borderRadius:4},
+    data:{labels:cp5Labels,datasets:[
+      {label:'적용률(%)',data:cp5Ar,counts:cp5AppCnt,backgroundColor:'#93C5FD',borderRadius:4},
+      {label:'완료율(%)',data:cp5Cr,counts:cp5CompCnt,backgroundColor:'#FCA5A5',borderRadius:4},
     ]},
     options:{responsive:true,plugins:{legend:{labels:{font:{size:11}}}},
       scales:{y:{max:100,ticks:{display:false},grid:{display:false}},x:{ticks:{font:{size:11,weight:'bold'},maxRotation:0}}},barPercentage:0.6,categoryPercentage:0.7}

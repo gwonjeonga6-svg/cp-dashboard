@@ -144,7 +144,10 @@ tr:last-child td{border-bottom:none;}
   .ov-table td{font-size:9pt;padding:6px 10px;}
 
   /* 그래프 */
-  canvas{width:100%!important;}
+  canvas{width:100%!important;max-height:150px!important;}
+  #cDoctor{max-height:200px!important;}
+  .drop-grid canvas{max-height:170px!important;}
+  #cStay{max-height:150px!important;}
   /* 2페이지 그래프는 조금 더 크게 */
   
   /* 도넛 */
@@ -291,16 +294,16 @@ tr:last-child td{border-bottom:none;}
     <div class="rpt-ai loading" id="ai-summary" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
     <button class="regen-btn" onclick="gen('summary')">↺ 재생성</button>
     <div class="rpt-sub" style="margin-top:14px">CP별 적용률 / 완료율</div>
-    <canvas id="cSummary" style="max-height:170px"></canvas>
+    <canvas id="cSummary" style="max-height:200px"></canvas>
     <div class="rpt-sub" style="margin-top:12px">수술별 적용률 / 완료율</div>
-    <canvas id="cCP5" style="max-height:170px"></canvas>
+    <canvas id="cCP5" style="max-height:200px"></canvas>
   </div>
 
   <!-- 2페이지: 의사별 -->
   <div class="rpt-sec pb">
     <div class="rpt-h">3. 질환별 상세 분석 (모니터링 대표 5종)</div>
     <div class="rpt-sub">의사별 적용률 / 완료율</div>
-    <canvas id="cDoctor" style="max-height:420px;margin-bottom:10px"></canvas>
+    <canvas id="cDoctor" style="max-height:200px;margin-bottom:10px"></canvas>
     <div class="rpt-ai loading" id="ai-cp5" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
     <button class="regen-btn" onclick="gen('cp5')">↺ 재생성</button>
   </div>

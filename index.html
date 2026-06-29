@@ -469,6 +469,31 @@ const doughnutPctLabel={
 function dc(id){if(charts[id]){try{charts[id].destroy();}catch(e){}delete charts[id];}}
 function avg(arr,key){const v=arr.filter(x=>x[key]!==null);return v.length?Math.round(v.reduce((s,x)=>s+x[key],0)/v.length*10)/10:null;}
 function pct(a,b){return b?Math.round(a/b*100):0;}
+
+// ── 환자수 기준 집계 (차트번호+퇴원일 동일 = 1명) ──
+// 반환: [{key, rows, cpApply, complete, doctor, cpCode, ...}]
+function toPatients(data){
+  const map={};
+  data.forEach(x=>{
+    const key=x.id+'_'+(x.discharge||'');
+    if(!map[key]) map[key]={...x, rows:[x]};
+    else map[key].rows.push(x);
+  });
+  // 환자 단위 적용/완료 판정
+  Object.values(map).forEach(p=>{
+    p.cpApply = p.rows.some(r=>r.cpApply);
+    p.complete = p.rows.some(r=>r.cpApply) && p.rows.filter(r=>r.cpApply).every(r=>r.complete);
+    p.dropped  = p.rows.some(r=>r.cpApply) && !p.complete;
+    // 중단사유: 적용됐지만 미완료인 첫 번째 행의 사유
+    p.dropReason = p.rows.find(r=>r.cpApply&&!r.complete)?.dropReason||'';
+    // 항생제/재원은 합산
+    const abxRows=p.rows.filter(r=>r.abxDays!==null);
+    p.abxDays = abxRows.length ? Math.round(abxRows.reduce((s,r)=>s+r.abxDays,0)/abxRows.length*10)/10 : null;
+    const losRows=p.rows.filter(r=>r.los!==null);
+    p.los = losRows.length ? Math.max(...losRows.map(r=>r.los)) : null;
+  });
+  return Object.values(map);
+}
 function showStatus(msg,err){const el=document.getElementById('uploadStatus');el.style.display='block';el.style.color=err?'#DC2626':'#16A34A';el.textContent=msg;if(!err)setTimeout(()=>el.style.display='none',3500);}
 function toggleUpload(){document.getElementById('uploadToggle').classList.toggle('open');document.getElementById('uploadBody').classList.toggle('show');}
 function toggleTable(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'':'none';}
@@ -615,25 +640,11 @@ function processRows(rows,filename,sheetName){
 function renderAll(){
   const d=filteredData; if(!d.length) return;
 
-  // 환자수 기준 집계 (양측은 차트번호로 중복 제거)
-  const patientMap={};
-  d.forEach(x=>{
-    const key=x.cpCode+'_'+x.id;
-    if(!patientMap[key]) patientMap[key]={...x,rows:[x]};
-    else patientMap[key].rows.push(x);
-  });
-  const patients=Object.values(patientMap);
-
-  // TKRA 환자수 기준
-  const tkraPats=patients.filter(p=>p.cpCode==='TKRA');
-  const tkraApplied=tkraPats.filter(p=>p.rows.some(r=>r.cpApply)).length;
-  const tkraComp=tkraPats.filter(p=>p.rows.some(r=>r.cpApply)&&p.rows.filter(r=>r.cpApply).every(r=>r.complete)).length;
-
-  // 전체 통계 (TKRA 환자수 기준 + 나머지 건수 기준)
-  const nonTkra=d.filter(x=>x.cpCode!=='TKRA');
-  const total=tkraPats.length+nonTkra.length;
-  const applied=tkraApplied+nonTkra.filter(x=>x.cpApply).length;
-  const completed=tkraComp+nonTkra.filter(x=>x.cpApply&&x.complete).length;
+  // 전체 환자수 기준 집계
+  const allPats=toPatients(d);
+  const total=allPats.length;
+  const applied=allPats.filter(p=>p.cpApply).length;
+  const completed=allPats.filter(p=>p.complete).length;
   const dropped=applied-completed;
   const aR=(applied/total*100).toFixed(1),cR=applied?(completed/applied*100).toFixed(1):'0.0';
   const dR=applied?(dropped/applied*100).toFixed(1):'0.0';
@@ -653,28 +664,20 @@ function renderAll(){
     if(b2)b2.style.width=Math.min(parseFloat(cR),100)+'%';
   },100);
 
+  // TKRA 환자수 기준 (양측 분리용)
+  const tkraAllPats=toPatients(d.filter(x=>x.cpCode==='TKRA'));
+
   // 5종 테이블
   const tbody=document.getElementById('tbl5Body');
   if(tbody){
     tbody.innerHTML=CP5.map(cp=>{
-      let tot,app,comp,drop,ar,cr;
-      if(cp==='TKRA'){
-        // 환자수 기준
-        const pats=tkraPats;
-        tot=pats.length;
-        app=pats.filter(p=>p.rows.some(r=>r.cpApply)).length;
-        comp=pats.filter(p=>p.rows.some(r=>r.cpApply)&&p.rows.filter(r=>r.cpApply).every(r=>r.complete)).length;
-        drop=app-comp;
-        ar=tot?(app/tot*100).toFixed(1):0;
-        cr=app?(comp/app*100).toFixed(1):0;
-      } else {
-        const items=d.filter(x=>x.cpCode===cp);
-        tot=items.length; app=items.filter(x=>x.cpApply).length;
-        comp=items.filter(x=>x.cpApply&&x.complete).length;
-        drop=app-comp;
-        ar=tot?(app/tot*100).toFixed(1):0;
-        cr=app?(comp/app*100).toFixed(1):0;
-      }
+      const pats=toPatients(d.filter(x=>x.cpCode===cp));
+      const tot=pats.length;
+      const app=pats.filter(p=>p.cpApply).length;
+      const comp=pats.filter(p=>p.complete).length;
+      const drop=app-comp;
+      const ar=tot?(app/tot*100).toFixed(1):0;
+      const cr=app?(comp/app*100).toFixed(1):0;
       const na=tot===0;
       return`<tr>
         <td><b>${cp}</b></td>
@@ -703,20 +706,12 @@ function renderCharts(){
   const d=filteredData;
   const pc=['#93C5FD','#FCA5A5','#C4B5FD','#FCD34D','#67E8F9','#6EE7B7'];
 
-  // CP5 데이터 (TKRA 환자수 기준)
-  const tkraPatsAll=Object.values(d.filter(x=>x.cpCode==='TKRA').reduce((m,x)=>{
-    if(!m[x.id])m[x.id]={...x,rows:[x]};else m[x.id].rows.push(x);return m;},{}));
+  // CP5 데이터 (전체 환자수 기준)
   const cp5D=CP5.map(cp=>{
-    if(cp==='TKRA'){
-      const pats=tkraPatsAll;
-      const app=pats.filter(p=>p.rows.some(r=>r.cpApply)).length;
-      const comp=pats.filter(p=>p.rows.some(r=>r.cpApply)&&p.rows.filter(r=>r.cpApply).every(r=>r.complete)).length;
-      return{total:pats.length,app,comp,ar:pats.length?pct(app,pats.length):0,cr:app?pct(comp,app):0};
-    }
-    const items=d.filter(x=>x.cpCode===cp);
-    const app=items.filter(x=>x.cpApply).length;
-    const comp=items.filter(x=>x.cpApply&&x.complete).length;
-    return{total:items.length,app,comp,ar:items.length?pct(app,items.length):0,cr:app?pct(comp,app):0};
+    const pats=toPatients(d.filter(x=>x.cpCode===cp));
+    const app=pats.filter(p=>p.cpApply).length;
+    const comp=pats.filter(p=>p.complete).length;
+    return{total:pats.length,app,comp,ar:pats.length?pct(app,pats.length):0,cr:app?pct(comp,app):0};
   });
 
   // 총괄 요약 차트
@@ -775,19 +770,20 @@ function renderCharts(){
       scales:{y:{max:100,ticks:{display:false},grid:{display:false}},x:{ticks:{font:{size:11,weight:'bold'},maxRotation:0}}},barPercentage:0.6,categoryPercentage:0.7}
   });
 
-  // 의사별 차트
-  const docs=[...new Set(d.map(x=>x.doctor).filter(Boolean))];
-  const docD=docs.map(doc=>{
-    const items=d.filter(x=>x.doctor===doc);
-    const app=items.filter(x=>x.cpApply).length;
-    const comp=items.filter(x=>x.cpApply&&x.complete).length;
-    return{doc,total:items.length,app,comp,ar:items.length?pct(app,items.length):0,cr:app?pct(comp,app):0};
+  // 의사별 차트 - OS만, 환자수 기준
+  const EXCLUDE_DEPT=['진효승','박상규']; // ENT, IM 제외
+  const osDocs=[...new Set(d.filter(x=>!EXCLUDE_DEPT.includes(x.doctor)).map(x=>x.doctor).filter(Boolean))];
+  const docD=osDocs.map(doc=>{
+    const pats=toPatients(d.filter(x=>x.doctor===doc));
+    const app=pats.filter(p=>p.cpApply).length;
+    const comp=pats.filter(p=>p.complete).length;
+    return{doc,total:pats.length,app,comp,ar:pats.length?pct(app,pats.length):0,cr:app?pct(comp,app):0};
   });
   dc('cDoctor');
   const c2=document.getElementById('cDoctor');
   if(c2) charts['cDoctor']=new Chart(c2,{
     type:'bar',plugins:[barLabel],
-    data:{labels:docD.map(x=>x.doc+'\n('+x.total+'건)'),datasets:[
+    data:{labels:docD.map(x=>x.doc+'\n('+x.total+'명)'),datasets:[
       {label:'적용률(%)',data:docD.map(x=>x.ar),counts:docD.map(x=>x.app),backgroundColor:'#C4B5FD',borderRadius:4},
       {label:'완료율(%)',data:docD.map(x=>x.cr),counts:docD.map(x=>x.comp),backgroundColor:'#FCD34D',borderRadius:4},
     ]},
@@ -795,10 +791,10 @@ function renderCharts(){
       scales:{y:{max:100,ticks:{display:false},grid:{display:false}},x:{ticks:{font:{size:11,weight:'bold'},maxRotation:0}}},barPercentage:0.6,categoryPercentage:0.7}
   });
 
-  // 도넛
-  const dropped=d.filter(x=>x.cpApply&&!x.complete);
+  // 도넛 - 환자수 기준
+  const droppedPats=toPatients(d).filter(p=>p.dropped);
   const rMap={};
-  dropped.forEach(x=>{const k=DR.find(r=>(x.dropReason||'').includes(r))||'기타';rMap[k]=(rMap[k]||0)+1;});
+  droppedPats.forEach(x=>{const k=DR.find(r=>(x.dropReason||'').includes(r))||'기타';rMap[k]=(rMap[k]||0)+1;});
   const rKeys=Object.keys(rMap);
   dc('cDrop');
   const c3=document.getElementById('cDrop');
@@ -809,35 +805,35 @@ function renderCharts(){
       datasets:[{data:rKeys.map(k=>rMap[k]),backgroundColor:['#F87171','#FB923C','#FBBF24','#4ADE80','#60A5FA','#A78BFA'].slice(0,rKeys.length)}]},
     options:{responsive:true,cutout:'52%',
       plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:13,padding:8}},
-        tooltip:{callbacks:{label:ctx=>ctx.label+' '+Math.round(ctx.parsed/dropped.length*100)+'%'}}}}
+        tooltip:{callbacks:{label:ctx=>ctx.label+' '+Math.round(ctx.parsed/droppedPats.length*100)+'%'}}}}
   });
 
-  // 중단 표
+  // 중단 표 - 환자수 기준
   const tEl=document.getElementById('tblDrop');
   if(tEl){
     const rows=Object.entries(rMap).sort((a,b)=>b[1]-a[1]).map(([r,v])=>{
       const cpB=CP5.map(cp=>{
-        const cnt=dropped.filter(x=>x.cpCode===cp&&((DR.find(k=>(x.dropReason||'').includes(k))||'기타')===r)).length;
+        const cnt=droppedPats.filter(x=>x.cpCode===cp&&((DR.find(k=>(x.dropReason||'').includes(k))||'기타')===r)).length;
         return cnt>0?cp+' '+cnt+'건':null;
       }).filter(Boolean).join(', ');
-      return`<tr><td><b>${r}</b></td><td style="text-align:center;white-space:nowrap">${v}건</td><td style="text-align:center;white-space:nowrap">${Math.round(v/dropped.length*100)}%</td><td style="color:#475569">${cpB||'—'}</td></tr>`;
+      return`<tr><td><b>${r}</b></td><td style="text-align:center;white-space:nowrap">${v}건</td><td style="text-align:center;white-space:nowrap">${Math.round(v/droppedPats.length*100)}%</td><td style="color:#475569">${cpB||'—'}</td></tr>`;
     }).join('');
     tEl.innerHTML=`<table><thead><tr><th>사유</th><th>건수</th><th>비율</th><th>질환별</th></tr></thead><tbody>${rows}</tbody></table>`;
   }
 
-  // 재원/항생제 차트 - TKRA 편측/양측 분리
+  // 재원/항생제 차트 - TKRA 편측/양측 분리, 환자수 기준
   const stayLabels=[];
   const stayAvgL=[], stayAvgA=[];
   CP5.forEach(cp=>{
     if(cp==='TKRA'){
-      const tkraS=d.filter(x=>x.cpCode==='TKRA'&&!x.cpRaw.includes('(B)'));
-      const tkraB=d.filter(x=>x.cpCode==='TKRA'&&x.cpRaw.includes('(B)'));
-      if(tkraS.length){stayLabels.push('TKRA(편측)');stayAvgL.push(avg(tkraS,'los'));stayAvgA.push(avg(tkraS,'abxDays'));}
-      if(tkraB.length){stayLabels.push('TKRA(양측)');stayAvgL.push(avg(tkraB,'los'));stayAvgA.push(avg(tkraB,'abxDays'));}
+      const tkraS=toPatients(d.filter(x=>x.cpCode==='TKRA'&&!x.isBilateral));
+      const tkraB=toPatients(d.filter(x=>x.cpCode==='TKRA'&&x.isBilateral));
+      if(tkraS.length){stayLabels.push('TKRA(편측)');stayAvgL.push(avg(tkraS,'abxDays'));stayAvgA.push(avg(tkraS,'abxDays'));}
+      if(tkraB.length){stayLabels.push('TKRA(양측)');stayAvgL.push(avg(tkraB,'abxDays'));stayAvgA.push(avg(tkraB,'abxDays'));}
       if(!tkraS.length&&!tkraB.length){stayLabels.push('TKRA');stayAvgL.push(null);stayAvgA.push(null);}
     } else {
-      const items=d.filter(x=>x.cpCode===cp);
-      stayLabels.push(cp);stayAvgL.push(avg(items,'los'));stayAvgA.push(avg(items,'abxDays'));
+      const pats=toPatients(d.filter(x=>x.cpCode===cp));
+      stayLabels.push(cp);stayAvgL.push(avg(pats,'los'));stayAvgA.push(avg(pats,'abxDays'));
     }
   });
   dc('cStay');

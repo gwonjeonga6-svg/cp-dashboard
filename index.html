@@ -286,35 +286,32 @@ tr:last-child td{border-bottom:none;}
       </div>
       <div class="card c3"><div class="val" id="ov-drop">—</div><div class="lbl">중단 건수</div><div class="sub" id="ov-dropR">—</div></div>
     </div>
-    <div class="rpt-sub">모니터링 대표 5종 CP 적용률 및 완료율</div>
+    <div class="rpt-sub">2-1. 모니터링 대표 5종 CP 적용률 및 완료율</div>
     <div style="overflow-x:auto"><table id="tbl5">
       <thead><tr><th>CP명</th><th>대상</th><th>적용</th><th>완료</th><th>중단</th><th>적용률</th><th>완료율</th><th>달성(적용)</th><th>달성(완료)</th></tr></thead>
       <tbody id="tbl5Body"></tbody>
     </table></div>
-    <div class="rpt-sub" style="margin-top:20px">CP별 적용률 / 완료율</div>
+    <div class="rpt-sub" style="margin-top:20px">2-2. CP별 적용률 / 완료율</div>
     <canvas id="cSummary" style="max-height:160px"></canvas>
     <div class="rpt-ai loading" id="ai-summary" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
     <button class="regen-btn" onclick="gen('summary')">↺ 재생성</button>
   </div>
 
-  <!-- 2페이지: 질환별 상세 분석 -->
+  <!-- 2페이지: 질환별 상세 분석 + Drop 사유 -->
   <div class="rpt-sec pb">
-    <div class="rpt-h">3. 질환별 상세 분석 (모니터링 대표 5종)</div>
-    <div class="rpt-sub">수술별 적용률 / 완료율</div>
+    <div class="rpt-h">3. 상세 분석</div>
+    <div class="rpt-sub">3-1. 수술별 적용률 / 완료율</div>
     <canvas id="cCP5" style="max-height:180px;margin-bottom:14px"></canvas>
-    <div class="rpt-sub">의사별 적용률 / 완료율</div>
+    <div class="rpt-sub">3-2. 의사별 적용률 / 완료율</div>
     <canvas id="cDoctor" style="max-height:220px;margin-bottom:10px"></canvas>
     <div class="rpt-ai loading" id="ai-cp5" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
     <button class="regen-btn" onclick="gen('cp5')">↺ 재생성</button>
-  </div>
 
-  <!-- 3페이지: Drop + 재원 + 향후 -->
-  <div class="rpt-sec pb">
-    <div class="rpt-h">4. CP 중단(Drop) 사유 분석</div>
+    <div class="rpt-h2">4. CP 중단(Drop) 사유 분석</div>
     <div class="drop-grid" style="display:grid;grid-template-columns:50% 50%;gap:16px;align-items:center;margin-bottom:10px">
       <div>
         <div class="rpt-sub">중단 사유 분포</div>
-        <canvas id="cDrop" style="max-height:230px"></canvas>
+        <canvas id="cDrop" style="max-height:200px"></canvas>
       </div>
       <div>
         <div class="rpt-sub">중단 사유별 건수</div>
@@ -323,7 +320,10 @@ tr:last-child td{border-bottom:none;}
     </div>
     <div class="rpt-ai loading" id="ai-drop" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
     <button class="regen-btn" onclick="gen('drop')">↺ 재생성</button>
+  </div>
 
+  <!-- 3페이지: 재원 + 향후 -->
+  <div class="rpt-sec pb">
     <div class="rpt-h2">5. 재원일수 및 항생제 사용 현황</div>
     <div class="rpt-sub">질환별 평균 재원일수 / 항생제 사용일수</div>
     <canvas id="cStay" style="max-height:180px;margin-bottom:8px"></canvas>

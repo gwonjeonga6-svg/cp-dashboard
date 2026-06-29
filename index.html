@@ -125,10 +125,10 @@ tr:last-child td{border-bottom:none;}
   /* 제목 */
   .rpt-h{font-size:14pt;padding-bottom:5px;margin-bottom:8px;}
   .rpt-h2{font-size:13pt;margin-top:16px;padding-bottom:5px;margin-bottom:8px;border-top:1px solid #E2E8F0;padding-top:12px;}
-  .rpt-sub{font-size:11pt;margin:8px 0 4px;}
+  .rpt-sub{font-size:10.5pt;margin:5px 0 3px;}
 
   /* AI 분석 */
-  .rpt-ai{font-size:10.5pt;line-height:1.7;padding:8px 12px;}
+  .rpt-ai{font-size:10.5pt;line-height:1.6;padding:6px 10px;}
 
   /* 카드 */
   .summary{grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:10px;}
@@ -144,19 +144,19 @@ tr:last-child td{border-bottom:none;}
   .ov-table td{font-size:9pt;padding:6px 10px;}
 
   /* 그래프 */
-  canvas{max-height:130px!important;}
+  canvas{max-height:110px!important;width:100%!important;}
   /* 2페이지 그래프는 조금 더 크게 */
-  .rpt-sec.pb:nth-child(2) canvas{max-height:150px!important;}
+  .rpt-sec.pb:nth-child(2) canvas{max-height:120px!important;width:100%!important;}
   /* 도넛 */
-  .drop-grid canvas{max-height:180px!important;}
+  .drop-grid canvas{max-height:150px!important;width:100%!important;}
   /* 재원 */
-  #cStay{max-height:130px!important;}
+  #cStay{max-height:110px!important;width:100%!important;}
 
   /* 도넛+표 나란히 */
   .drop-grid{display:grid!important;grid-template-columns:50% 50%!important;gap:12px;align-items:center;}
   .drop-grid>div{width:100%;overflow:hidden;}
 
-  @page{size:A4 portrait;margin:10mm 10mm;}
+  @page{size:A4 portrait;margin:8mm 8mm;}
 }
 </style>
 </head>
@@ -809,7 +809,7 @@ async function gen(section){
     return`${cp}: 평균 재원 ${aL!==null?aL+'일':'해당없음'}, 평균 항생제 ${aA!==null?aA+'일':'해당없음'}`;
   }).join('\n');
 
-  const RULE='[필수] 순한글+숫자+CP명만 사용. 한자·일본어·베트남어·중국어·영어 절대 금지. **볼드** 등 마크다운 기호 절대 금지. 제공 수치 그대로 사용(임의변경 금지). 경어체. 분석 문구만 작성.';
+  const RULE='[절대규칙] 반드시 한국어로만 작성. 외국어(영어·일본어·중국어·베트남어·한자) 단어 하나도 포함 금지. CP명(TKRA·ARCR·HWR 등) 제외. 마크다운(**볼드** 등) 절대 금지. 숫자는 제공된 값 그대로. 경어체.';
 
   const prompts={
     summary:`${hospital} 2026년 ${period} CP 모니터링 총괄 현황을 3~4문장으로 요약하라.

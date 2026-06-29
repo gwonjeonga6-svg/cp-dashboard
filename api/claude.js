@@ -22,7 +22,13 @@ export default async function handler(req) {
     const groqBody = {
       model: 'llama-3.3-70b-versatile',
       max_tokens: body.max_tokens || 1000,
-      messages: body.messages || [],
+      messages: [
+        {
+          role: 'system',
+          content: '당신은 한국 병원 QPS팀을 위한 의료 보고서 작성 도우미입니다. 반드시 한국어로만 답변하세요. 영어, 일본어, 중국어, 베트남어, 한자는 절대 사용하지 마세요. 마크다운 기호(**볼드** 등)도 사용하지 마세요. 의학 전문용어도 한글로 표현하세요.'
+        },
+        ...(body.messages || [])
+      ],
     };
 
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {

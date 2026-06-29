@@ -144,11 +144,8 @@ tr:hover td { background:#FAFBFD; }
     border-bottom:2px solid #1B3A6B; margin-bottom:20px;
   }
 
-  .rpt-section {
-    box-shadow:none; border:1px solid #E2E8F0;
-    padding:14px 18px; margin-bottom:0;
-    page-break-after:always;
-  }
+  .rpt-section { box-shadow:none; border:1px solid #E2E8F0; padding:14px 18px; margin-bottom:0; }
+  .rpt-section.page-break { page-break-after:always; }
   .rpt-section:last-child { page-break-after:auto; }
   .rpt-title { font-size:18px; margin-bottom:14px; }
   .rpt-title[style*="margin-top"] { margin-top:32px !important; border-top:2px solid #1B3A6B; padding-top:14px; }
@@ -175,9 +172,9 @@ tr:hover td { background:#FAFBFD; }
 
   .overview-table { table-layout:auto; }
   .overview-table th { background:#1B3A6B !important; color:#fff !important; white-space:nowrap; }
-  .overview-table td { white-space:nowrap; }
+  .overview-table td { white-space:normal; word-break:keep-all; }
 
-  @page { size:A4 portrait; margin:8mm 8mm; }
+  @page { size:A4 portrait; margin:10mm 10mm; }
 }
 </style>
 </head>
@@ -278,7 +275,7 @@ tr:hover td { background:#FAFBFD; }
 <div class="pane active" id="pane-report">
 
   <!-- ══ 1페이지: 개요 + 총괄현황 + 질환별 ══ -->
-  <div class="rpt-section">
+  <div class="rpt-section page-break">
     <div class="rpt-title">1. 개요</div>
     <table class="overview-table" style="table-layout:fixed">
       <colgroup><col style="width:120px"><col></colgroup>
@@ -473,7 +470,7 @@ const topLabel={
         const v=ds.data[i]; if(!v) return;
         // 막대 위 % 표시
         ctx.save();
-        ctx.font='bold 11px Noto Sans KR'; ctx.fillStyle='#1E293B';
+        ctx.font='bold 13px Noto Sans KR'; ctx.fillStyle='#1E293B';
         ctx.textAlign='center'; ctx.textBaseline='bottom';
         ctx.fillText(v+'%',bar.x,bar.y-1);
         // 막대 안 건수 표시
@@ -481,7 +478,7 @@ const topLabel={
         if(cnt!==undefined&&cnt>0){
           const barH=bar.base-bar.y;
           if(barH>16){
-            ctx.font='bold 11px Noto Sans KR'; ctx.fillStyle='#1E293B';
+            ctx.font='bold 13px Noto Sans KR'; ctx.fillStyle='#1E293B';
             ctx.textBaseline='middle';
             ctx.fillText(cnt+'건',bar.x,bar.y+barH/2);
           }
@@ -768,8 +765,8 @@ function renderReportCharts(){
         const pct=Math.round(val/total*100);
         if(pct<5) return; // 너무 작으면 생략
         ctx.save();
-        ctx.font='bold 10px Noto Sans KR,sans-serif';
-        ctx.fillStyle='#fff';
+        ctx.font='bold 12px Noto Sans KR,sans-serif';
+        ctx.fillStyle='#1E293B';
         ctx.textAlign='center';
         ctx.textBaseline='middle';
         ctx.fillText(pct+'%',x,y);

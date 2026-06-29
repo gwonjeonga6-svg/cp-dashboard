@@ -101,11 +101,16 @@ tr:last-child td{border-bottom:none;}
   .content,.header,.upload-panel,.tabs,.period-bar{padding-left:14px;padding-right:14px;}
 }
 
+/* 페이지 번호 - 화면에서 숨김 */
+.print-pagenum{display:none;}
+
 /* ═══════════ 인쇄 ═══════════ */
 @media print{
   *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
   .upload-panel,.period-bar,.tabs,.btn-ai,.btn-print,.regen-btn,.toggle-btn,.no-print{display:none!important;}
   body{background:#fff;font-size:11pt;}
+  /* 페이지 번호 인쇄시 표시 */
+  .print-pagenum{display:block!important;text-align:right;font-size:9pt;color:#94A3B8;margin-top:8px;padding-top:4px;border-top:1px solid #E2E8F0;}
   .content{padding:0;}
   .header{display:none!important;}
 
@@ -305,6 +310,7 @@ tr:last-child td{border-bottom:none;}
     <canvas id="cSummary" style="max-height:160px"></canvas>
     <div class="rpt-ai loading" id="ai-summary" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
     <button class="regen-btn" onclick="gen('summary')">↺ 재생성</button>
+    <div class="print-pagenum">1 / 3</div>
   </div>
 
   <!-- 2페이지: 질환별 상세 분석 + Drop 사유 -->
@@ -330,6 +336,7 @@ tr:last-child td{border-bottom:none;}
     </div>
     <div class="rpt-ai loading" id="ai-drop" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
     <button class="regen-btn" onclick="gen('drop')">↺ 재생성</button>
+    <div class="print-pagenum">2 / 3</div>
   </div>
 
   <!-- 3페이지: 재원 + 향후 -->
@@ -355,6 +362,7 @@ tr:last-child td{border-bottom:none;}
     <div class="rpt-h2">6. 향후 모니터링 개선 방향</div>
     <div class="rpt-ai loading" id="ai-improve" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
     <button class="regen-btn" onclick="gen('improve')">↺ 재생성</button>
+    <div class="print-pagenum">3 / 3</div>
   </div>
 
 </div>

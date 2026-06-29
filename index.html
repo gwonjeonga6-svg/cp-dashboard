@@ -156,7 +156,7 @@ tr:last-child td{border-bottom:none;}
   
 
   /* 도넛+표 나란히 */
-  .drop-grid{display:grid!important;grid-template-columns:50% 50%!important;gap:12px;align-items:center;}
+  .drop-grid{display:grid!important;grid-template-columns:38% 62%!important;gap:12px;align-items:center;}
   .drop-grid>div{width:100%;overflow:hidden;}
 
   @page{size:A4 portrait;margin:8mm 8mm;}
@@ -308,7 +308,7 @@ tr:last-child td{border-bottom:none;}
     <button class="regen-btn" onclick="gen('cp5')">↺ 재생성</button>
 
     <div class="rpt-h2">4. CP 중단(Drop) 사유 분석</div>
-    <div class="drop-grid" style="display:grid;grid-template-columns:50% 50%;gap:16px;align-items:center;margin-bottom:10px">
+    <div class="drop-grid" style="display:grid;grid-template-columns:38% 62%;gap:16px;align-items:center;margin-bottom:10px">
       <div>
         <div class="rpt-sub">중단 사유 분포</div>
         <canvas id="cDrop" style="max-height:200px"></canvas>
@@ -651,7 +651,7 @@ function renderCharts(){
       {label:'완료율(%)',data:cp5D.map(x=>x.cr),counts:cp5D.map(x=>x.comp),backgroundColor:'#FCA5A5',borderRadius:4},
     ]},
     options:{responsive:true,plugins:{legend:{labels:{font:{size:11}}}},
-      scales:{y:{max:100,ticks:{display:false},grid:{display:false}},x:{ticks:{font:{size:8},maxRotation:0}}},barPercentage:0.6,categoryPercentage:0.7}
+      scales:{y:{max:100,ticks:{display:false},grid:{display:false}},x:{ticks:{font:{size:11},maxRotation:0}}},barPercentage:0.6,categoryPercentage:0.7}
   });
 
   // 수술별 차트
@@ -664,7 +664,7 @@ function renderCharts(){
       {label:'완료율(%)',data:cp5D.map(x=>x.cr),counts:cp5D.map(x=>x.comp),backgroundColor:'#FCA5A5',borderRadius:4},
     ]},
     options:{responsive:true,plugins:{legend:{labels:{font:{size:11}}}},
-      scales:{y:{max:100,ticks:{display:false},grid:{display:false}},x:{ticks:{font:{size:8},maxRotation:0}}},barPercentage:0.6,categoryPercentage:0.7}
+      scales:{y:{max:100,ticks:{display:false},grid:{display:false}},x:{ticks:{font:{size:11},maxRotation:0}}},barPercentage:0.6,categoryPercentage:0.7}
   });
 
   // 의사별 차트
@@ -684,7 +684,7 @@ function renderCharts(){
       {label:'완료율(%)',data:docD.map(x=>x.cr),counts:docD.map(x=>x.comp),backgroundColor:'#FCD34D',borderRadius:4},
     ]},
     options:{responsive:true,plugins:{legend:{labels:{font:{size:11}}}},
-      scales:{y:{max:100,ticks:{display:false},grid:{display:false}},x:{ticks:{font:{size:8},maxRotation:0}}},barPercentage:0.6,categoryPercentage:0.7}
+      scales:{y:{max:100,ticks:{display:false},grid:{display:false}},x:{ticks:{font:{size:11},maxRotation:0}}},barPercentage:0.6,categoryPercentage:0.7}
   });
 
   // 도넛
@@ -743,7 +743,7 @@ function renderCharts(){
         {label:'평균 항생제(일)',data:stayD.map(x=>x.avgA),backgroundColor:'#6EE7B7',borderRadius:4},
       ]},
       options:{responsive:true,plugins:{legend:{labels:{font:{size:11}}}},
-        scales:{y:{ticks:{display:false},grid:{display:false}},x:{ticks:{font:{size:8},maxRotation:0}}},barPercentage:0.6,categoryPercentage:0.7}
+        scales:{y:{ticks:{display:false},grid:{display:false}},x:{ticks:{font:{size:11},maxRotation:0}}},barPercentage:0.6,categoryPercentage:0.7}
     });
   }
 }

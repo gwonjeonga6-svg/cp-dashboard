@@ -648,7 +648,7 @@ function renderCharts(){
       {label:'완료율(%)',data:cp5D.map(x=>x.cr),counts:cp5D.map(x=>x.comp),backgroundColor:'#FCA5A5',borderRadius:4},
     ]},
     options:{responsive:true,plugins:{legend:{labels:{font:{size:11}}}},
-      scales:{y:{max:100,ticks:{callback:v=>v+'%',font:{size:10}},grid:{display:false}},x:{ticks:{font:{size:10}}}}}
+      scales:{y:{max:100,ticks:{callback:v=>v+'%',font:{size:9}},grid:{display:false}},x:{ticks:{font:{size:8},maxRotation:0}}},barPercentage:0.6,categoryPercentage:0.7}
   });
 
   // 수술별 차트
@@ -661,7 +661,7 @@ function renderCharts(){
       {label:'완료율(%)',data:cp5D.map(x=>x.cr),counts:cp5D.map(x=>x.comp),backgroundColor:'#FCA5A5',borderRadius:4},
     ]},
     options:{responsive:true,plugins:{legend:{labels:{font:{size:11}}}},
-      scales:{y:{max:100,ticks:{callback:v=>v+'%',font:{size:10}},grid:{display:false}},x:{ticks:{font:{size:10}}}}}
+      scales:{y:{max:100,ticks:{callback:v=>v+'%',font:{size:9}},grid:{display:false}},x:{ticks:{font:{size:8},maxRotation:0}}},barPercentage:0.6,categoryPercentage:0.7}
   });
 
   // 의사별 차트
@@ -681,7 +681,7 @@ function renderCharts(){
       {label:'완료율(%)',data:docD.map(x=>x.cr),counts:docD.map(x=>x.comp),backgroundColor:'#FCD34D',borderRadius:4},
     ]},
     options:{responsive:true,plugins:{legend:{labels:{font:{size:11}}}},
-      scales:{y:{max:100,ticks:{callback:v=>v+'%',font:{size:10}},grid:{display:false}},x:{ticks:{font:{size:10}}}}}
+      scales:{y:{max:100,ticks:{callback:v=>v+'%',font:{size:9}},grid:{display:false}},x:{ticks:{font:{size:8},maxRotation:0}}},barPercentage:0.6,categoryPercentage:0.7}
   });
 
   // 도넛
@@ -740,7 +740,7 @@ function renderCharts(){
         {label:'평균 항생제(일)',data:stayD.map(x=>x.avgA),backgroundColor:'#6EE7B7',borderRadius:4},
       ]},
       options:{responsive:true,plugins:{legend:{labels:{font:{size:11}}}},
-        scales:{y:{ticks:{callback:v=>v+'일',font:{size:10}},grid:{display:false}},x:{ticks:{font:{size:10}}}}}
+        scales:{y:{ticks:{callback:v=>v+'일',font:{size:9}},grid:{display:false}},x:{ticks:{font:{size:8},maxRotation:0}}},barPercentage:0.6,categoryPercentage:0.7}
     });
   }
 }

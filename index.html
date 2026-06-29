@@ -139,9 +139,9 @@ tr:hover td { background:#FAFBFD; }
   /* 출력 제목 */
   #printTitle {
     display:block !important;
-    text-align:center; font-size:18px; font-weight:700;
-    color:#1B3A6B; padding:16px 0 10px;
-    border-bottom:2px solid #1B3A6B; margin-bottom:16px;
+    text-align:center; font-size:26px; font-weight:700;
+    color:#1B3A6B; padding:20px 0 14px;
+    border-bottom:2px solid #1B3A6B; margin-bottom:20px;
   }
 
   .rpt-section {
@@ -150,7 +150,7 @@ tr:hover td { background:#FAFBFD; }
     page-break-after:always;
   }
   .rpt-section:last-child { page-break-after:auto; }
-  .rpt-title { font-size:24px; margin-bottom:14px; }
+  .rpt-title { font-size:18px; margin-bottom:14px; }
   .rpt-title[style*="margin-top"] { margin-top:32px !important; border-top:2px solid #1B3A6B; padding-top:14px; }
   .rpt-sub { font-size:15px; margin:10px 0 6px; font-weight:700; }
   .rpt-analysis { font-size:16px; line-height:2.0; padding:12px 16px; min-height:0; }
@@ -173,7 +173,9 @@ tr:hover td { background:#FAFBFD; }
   th { font-size:15px; padding:9px 11px; }
   td { padding:8px 11px; font-size:15px; }
 
-  .overview-table th { background:#1B3A6B !important; color:#fff !important; }
+  .overview-table { table-layout:auto; }
+  .overview-table th { background:#1B3A6B !important; color:#fff !important; white-space:nowrap; }
+  .overview-table td { white-space:nowrap; }
 
   @page { size:A4 portrait; margin:8mm 8mm; }
 }
@@ -278,12 +280,13 @@ tr:hover td { background:#FAFBFD; }
   <!-- ══ 1페이지: 개요 + 총괄현황 + 질환별 ══ -->
   <div class="rpt-section">
     <div class="rpt-title">1. 개요</div>
-    <table class="overview-table">
-      <tr><th style="width:120px">목적</th><td>질환별 CP 적용 현황 모니터링을 통한 의료 질 향상 및 진료 효율성 증대</td></tr>
-      <tr><th>대상 기간</th><td id="ov-period">—</td></tr>
-      <tr><th>모니터링 CP</th><td id="ov-cpList" contenteditable="true" onblur="saveCPList()" style="outline:none;cursor:text;border-bottom:1px dashed #CBD5E1" title="클릭해서 수정 (쉼표로 구분)">TKRA, ARCR, HWR, MENISECTOMY, VP/KP</td></tr>
-      <tr><th>적용률 목표</th><td><b><span id="ov-applyGoal" contenteditable="true" onblur="saveGoals()" style="outline:none;cursor:text;border-bottom:1px dashed #CBD5E1;color:#1B3A6B" title="클릭해서 수정">80</span>% 이상</b></td></tr>
-      <tr><th>완료율 목표</th><td><b><span id="ov-completeGoal" contenteditable="true" onblur="saveGoals()" style="outline:none;cursor:text;border-bottom:1px dashed #CBD5E1;color:#1B3A6B" title="클릭해서 수정">70</span>% 이상</b></td></tr>
+    <table class="overview-table" style="table-layout:fixed">
+      <colgroup><col style="width:120px"><col></colgroup>
+      <tr><th style="white-space:nowrap">목적</th><td style="white-space:nowrap">질환별 CP 적용 현황 모니터링을 통한 의료 질 향상 및 진료 효율성 증대</td></tr>
+      <tr><th style="white-space:nowrap">대상 기간</th><td id="ov-period">—</td></tr>
+      <tr><th style="white-space:nowrap">모니터링 CP</th><td id="ov-cpList" contenteditable="true" onblur="saveCPList()" style="outline:none;cursor:text;border-bottom:1px dashed #CBD5E1" title="클릭해서 수정 (쉼표로 구분)">TKRA, ARCR, HWR, MENISECTOMY, VP/KP</td></tr>
+      <tr><th style="white-space:nowrap">적용률 목표</th><td><b><span id="ov-applyGoal" contenteditable="true" onblur="saveGoals()" style="outline:none;cursor:text;border-bottom:1px dashed #CBD5E1;color:#1B3A6B">80</span>% 이상</b></td></tr>
+      <tr><th style="white-space:nowrap">완료율 목표</th><td><b><span id="ov-completeGoal" contenteditable="true" onblur="saveGoals()" style="outline:none;cursor:text;border-bottom:1px dashed #CBD5E1;color:#1B3A6B">70</span>% 이상</b></td></tr>
     </table>
 
     <div class="rpt-title" style="margin-top:48px">2. 총괄 현황</div>
@@ -828,11 +831,16 @@ function renderReportCharts(){
     const rows=Object.entries(rMap).sort((a,b)=>b[1]-a[1]).map(([r,v])=>{
       const cpB=CP5.map(cp=>{
         const cnt=dropped.filter(x=>x.cpCode===cp&&((DROP_REASONS.find(k=>(x.dropReason||'').includes(k))||'기타')===r)).length;
-        return cnt>0?cp+' '+cnt:null;
+        return cnt>0?cp+' '+cnt+'건':null;
       }).filter(Boolean).join(', ');
-      return`<tr><td><b>${r}</b></td><td style="text-align:center">${v}건</td><td style="text-align:center">${Math.round(v/dropped.length*100)}%</td><td style="font-size:10px;color:#64748B">${cpB||'—'}</td></tr>`;
+      return`<tr>
+        <td style="white-space:nowrap"><b>${r}</b></td>
+        <td style="text-align:center;white-space:nowrap">${v}건</td>
+        <td style="text-align:center;white-space:nowrap">${Math.round(v/dropped.length*100)}%</td>
+        <td style="white-space:nowrap;color:#475569">${cpB||'—'}</td>
+      </tr>`;
     }).join('');
-    tEl.innerHTML=`<table><thead><tr><th>사유</th><th>건수</th><th>비율</th><th>질환별</th></tr></thead><tbody>${rows}</tbody></table>`;
+    tEl.innerHTML=`<table style="width:100%"><thead><tr><th style="white-space:nowrap">사유</th><th style="white-space:nowrap">건수</th><th style="white-space:nowrap">비율</th><th style="white-space:nowrap">질환별</th></tr></thead><tbody>${rows}</tbody></table>`;
   }
 }
 

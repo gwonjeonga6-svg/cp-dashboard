@@ -117,8 +117,8 @@ tr:last-child td{border-bottom:none;}
   }
 
   /* 섹션 */
-  .rpt-sec{box-shadow:none;border:none;padding:0 0 4px 0;margin:0;}
-  .rpt-sec.pb{page-break-after:always;}
+  .rpt-sec{box-shadow:none;border:none;padding:0;margin:0;}
+  .rpt-sec.pb{page-break-after:always;} .rpt-sec.pb+.rpt-sec{page-break-before:always;}
   .pane{display:none!important;}
   .pane.active{display:block!important;}
 
@@ -146,7 +146,7 @@ tr:last-child td{border-bottom:none;}
   /* 그래프 */
   canvas{max-height:110px!important;width:100%!important;}
   /* 2페이지 그래프는 조금 더 크게 */
-  .rpt-sec.pb:nth-child(2) canvas{max-height:120px!important;width:100%!important;}
+  .rpt-sec.pb:nth-child(2) canvas{max-height:160px!important;width:100%!important;}
   /* 도넛 */
   .drop-grid canvas{max-height:150px!important;width:100%!important;}
   /* 재원 */
@@ -298,9 +298,9 @@ tr:last-child td{border-bottom:none;}
   <div class="rpt-sec pb">
     <div class="rpt-h">3. 질환별 상세 분석 (모니터링 대표 5종)</div>
     <div class="rpt-sub">수술별 적용률 / 완료율</div>
-    <canvas id="cCP5" style="max-height:220px;margin-bottom:18px"></canvas>
+    <canvas id="cCP5" style="max-height:260px;margin-bottom:20px"></canvas>
     <div class="rpt-sub">의사별 적용률 / 완료율</div>
-    <canvas id="cDoctor" style="max-height:220px;margin-bottom:10px"></canvas>
+    <canvas id="cDoctor" style="max-height:260px;margin-bottom:10px"></canvas>
     <div class="rpt-ai loading" id="ai-cp5" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
     <button class="regen-btn" onclick="gen('cp5')">↺ 재생성</button>
   </div>

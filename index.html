@@ -129,7 +129,7 @@ tr:hover td { background:#FAFBFD; }
 @media print {
   * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
   .upload-panel, .period-bar, .tabs, .btn-ai, .btn-print, .regen-btn, .toggle-btn { display:none !important; }
-  body { background:#fff; font-size:15px; }
+  body { background:#fff; font-size:13px; }
   .content { padding:0; }
   .header { display:none !important; }
   .pane { display:none !important; }
@@ -144,31 +144,37 @@ tr:hover td { background:#FAFBFD; }
     border-bottom:2px solid #1B3A6B; margin-bottom:20px;
   }
 
-  .rpt-section { box-shadow:none; border:1px solid #E2E8F0; padding:14px 18px; margin-bottom:0; }
+  .rpt-section { box-shadow:none; border:1px solid #E2E8F0; padding:10px 14px; margin-bottom:0; }
   .rpt-section.page-break { page-break-after:always; }
   .rpt-section:last-child { page-break-after:auto; }
-  .rpt-title { font-size:18px; margin-bottom:14px; }
-  .rpt-title[style*="margin-top"] { margin-top:32px !important; border-top:2px solid #1B3A6B; padding-top:14px; }
-  .rpt-sub { font-size:15px; margin:10px 0 6px; font-weight:700; }
-  .rpt-analysis { font-size:16px; line-height:2.0; padding:12px 16px; min-height:0; }
+  .rpt-title { font-size:16px; margin-bottom:10px; }
+  .rpt-title[style*="margin-top"] { margin-top:20px !important; border-top:2px solid #1B3A6B; padding-top:10px; }
+  .rpt-sub { font-size:13px; margin:8px 0 5px; font-weight:700; }
+  .rpt-analysis { font-size:13px; line-height:1.8; padding:10px 14px; min-height:0; }
   .card .lbl { font-size:13px; }
   .card .sub { font-size:12px; }
   .goal-label { font-size:12px; }
-  canvas { max-height:200px !important; }
+  canvas { max-height:160px !important; }
 
   .drop-print-grid {
     display:grid !important;
     grid-template-columns:1fr 1fr;
-    gap:12px; align-items:start;
+    gap:12px; align-items:center;
   }
 
   .summary { grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:10px; }
   .card { box-shadow:none; border:1px solid #E2E8F0; padding:8px 12px; }
-  .card .val { font-size:24px; }
+  .card .val { font-size:20px; }
 
-  table { font-size:15px; }
-  th { font-size:15px; padding:9px 11px; }
-  td { padding:8px 11px; font-size:15px; }
+  table { font-size:11px; width:100%; }
+  th { font-size:11px; padding:5px 6px; white-space:nowrap; }
+  td { padding:5px 6px; font-size:11px; white-space:nowrap; }
+  /* 총괄 테이블 열 너비 최적화 */
+  #summaryTable5 th:nth-child(1), #summaryTable5 td:nth-child(1) { min-width:80px; }
+  #summaryTable5 th:nth-child(n+2):nth-child(-n+5), #summaryTable5 td:nth-child(n+2):nth-child(-n+5) { text-align:center; }
+  /* 재원 테이블 */
+  #stayTableCP th, #stayTableCP td { text-align:center; }
+  #stayTableCP th:nth-child(1), #stayTableCP td:nth-child(1) { text-align:left; }
 
   .overview-table { table-layout:auto; }
   .overview-table th { background:#1B3A6B !important; color:#fff !important; white-space:nowrap; }
@@ -308,7 +314,7 @@ tr:hover td { background:#FAFBFD; }
     </div>
     <div class="rpt-sub">모니터링 대표 5종 CP 적용률 및 완료율</div>
     <div style="overflow-x:auto"><table id="summaryTable5">
-      <thead><tr><th>CP명</th><th>대상건수</th><th>적용건수</th><th>완료건수</th><th>중단건수</th><th>적용률</th><th>완료율</th><th>달성(적용)</th><th>달성(완료)</th></tr></thead>
+      <thead><tr><th>CP명</th><th>대상</th><th>적용</th><th>완료</th><th>중단</th><th>적용률</th><th>완료율</th><th>달성<br>(적용)</th><th>달성<br>(완료)</th></tr></thead>
       <tbody id="summaryTable5Body"></tbody>
     </table></div>
     <div class="rpt-analysis loading" id="analysis-summary" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
@@ -334,12 +340,12 @@ tr:hover td { background:#FAFBFD; }
   <!-- ══ 3페이지: Drop사유 + 재원/항생제 + 향후방향 ══ -->
   <div class="rpt-section">
     <div class="rpt-title">4. CP 중단(Drop) 사유 분석</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;margin-bottom:12px">
-      <div>
-        <div class="rpt-sub">중단 사유 분포</div>
-        <canvas id="rptChartDrop" style="max-height:240px"></canvas>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:center;margin-bottom:12px">
+      <div style="display:flex;flex-direction:column;align-items:center">
+        <div class="rpt-sub" style="width:100%">중단 사유 분포</div>
+        <canvas id="rptChartDrop" style="max-height:220px;width:100%!important"></canvas>
       </div>
-      <div>
+      <div style="display:flex;flex-direction:column;justify-content:center">
         <div class="rpt-sub">중단 사유별 건수</div>
         <div id="rptDropTable"></div>
       </div>
@@ -353,7 +359,7 @@ tr:hover td { background:#FAFBFD; }
     <button class="toggle-btn no-print" onclick="toggleTable('stayDetailWrap')" style="margin-bottom:8px">📋 상세 내역 보기/숨기기</button>
     <div id="stayDetailWrap" style="display:none">
       <div style="overflow-x:auto"><table id="stayTableCP">
-        <thead><tr><th>CP명</th><th>건수</th><th>평균 재원일수</th><th>최소</th><th>최대</th><th>평균 항생제(일)</th></tr></thead>
+        <thead><tr><th>CP명</th><th>건수</th><th>평균재원(일)</th><th>최소</th><th>최대</th><th>평균항생제(일)</th></tr></thead>
         <tbody id="stayTableCPBody"></tbody>
       </table></div>
       <div class="rpt-sub" style="margin-top:10px">의사별 평균 재원일수 / 항생제 사용일수</div>
@@ -765,7 +771,7 @@ function renderReportCharts(){
         const pct=Math.round(val/total*100);
         if(pct<5) return; // 너무 작으면 생략
         ctx.save();
-        ctx.font='bold 12px Noto Sans KR,sans-serif';
+        ctx.font='bold 14px Noto Sans KR,sans-serif';
         ctx.fillStyle='#1E293B';
         ctx.textAlign='center';
         ctx.textBaseline='middle';
@@ -877,7 +883,7 @@ async function genSection(section){
   const reasonLines=Object.entries(rMap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${k} ${v}건(${Math.round(v/dropped*100)}%)`).join(', ');
 
   const{applyGoal:AG,completeGoal:CG}=getGoals();
-  const RULE='반드시 순한글과 숫자만 사용하라. 한자, 일본어, 영어 단어(CP명 제외) 절대 사용 금지. 경어체. 수치 포함. 분석 문구만 작성.';
+  const RULE='[필수 규칙] 1) 순한글+숫자+CP명만 사용. 한자·일본어·베트남어·중국어·영어 단어 절대 금지. 2) **볼드**, *기울임*, # 제목 등 마크다운 기호 절대 사용 금지 - 일반 텍스트만. 3) 제공된 수치 그대로 사용(임의변경 금지). 4) 경어체. 5) 분석 문구만 작성.';
 
   const prompts={
     summary:`${hospital} 2026년 ${period} CP 모니터링 총괄 현황을 3~4문장으로 요약하라.
@@ -897,15 +903,19 @@ ${RULE}`,
 주요 중단 원인인 염증수치 관련 질환별 특성(TKRA, ARCR 등)을 분석하라.
 ${RULE}`,
 
-    stay:`다음 CP 질환별/의사별 평균 재원일수 및 항생제 사용일수를 3~4문장으로 분석하라.
+    stay:`다음 CP 질환별 평균 재원일수 및 항생제 사용일수를 3~4문장으로 분석하라.
 ${CP5.map(cp=>{
   const items=d.filter(x=>x.cpCode===cp);
   const li=items.filter(x=>x.los!==null), ai=items.filter(x=>x.abxDays!==null);
-  const avgL=li.length?(li.reduce((s,x)=>s+x.los,0)/li.length).toFixed(1):'없음';
-  const avgA=ai.length?(ai.reduce((s,x)=>s+x.abxDays,0)/ai.length).toFixed(1):'없음';
-  return`${cp}: 평균 재원 ${avgL}일, 평균 항생제 ${avgA}일`;
+  const avgL=li.length?(Math.round(li.reduce((s,x)=>s+x.los,0)/li.length*10)/10)+'일':'해당없음';
+  const avgA=ai.length?(Math.round(ai.reduce((s,x)=>s+x.abxDays,0)/ai.length*10)/10)+'일':'해당없음';
+  return`${cp}: 평균 재원 ${avgL}, 평균 항생제 ${avgA}`;
 }).join('\n')}
-질환 간 차이 및 특이사항 분석, 항생제 사용 적정성 관련 언급 포함.
+주의사항:
+- TKRA 재원일수는 편측(한쪽) 수술 기준임을 명시할 것
+- 재원일수는 "길다/짧다", 항생제는 "많다/적다"로 표현할 것
+- 숫자는 위 데이터 그대로 사용할 것 (임의로 변경 금지)
+질환 간 차이 분석, 항생제 사용 적정성 언급 포함.
 ${RULE}`,
 
     improve:`위 분석 결과를 바탕으로 향후 CP 모니터링 개선 방향을 3~4가지 항목으로 제시하라.
@@ -920,7 +930,14 @@ ${RULE}`,
       body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:600,messages:[{role:'user',content:prompts[section]}]})
     });
     const data=await res.json();
-    const text=data.content?.[0]?.text||data.choices?.[0]?.message?.content||'응답 없음';
+    const rawText=data.content?.[0]?.text||data.choices?.[0]?.message?.content||'응답 없음';
+    // 마크다운 기호 제거
+    const text=rawText
+      .replace(/\*\*(.*?)\*\*/g,'$1')
+      .replace(/\*(.*?)\*/g,'$1')
+      .replace(/^#{1,6}\s+/gm,'')
+      .replace(/^[\-\*]\s+/gm,'• ')
+      .trim();
     if(target){target.textContent=text;target.classList.remove('loading');}
   }catch(err){
     if(target){target.textContent='⚠️ 오류: '+err.message;target.classList.remove('loading');}

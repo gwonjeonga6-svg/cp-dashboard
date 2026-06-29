@@ -664,9 +664,6 @@ function renderAll(){
     if(b2)b2.style.width=Math.min(parseFloat(cR),100)+'%';
   },100);
 
-  // TKRA 환자수 기준 (양측 분리용)
-  const tkraAllPats=toPatients(d.filter(x=>x.cpCode==='TKRA'));
-
   // 5종 테이블
   const tbody=document.getElementById('tbl5Body');
   if(tbody){
@@ -727,25 +724,26 @@ function renderCharts(){
       scales:{y:{max:100,ticks:{display:false},grid:{display:false}},x:{ticks:{font:{size:11,weight:'bold'},maxRotation:0}}},barPercentage:0.6,categoryPercentage:0.7}
   });
 
-  // 수술별 차트 - TKRA 편측/양측 분리
+  // 수술별 차트 - TKRA 편측/양측 분리, 환자수 기준
+  const tkraPatsAll=toPatients(d.filter(x=>x.cpCode==='TKRA'));
   const uniPats=tkraPatsAll.filter(p=>!p.isBilateral);
   const biPats=tkraPatsAll.filter(p=>p.isBilateral);
-  const uniApp=uniPats.filter(p=>p.rows.some(r=>r.cpApply)).length;
-  const uniComp=uniPats.filter(p=>p.rows.some(r=>r.cpApply)&&p.rows.filter(r=>r.cpApply).every(r=>r.complete)).length;
-  const biApp=biPats.filter(p=>p.rows.some(r=>r.cpApply)).length;
-  const biComp=biPats.filter(p=>p.rows.some(r=>r.cpApply)&&p.rows.filter(r=>r.cpApply).every(r=>r.complete)).length;
+  const uniApp=uniPats.filter(p=>p.cpApply).length;
+  const uniComp=uniPats.filter(p=>p.complete).length;
+  const biApp=biPats.filter(p=>p.cpApply).length;
+  const biComp=biPats.filter(p=>p.complete).length;
   const uniAr=uniPats.length?pct(uniApp,uniPats.length):0;
   const uniCr=uniApp?pct(uniComp,uniApp):0;
   const biAr=biPats.length?pct(biApp,biPats.length):0;
   const biCr=biApp?pct(biComp,biApp):0;
 
-  // TKRA 제외한 나머지 CP
+  // TKRA 제외한 나머지 CP - 환자수 기준
   const otherCPs=CP5.filter(c=>c!=='TKRA');
   const otherD=otherCPs.map(cp=>{
-    const items=d.filter(x=>x.cpCode===cp);
-    const app=items.filter(x=>x.cpApply).length;
-    const comp=items.filter(x=>x.cpApply&&x.complete).length;
-    return{total:items.length,app,comp,ar:items.length?pct(app,items.length):0,cr:app?pct(comp,app):0};
+    const pats=toPatients(d.filter(x=>x.cpCode===cp));
+    const app=pats.filter(p=>p.cpApply).length;
+    const comp=pats.filter(p=>p.complete).length;
+    return{total:pats.length,app,comp,ar:pats.length?pct(app,pats.length):0,cr:app?pct(comp,app):0};
   });
 
   const cp5Labels=[

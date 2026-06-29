@@ -2,202 +2,168 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CP 모니터링 대시보드 — 좋은삼선병원</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>CP 모니터링 대시보드</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-* { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'Noto Sans KR','맑은 고딕',sans-serif; background:#F0F4F8; color:#1E293B; font-size:14px; }
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Noto Sans KR','맑은 고딕',sans-serif;background:#F0F4F8;color:#1E293B;font-size:14px;}
 
 /* 헤더 */
-.header { background:linear-gradient(135deg,#1B3A6B 0%,#1E5FA8 100%); color:#fff; padding:18px 32px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
-.header-left h1 { font-size:20px; font-weight:700; }
-.header-left .sub { font-size:12px; color:#A8C4E8; margin-top:3px; }
-.header-right { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-.hbadge { background:rgba(255,255,255,0.15); border-radius:10px; padding:8px 16px; text-align:center; min-width:80px; }
-.hbadge .num { font-size:20px; font-weight:700; }
-.hbadge .lbl { font-size:11px; color:#A8C4E8; }
-.hbadge.ok .num { color:#6EE7B7; }
-.hbadge.ng .num { color:#FCA5A5; }
-.hbadge.bl .num { color:#93C5FD; }
+.header{background:linear-gradient(135deg,#1B3A6B,#1E5FA8);color:#fff;padding:16px 28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+.header h1{font-size:20px;font-weight:700;}
+.header .sub{font-size:12px;color:#A8C4E8;margin-top:3px;}
+.hbadge{background:rgba(255,255,255,.15);border-radius:10px;padding:8px 14px;text-align:center;min-width:75px;}
+.hbadge .num{font-size:19px;font-weight:700;}
+.hbadge .lbl{font-size:11px;color:#A8C4E8;}
+.hbadge.ok .num{color:#6EE7B7;}
+.hbadge.ng .num{color:#FCA5A5;}
+.hbadge.bl .num{color:#93C5FD;}
+.header-right{display:flex;gap:8px;flex-wrap:wrap;}
 
 /* 업로드 */
-.upload-panel { background:#fff; border-bottom:1px solid #E2E8F0; padding:0 32px; }
-.upload-toggle { display:flex; align-items:center; gap:8px; padding:10px 0; cursor:pointer; font-size:13px; color:#64748B; user-select:none; }
-.upload-toggle .arrow { transition:transform .2s; }
-.upload-toggle.open .arrow { transform:rotate(90deg); }
-.upload-body { display:none; padding:12px 0 18px; }
-.upload-body.show { display:block; }
-#dropZone { display:block; border:2px dashed #CBD5E1; border-radius:10px; padding:24px; text-align:center; cursor:pointer; transition:all .2s; background:#FAFBFD; }
-#dropZone:hover, #dropZone.dragover { border-color:#1B3A6B; background:#EFF6FF; }
-.upload-status { font-size:12px; margin-top:6px; display:none; }
+.upload-panel{background:#fff;border-bottom:1px solid #E2E8F0;padding:0 28px;}
+.upload-toggle{display:flex;align-items:center;gap:8px;padding:9px 0;cursor:pointer;font-size:13px;color:#64748B;user-select:none;}
+.upload-toggle .arrow{transition:transform .2s;}
+.upload-toggle.open .arrow{transform:rotate(90deg);}
+.upload-body{display:none;padding:10px 0 16px;}
+.upload-body.show{display:block;}
+#dropZone{display:block;border:2px dashed #CBD5E1;border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;background:#FAFBFD;}
+#dropZone:hover,#dropZone.dragover{border-color:#1B3A6B;background:#EFF6FF;}
+.upload-status{font-size:12px;margin-top:6px;display:none;}
 
 /* 기간 버튼 */
-.period-bar { background:#fff; border-bottom:1px solid #E2E8F0; padding:8px 32px; }
-.period-btns { display:flex; gap:5px; align-items:center; flex-wrap:wrap; }
-.period-btns span { font-size:12px; color:#64748B; margin-right:2px; }
-.pbtn { padding:5px 11px; border-radius:6px; border:1px solid #E2E8F0; font-size:12px; cursor:pointer; color:#64748B; background:#fff; font-family:inherit; }
-.pbtn:hover { border-color:#1B3A6B; color:#1B3A6B; }
-.pbtn-active { background:#1B3A6B !important; color:#fff !important; border-color:#1B3A6B !important; font-weight:700; }
+.period-bar{background:#fff;border-bottom:1px solid #E2E8F0;padding:8px 28px;}
+.period-btns{display:flex;gap:4px;align-items:center;flex-wrap:wrap;}
+.pbtn{padding:4px 10px;border-radius:6px;border:1px solid #E2E8F0;font-size:12px;cursor:pointer;color:#64748B;background:#fff;font-family:inherit;}
+.pbtn:hover{border-color:#1B3A6B;color:#1B3A6B;}
+.pbtn-active{background:#1B3A6B!important;color:#fff!important;border-color:#1B3A6B!important;font-weight:700;}
+.sep{color:#E2E8F0;font-size:12px;}
 
 /* 탭 */
-.tabs { background:#fff; border-bottom:2px solid #E2E8F0; display:flex; padding:0 32px; overflow-x:auto; justify-content:space-between; align-items:center; }
-.tab { padding:13px 16px; font-size:13px; cursor:pointer; color:#64748B; border-bottom:3px solid transparent; margin-bottom:-2px; white-space:nowrap; }
-.tab.active { color:#1B3A6B; border-bottom-color:#1B3A6B; font-weight:700; }
-.tab:hover:not(.active) { color:#1B3A6B; background:#F8FAFC; }
-.btn-ai { background:#1B3A6B; color:#fff; border:none; border-radius:7px; padding:7px 16px; font-size:12px; cursor:pointer; font-family:inherit; }
-.btn-print { background:#F1F5F9; border:1px solid #E2E8F0; color:#475569; border-radius:7px; padding:7px 14px; font-size:12px; cursor:pointer; font-family:inherit; }
+.tabs{background:#fff;border-bottom:2px solid #E2E8F0;display:flex;padding:0 28px;justify-content:space-between;align-items:center;overflow-x:auto;}
+.tab{padding:12px 14px;font-size:13px;cursor:pointer;color:#64748B;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap;}
+.tab.active{color:#1B3A6B;border-bottom-color:#1B3A6B;font-weight:700;}
+.btn-ai{background:#1B3A6B;color:#fff;border:none;border-radius:7px;padding:7px 14px;font-size:12px;cursor:pointer;font-family:inherit;}
+.btn-print{background:#F1F5F9;border:1px solid #E2E8F0;color:#475569;border-radius:7px;padding:7px 12px;font-size:12px;cursor:pointer;font-family:inherit;}
 
 /* 컨텐츠 */
-.content { padding:20px 32px 40px; }
-.pane { display:none; }
-.pane.active { display:block; }
+.content{padding:18px 28px 40px;}
+.pane{display:none;}
+.pane.active{display:block;}
 
 /* 카드 */
-.summary { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:16px; }
-.card { background:#fff; border-radius:12px; padding:16px 18px; box-shadow:0 1px 3px rgba(0,0,0,.07); }
-.card .val { font-size:26px; font-weight:700; margin-bottom:2px; }
-.card .lbl { font-size:12px; color:#64748B; }
-.card .sub { font-size:11px; color:#94A3B8; margin-top:2px; }
-.card.c1 .val { color:#1B3A6B; }
-.card.c2 .val { color:#16A34A; }
-.card.c3 .val { color:#DC2626; }
-.card.c4 .val { color:#2563EB; }
-.goal-bar-wrap { margin-top:6px; }
-.goal-bar-bg { background:#E2E8F0; border-radius:99px; height:6px; overflow:hidden; }
-.goal-bar-fill { height:100%; border-radius:99px; transition:width 1s; }
-.goal-label { display:flex; justify-content:space-between; font-size:10px; color:#94A3B8; margin-top:2px; }
+.summary{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:14px;}
+.card{background:#fff;border-radius:12px;padding:14px 16px;box-shadow:0 1px 3px rgba(0,0,0,.07);}
+.card .val{font-size:26px;font-weight:700;margin-bottom:2px;}
+.card .lbl{font-size:12px;color:#64748B;}
+.card .sub{font-size:11px;color:#94A3B8;margin-top:2px;}
+.c1 .val{color:#1B3A6B;}.c2 .val{color:#16A34A;}.c3 .val{color:#DC2626;}.c4 .val{color:#2563EB;}
+.goal-bar-wrap{margin-top:6px;}
+.goal-bar-bg{background:#E2E8F0;border-radius:99px;height:6px;overflow:hidden;}
+.goal-bar-fill{height:100%;border-radius:99px;transition:width 1s;}
+.goal-label{display:flex;justify-content:space-between;font-size:10px;color:#94A3B8;margin-top:2px;}
 
-/* 섹션 */
-.section { background:#fff; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,.07); margin-bottom:14px; overflow:hidden; }
-.section-header { padding:12px 18px; font-size:13px; font-weight:700; display:flex; align-items:center; gap:8px; border-bottom:1px solid #F1F5F9; flex-wrap:wrap; }
-.dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
-table { width:100%; border-collapse:collapse; font-size:12.5px; }
-th { background:#F8FAFC; color:#64748B; font-weight:600; padding:9px 13px; text-align:left; border-bottom:1px solid #E2E8F0; white-space:nowrap; }
-td { padding:9px 13px; border-bottom:1px solid #F8FAFC; vertical-align:middle; }
-tr:last-child td { border-bottom:none; }
-tr:hover td { background:#FAFBFD; }
-.badge-ok { background:#DCFCE7; color:#16A34A; border-radius:5px; padding:2px 8px; font-size:11px; font-weight:700; }
-.badge-ng { background:#FEE2E2; color:#DC2626; border-radius:5px; padding:2px 8px; font-size:11px; font-weight:700; }
-.toggle-btn { background:#F1F5F9; border:1px solid #E2E8F0; color:#475569; border-radius:6px; padding:4px 12px; font-size:11px; cursor:pointer; font-family:inherit; margin-left:auto; }
-.chart-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
-.chart-box { background:#fff; border-radius:12px; padding:16px 18px; box-shadow:0 1px 3px rgba(0,0,0,.07); }
-.chart-box h4 { font-size:13px; font-weight:700; margin-bottom:12px; color:#1E293B; }
-.empty { text-align:center; padding:60px 20px; color:#94A3B8; }
-.empty .emoji { font-size:40px; margin-bottom:12px; }
+/* 섹션/테이블 */
+.section{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.07);margin-bottom:12px;overflow:hidden;}
+.section-header{padding:11px 16px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;border-bottom:1px solid #F1F5F9;flex-wrap:wrap;}
+.dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+th{background:#F8FAFC;color:#64748B;font-weight:600;padding:8px 12px;text-align:left;border-bottom:1px solid #E2E8F0;white-space:nowrap;}
+td{padding:8px 12px;border-bottom:1px solid #F8FAFC;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+.badge-ok{background:#DCFCE7;color:#16A34A;border-radius:5px;padding:2px 7px;font-size:11px;font-weight:700;}
+.badge-ng{background:#FEE2E2;color:#DC2626;border-radius:5px;padding:2px 7px;font-size:11px;font-weight:700;}
+.badge-na{background:#F1F5F9;color:#94A3B8;border-radius:5px;padding:2px 7px;font-size:11px;font-weight:700;}
+.toggle-btn{background:#F1F5F9;border:1px solid #E2E8F0;color:#475569;border-radius:6px;padding:3px 10px;font-size:11px;cursor:pointer;font-family:inherit;margin-left:auto;}
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:12px;}
+.chart-box{background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,.07);}
+.chart-box h4{font-size:13px;font-weight:700;margin-bottom:12px;}
+.empty{text-align:center;padding:50px 20px;color:#94A3B8;}
 
-/* ── 보고서 스타일 ── */
-.rpt-section {
-  background:#fff; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,.07);
-  margin-bottom:16px; padding:22px 28px;
-}
-.rpt-title {
-  font-size:28px; font-weight:700; color:#1B3A6B;
-  border-bottom:2px solid #1B3A6B; padding-bottom:8px; margin-bottom:16px;
-  display:flex; justify-content:space-between; align-items:center;
-}
-.rpt-sub { font-size:13px; font-weight:700; color:#334155; margin:14px 0 8px; }
-.rpt-analysis {
-  background:#F8FAFC; border-left:3px solid #1B3A6B;
-  border-radius:0 8px 8px 0; padding:12px 16px; margin-top:12px;
-  font-size:12px; color:#334155; line-height:1.8;
-  white-space:pre-wrap; outline:none; cursor:text; min-height:50px;
-  user-select:text;
-}
-.rpt-analysis.loading { color:#94A3B8; font-style:italic; }
-.regen-btn {
-  background:#EFF6FF; border:1px solid #BFDBFE; color:#1D4ED8;
-  border-radius:6px; padding:4px 12px; font-size:11px; cursor:pointer;
-  font-family:inherit; margin-top:6px; display:inline-block;
+/* 보고서 */
+.rpt-sec{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.07);margin-bottom:14px;padding:20px 24px;}
+.rpt-h{font-size:22px;font-weight:700;color:#1B3A6B;border-bottom:2px solid #1B3A6B;padding-bottom:8px;margin-bottom:14px;}
+.rpt-h2{font-size:22px;font-weight:700;color:#1B3A6B;border-bottom:2px solid #1B3A6B;padding-bottom:8px;margin-bottom:14px;margin-top:32px;}
+.rpt-sub{font-size:13px;font-weight:700;color:#334155;margin:12px 0 6px;}
+.rpt-ai{background:#F8FAFC;border-left:3px solid #1B3A6B;border-radius:0 8px 8px 0;padding:12px 16px;margin-top:10px;font-size:13px;color:#334155;line-height:1.8;white-space:pre-wrap;outline:none;cursor:text;min-height:48px;user-select:text;}
+.rpt-ai.loading{color:#94A3B8;font-style:italic;}
+.regen-btn{background:#EFF6FF;border:1px solid #BFDBFE;color:#1D4ED8;border-radius:6px;padding:4px 12px;font-size:11px;cursor:pointer;font-family:inherit;margin-top:6px;display:inline-block;}
+.ov-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:10px;}
+.ov-table th{background:#1B3A6B;color:#fff;padding:8px 12px;text-align:left;white-space:nowrap;width:130px;}
+.ov-table td{padding:8px 12px;border-bottom:1px solid #F1F5F9;}
+
+@media(max-width:900px){
+  .summary{grid-template-columns:repeat(3,1fr);}
+  .chart-grid{grid-template-columns:1fr;}
+  .content,.header,.upload-panel,.tabs,.period-bar{padding-left:14px;padding-right:14px;}
 }
 
-/* 개요 테이블 */
-.overview-table { width:100%; border-collapse:collapse; font-size:12px; margin-bottom:10px; }
-.overview-table th { background:#1B3A6B; color:#fff; padding:8px 12px; text-align:left; }
-.overview-table td { padding:8px 12px; border-bottom:1px solid #F1F5F9; }
-.overview-table tr:last-child td { border-bottom:none; }
+/* ═══════════ 인쇄 ═══════════ */
+@media print{
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+  .upload-panel,.period-bar,.tabs,.btn-ai,.btn-print,.regen-btn,.toggle-btn,.no-print{display:none!important;}
+  body{background:#fff;font-size:11pt;}
+  .content{padding:0;}
+  .header{display:none!important;}
 
-/* 반응형 */
-@media(max-width:900px) {
-  .summary { grid-template-columns:repeat(3,1fr); }
-  .chart-grid { grid-template-columns:1fr; }
-  .content, .header, .upload-panel, .tabs, .period-bar { padding-left:16px; padding-right:16px; }
-}
-
-/* ── 인쇄 ── */
-@media print {
-  * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
-  .upload-panel, .period-bar, .tabs, .btn-ai, .btn-print, .regen-btn, .toggle-btn { display:none !important; }
-  body { background:#fff; font-size:13px; }
-  .content { padding:0; }
-  .header { display:none !important; }
-  .pane { display:none !important; }
-  .pane.active { display:block !important; }
-  .content { padding:0; }
-
-  /* 출력 제목 */
-  #printTitle {
-    display:block !important;
-    text-align:center; font-size:26px; font-weight:700;
-    color:#1B3A6B; padding:20px 0 14px;
-    border-bottom:2px solid #1B3A6B; margin-bottom:20px;
+  /* 인쇄 제목 */
+  #printTitle{
+    display:block!important;
+    text-align:center;font-size:16pt;font-weight:700;
+    color:#1B3A6B;padding:14px 0 10px;
+    border-bottom:2px solid #1B3A6B;margin-bottom:14px;
   }
 
-  .rpt-section { box-shadow:none; border:1px solid #E2E8F0; padding:10px 14px; margin-bottom:0; }
-  .rpt-section.page-break { page-break-after:always; }
-  .rpt-section:last-child { page-break-after:auto; }
-  .rpt-title { font-size:16px; margin-bottom:10px; }
-  .rpt-title[style*="margin-top"] { margin-top:20px !important; border-top:2px solid #1B3A6B; padding-top:10px; }
-  .rpt-sub { font-size:13px; margin:8px 0 5px; font-weight:700; }
-  .rpt-analysis { font-size:13px; line-height:1.8; padding:10px 14px; min-height:0; }
-  .card .lbl { font-size:13px; }
-  .card .sub { font-size:12px; }
-  .goal-label { font-size:12px; }
-  canvas { max-height:160px !important; }
+  /* 섹션 */
+  .rpt-sec{box-shadow:none;border:none;padding:0;margin:0;}
+  .rpt-sec.pb{page-break-after:always;}
+  .pane{display:none!important;}
+  .pane.active{display:block!important;}
 
-  .drop-print-grid {
-    display:grid !important;
-    grid-template-columns:1fr 1fr;
-    gap:12px; align-items:center;
-  }
+  /* 제목 */
+  .rpt-h{font-size:14pt;padding-bottom:6px;margin-bottom:10px;}
+  .rpt-h2{font-size:13pt;margin-top:20px;padding-bottom:6px;margin-bottom:10px;}
+  .rpt-sub{font-size:11pt;margin:8px 0 4px;}
 
-  .summary { grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:10px; }
-  .card { box-shadow:none; border:1px solid #E2E8F0; padding:8px 12px; }
-  .card .val { font-size:20px; }
+  /* AI 분석 */
+  .rpt-ai{font-size:10.5pt;line-height:1.7;padding:8px 12px;}
 
-  table { font-size:11px; width:100%; }
-  th { font-size:11px; padding:5px 6px; white-space:nowrap; }
-  td { padding:5px 6px; font-size:11px; white-space:nowrap; }
-  /* 총괄 테이블 열 너비 최적화 */
-  #summaryTable5 th:nth-child(1), #summaryTable5 td:nth-child(1) { min-width:80px; }
-  #summaryTable5 th:nth-child(n+2):nth-child(-n+5), #summaryTable5 td:nth-child(n+2):nth-child(-n+5) { text-align:center; }
-  /* 재원 테이블 */
-  #stayTableCP th, #stayTableCP td { text-align:center; }
-  #stayTableCP th:nth-child(1), #stayTableCP td:nth-child(1) { text-align:left; }
+  /* 카드 */
+  .summary{grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:10px;}
+  .card{box-shadow:none;border:1px solid #E2E8F0;padding:8px 10px;}
+  .card .val{font-size:18pt;}
+  .card .lbl{font-size:9pt;}
 
-  .overview-table { table-layout:auto; }
-  .overview-table th { background:#1B3A6B !important; color:#fff !important; white-space:nowrap; }
-  .overview-table td { white-space:normal; word-break:keep-all; }
+  /* 테이블 */
+  table{font-size:9pt;}
+  th{font-size:9pt;padding:5px 7px;white-space:nowrap;}
+  td{padding:4px 7px;font-size:9pt;white-space:nowrap;}
+  .ov-table th{background:#1B3A6B!important;color:#fff!important;font-size:9pt;padding:6px 10px;}
+  .ov-table td{font-size:9pt;padding:6px 10px;}
 
-  @page { size:A4 portrait; margin:10mm 10mm; }
+  /* 그래프 */
+  canvas{max-height:170px!important;}
+
+  /* 도넛+표 나란히 */
+  .drop-grid{display:grid!important;grid-template-columns:1fr 1fr;gap:14px;align-items:center;}
+
+  @page{size:A4 portrait;margin:10mm 10mm;}
 }
 </style>
 </head>
 <body>
 
-<!-- 인쇄 제목 (화면에서 숨김) -->
 <div id="printTitle" style="display:none"></div>
 
 <!-- 헤더 -->
 <div class="header">
-  <div class="header-left">
+  <div>
     <h1>🏥 CP 모니터링 대시보드</h1>
     <div class="sub">
-      <span id="hospitalName" contenteditable="true" onblur="saveInfo()"
-        style="outline:none;cursor:text;border-bottom:1px dashed rgba(255,255,255,0.3)">좋은삼선병원</span>
-      <span id="deptName" contenteditable="true" onblur="saveInfo()"
-        style="outline:none;cursor:text;border-bottom:1px dashed rgba(255,255,255,0.3);margin-left:4px"> QPS팀</span>
+      <span id="hospitalName" contenteditable="true" onblur="saveInfo()" style="outline:none;cursor:text;border-bottom:1px dashed rgba(255,255,255,.3)">좋은삼선병원</span>
+      <span id="deptName" contenteditable="true" onblur="saveInfo()" style="outline:none;cursor:text;border-bottom:1px dashed rgba(255,255,255,.3);margin-left:4px"> QPS팀</span>
       · <span id="periodLabel">전체</span>
     </div>
   </div>
@@ -218,10 +184,10 @@ tr:hover td { background:#FAFBFD; }
     <span style="margin-left:auto;font-size:11px;color:#94A3B8">클릭해서 열기</span>
   </div>
   <div class="upload-body" id="uploadBody">
-    <div style="font-size:12px;color:#64748B;margin-bottom:10px">구글시트 <b>2026 탭</b>을 xlsx로 한 번 올리면 기간 버튼으로 필터링됩니다.</div>
+    <div style="font-size:12px;color:#64748B;margin-bottom:8px">구글시트 <b>2026 탭</b>을 xlsx로 한 번 올리면 기간 버튼으로 필터링됩니다.</div>
     <input type="file" id="fileInput" accept=".xlsx,.xls,.html,.htm" style="display:none" onchange="handleFile(event)">
     <label for="fileInput" id="dropZone">
-      <div style="font-size:28px;margin-bottom:8px">📂</div>
+      <div style="font-size:26px;margin-bottom:6px">📂</div>
       <div style="font-size:13px;font-weight:600;color:#1B3A6B">xlsx 파일을 클릭하거나 드래그해서 올려주세요</div>
       <div style="font-size:11px;color:#94A3B8;margin-top:4px">파일 → 다운로드 → xlsx</div>
     </label>
@@ -232,9 +198,9 @@ tr:hover td { background:#FAFBFD; }
 <!-- 기간 버튼 -->
 <div class="period-bar">
   <div class="period-btns">
-    <span>기간:</span>
+    <span style="font-size:12px;color:#64748B">기간:</span>
     <button class="pbtn pbtn-active" onclick="selectPeriod('전체',this)">전체</button>
-    <span style="color:#E2E8F0">|</span>
+    <span class="sep">|</span>
     <button class="pbtn" onclick="selectPeriod('1월',this)">1월</button>
     <button class="pbtn" onclick="selectPeriod('2월',this)">2월</button>
     <button class="pbtn" onclick="selectPeriod('3월',this)">3월</button>
@@ -247,12 +213,12 @@ tr:hover td { background:#FAFBFD; }
     <button class="pbtn" onclick="selectPeriod('10월',this)">10월</button>
     <button class="pbtn" onclick="selectPeriod('11월',this)">11월</button>
     <button class="pbtn" onclick="selectPeriod('12월',this)">12월</button>
-    <span style="color:#E2E8F0">|</span>
+    <span class="sep">|</span>
     <button class="pbtn" onclick="selectPeriod('1분기',this)">1분기</button>
     <button class="pbtn" onclick="selectPeriod('2분기',this)">2분기</button>
     <button class="pbtn" onclick="selectPeriod('3분기',this)">3분기</button>
     <button class="pbtn" onclick="selectPeriod('4분기',this)">4분기</button>
-    <span style="color:#E2E8F0">|</span>
+    <span class="sep">|</span>
     <button class="pbtn" onclick="selectPeriod('상반기',this)">상반기</button>
     <button class="pbtn" onclick="selectPeriod('하반기',this)">하반기</button>
     <button class="pbtn" onclick="selectPeriod('연간',this)">연간</button>
@@ -268,31 +234,29 @@ tr:hover td { background:#FAFBFD; }
     <div class="tab" onclick="showTab('stay',this)">🏨 재원/항생제</div>
     <div class="tab" onclick="showTab('raw',this)">📋 원시데이터</div>
   </div>
-  <div style="display:flex;gap:8px;padding-right:8px">
-    <button class="btn-ai" onclick="generateAllReports()">✨ AI 보고서 생성</button>
+  <div style="display:flex;gap:6px;padding-right:6px">
+    <button class="btn-ai" onclick="generateAll()">✨ AI 보고서 생성</button>
     <button class="btn-print" onclick="window.print()">🖨️ 출력/PDF</button>
   </div>
 </div>
 
-<!-- 컨텐츠 -->
 <div class="content">
 
-<!-- ══ 결과 보고서 탭 ══ -->
+<!-- ════ 결과 보고서 ════ -->
 <div class="pane active" id="pane-report">
 
-  <!-- ══ 1페이지: 개요 + 총괄현황 + 질환별 ══ -->
-  <div class="rpt-section page-break">
-    <div class="rpt-title">1. 개요</div>
-    <table class="overview-table" style="table-layout:fixed">
-      <colgroup><col style="width:120px"><col></colgroup>
-      <tr><th style="white-space:nowrap">목적</th><td style="white-space:nowrap">질환별 CP 적용 현황 모니터링을 통한 의료 질 향상 및 진료 효율성 증대</td></tr>
-      <tr><th style="white-space:nowrap">대상 기간</th><td id="ov-period">—</td></tr>
-      <tr><th style="white-space:nowrap">모니터링 CP</th><td id="ov-cpList" contenteditable="true" onblur="saveCPList()" style="outline:none;cursor:text;border-bottom:1px dashed #CBD5E1" title="클릭해서 수정 (쉼표로 구분)">TKRA, ARCR, HWR, MENISECTOMY, VP/KP</td></tr>
-      <tr><th style="white-space:nowrap">적용률 목표</th><td><b><span id="ov-applyGoal" contenteditable="true" onblur="saveGoals()" style="outline:none;cursor:text;border-bottom:1px dashed #CBD5E1;color:#1B3A6B">80</span>% 이상</b></td></tr>
-      <tr><th style="white-space:nowrap">완료율 목표</th><td><b><span id="ov-completeGoal" contenteditable="true" onblur="saveGoals()" style="outline:none;cursor:text;border-bottom:1px dashed #CBD5E1;color:#1B3A6B">70</span>% 이상</b></td></tr>
+  <!-- 1페이지: 개요 + 총괄 -->
+  <div class="rpt-sec pb">
+    <div class="rpt-h">1. 개요</div>
+    <table class="ov-table">
+      <tr><th>목적</th><td>질환별 CP 적용 현황 모니터링을 통한 의료 질 향상 및 진료 효율성 증대</td></tr>
+      <tr><th>대상 기간</th><td id="ov-period">—</td></tr>
+      <tr><th>모니터링 CP</th><td id="ov-cpList" contenteditable="true" onblur="saveCPList()" style="outline:none;cursor:text">TKRA, ARCR, HWR, MENISECTOMY, VP/KP</td></tr>
+      <tr><th>적용률 목표</th><td><b><span id="ov-applyGoal" contenteditable="true" onblur="saveGoals()" style="outline:none;cursor:text;color:#1B3A6B">80</span>% 이상</b></td></tr>
+      <tr><th>완료율 목표</th><td><b><span id="ov-completeGoal" contenteditable="true" onblur="saveGoals()" style="outline:none;cursor:text;color:#1B3A6B">70</span>% 이상</b></td></tr>
     </table>
 
-    <div class="rpt-title" style="margin-top:48px">2. 총괄 현황</div>
+    <div class="rpt-h2">2. 총괄 현황</div>
     <div class="summary">
       <div class="card c1"><div class="val" id="ov-total">—</div><div class="lbl">전체 대상 건수</div></div>
       <div class="card c4"><div class="val" id="ov-apply">—</div><div class="lbl">CP 적용 건수</div></div>
@@ -300,193 +264,145 @@ tr:hover td { background:#FAFBFD; }
         <div class="val" id="ov-applyR">—</div><div class="lbl">적용률</div>
         <div class="goal-bar-wrap">
           <div class="goal-bar-bg"><div class="goal-bar-fill" id="bar-apply" style="width:0%;background:#16A34A"></div></div>
-          <div class="goal-label"><span>0%</span><span id="goal-apply-lbl">목표 80%</span></div>
+          <div class="goal-label"><span>0%</span><span id="lbl-applyGoal">목표 80%</span></div>
         </div>
       </div>
       <div class="card c2">
         <div class="val" id="ov-completeR">—</div><div class="lbl">완료율</div>
         <div class="goal-bar-wrap">
           <div class="goal-bar-bg"><div class="goal-bar-fill" id="bar-complete" style="width:0%;background:#2563EB"></div></div>
-          <div class="goal-label"><span>0%</span><span id="goal-complete-lbl">목표 70%</span></div>
+          <div class="goal-label"><span>0%</span><span id="lbl-completeGoal">목표 70%</span></div>
         </div>
       </div>
       <div class="card c3"><div class="val" id="ov-drop">—</div><div class="lbl">중단 건수</div><div class="sub" id="ov-dropR">—</div></div>
     </div>
     <div class="rpt-sub">모니터링 대표 5종 CP 적용률 및 완료율</div>
-    <div style="overflow-x:auto"><table id="summaryTable5">
-      <thead><tr><th>CP명</th><th>대상</th><th>적용</th><th>완료</th><th>중단</th><th>적용률</th><th>완료율</th><th>달성<br>(적용)</th><th>달성<br>(완료)</th></tr></thead>
-      <tbody id="summaryTable5Body"></tbody>
+    <div style="overflow-x:auto"><table id="tbl5">
+      <thead><tr><th>CP명</th><th>대상</th><th>적용</th><th>완료</th><th>중단</th><th>적용률</th><th>완료율</th><th>달성(적용)</th><th>달성(완료)</th></tr></thead>
+      <tbody id="tbl5Body"></tbody>
     </table></div>
-    <div class="rpt-analysis loading" id="analysis-summary" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
-    <button class="regen-btn" onclick="genSection('summary')">↺ 재생성</button>
-    <div class="rpt-sub" style="margin-top:12px">CP별 적용률 / 완료율 현황</div>
-    <canvas id="rptChartSummary" style="max-height:180px"></canvas>
-
-    <div class="rpt-title" style="margin-top:48px">3. 질환별 상세 분석 (모니터링 대표 5종)</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px">
-      <div>
-        <div class="rpt-sub">수술별 적용률 / 완료율</div>
-        <canvas id="rptChartCP5" style="max-height:190px"></canvas>
-      </div>
-      <div>
-        <div class="rpt-sub">의사별 적용률 / 완료율</div>
-        <canvas id="rptChartDoctor" style="max-height:190px"></canvas>
-      </div>
-    </div>
-    <div class="rpt-analysis loading" id="analysis-cp5" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
-    <button class="regen-btn" onclick="genSection('cp5')">↺ 재생성</button>
+    <div class="rpt-ai loading" id="ai-summary" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
+    <button class="regen-btn" onclick="gen('summary')">↺ 재생성</button>
+    <div class="rpt-sub" style="margin-top:14px">CP별 적용률 / 완료율</div>
+    <canvas id="cSummary" style="max-height:170px"></canvas>
   </div>
 
-  <!-- ══ 3페이지: Drop사유 + 재원/항생제 + 향후방향 ══ -->
-  <div class="rpt-section">
-    <div class="rpt-title">4. CP 중단(Drop) 사유 분석</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:center;margin-bottom:12px">
-      <div style="display:flex;flex-direction:column;align-items:center">
-        <div class="rpt-sub" style="width:100%">중단 사유 분포</div>
-        <canvas id="rptChartDrop" style="max-height:220px;width:100%!important"></canvas>
+  <!-- 2페이지: 질환별 상세 -->
+  <div class="rpt-sec pb">
+    <div class="rpt-h">3. 질환별 상세 분석 (모니터링 대표 5종)</div>
+    <div class="rpt-sub">수술별 적용률 / 완료율</div>
+    <canvas id="cCP5" style="max-height:220px;margin-bottom:18px"></canvas>
+    <div class="rpt-sub">의사별 적용률 / 완료율</div>
+    <canvas id="cDoctor" style="max-height:220px;margin-bottom:10px"></canvas>
+    <div class="rpt-ai loading" id="ai-cp5" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
+    <button class="regen-btn" onclick="gen('cp5')">↺ 재생성</button>
+  </div>
+
+  <!-- 3페이지: Drop + 재원 + 향후 -->
+  <div class="rpt-sec">
+    <div class="rpt-h">4. CP 중단(Drop) 사유 분석</div>
+    <div class="drop-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:center;margin-bottom:10px">
+      <div>
+        <div class="rpt-sub">중단 사유 분포</div>
+        <canvas id="cDrop" style="max-height:230px"></canvas>
       </div>
-      <div style="display:flex;flex-direction:column;justify-content:center">
+      <div>
         <div class="rpt-sub">중단 사유별 건수</div>
-        <div id="rptDropTable"></div>
+        <div id="tblDrop"></div>
       </div>
     </div>
-    <div class="rpt-analysis loading" id="analysis-drop" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
-    <button class="regen-btn" onclick="genSection('drop')">↺ 재생성</button>
+    <div class="rpt-ai loading" id="ai-drop" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
+    <button class="regen-btn" onclick="gen('drop')">↺ 재생성</button>
 
-    <div class="rpt-title" style="margin-top:48px">5. 재원일수 및 항생제 사용 현황</div>
+    <div class="rpt-h2">5. 재원일수 및 항생제 사용 현황</div>
     <div class="rpt-sub">질환별 평균 재원일수 / 항생제 사용일수</div>
-    <canvas id="rptChartStay" style="max-height:200px;margin-bottom:8px"></canvas>
-    <button class="toggle-btn no-print" onclick="toggleTable('stayDetailWrap')" style="margin-bottom:8px">📋 상세 내역 보기/숨기기</button>
-    <div id="stayDetailWrap" style="display:none">
-      <div style="overflow-x:auto"><table id="stayTableCP">
+    <canvas id="cStay" style="max-height:180px;margin-bottom:8px"></canvas>
+    <button class="toggle-btn no-print" onclick="toggleTable('stayDetail')" style="display:block;margin-bottom:6px">📋 상세 내역 보기/숨기기</button>
+    <div id="stayDetail" style="display:none">
+      <div style="overflow-x:auto"><table id="tblStayCP">
         <thead><tr><th>CP명</th><th>건수</th><th>평균재원(일)</th><th>최소</th><th>최대</th><th>평균항생제(일)</th></tr></thead>
-        <tbody id="stayTableCPBody"></tbody>
+        <tbody id="tblStayCPBody"></tbody>
       </table></div>
       <div class="rpt-sub" style="margin-top:10px">의사별 평균 재원일수 / 항생제 사용일수</div>
-      <div style="overflow-x:auto"><table id="stayTableDoc">
-        <thead><tr><th>주치의</th><th>건수</th><th>평균 재원일수</th><th>평균 항생제(일)</th></tr></thead>
-        <tbody id="stayTableDocBody"></tbody>
+      <div style="overflow-x:auto"><table id="tblStayDoc">
+        <thead><tr><th>주치의</th><th>건수</th><th>평균재원(일)</th><th>평균항생제(일)</th></tr></thead>
+        <tbody id="tblStayDocBody"></tbody>
       </table></div>
     </div>
-    <div class="rpt-analysis loading" id="analysis-stay" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
-    <button class="regen-btn" onclick="genSection('stay')">↺ 재생성</button>
+    <div class="rpt-ai loading" id="ai-stay" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
+    <button class="regen-btn" onclick="gen('stay')">↺ 재생성</button>
 
-    <div class="rpt-title" style="margin-top:48px">6. 향후 모니터링 개선 방향</div>
-    <div class="rpt-analysis loading" id="analysis-improve" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
-    <button class="regen-btn" onclick="genSection('improve')">↺ 재생성</button>
+    <div class="rpt-h2">6. 향후 모니터링 개선 방향</div>
+    <div class="rpt-ai loading" id="ai-improve" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
+    <button class="regen-btn" onclick="gen('improve')">↺ 재생성</button>
   </div>
 
 </div>
 
-<!-- ══ 5종 CP 상세 ══ -->
-<div class="pane" id="pane-cp5"><div id="cp5-content"></div></div>
-
-<!-- ══ 의사별 ══ -->
-<div class="pane" id="pane-doctor"><div id="doctor-content"></div></div>
-
-<!-- ══ 재원/항생제 ══ -->
-<div class="pane" id="pane-stay"><div id="stay-content"></div></div>
-
-<!-- ══ 원시데이터 ══ -->
+<!-- 5종 CP 상세 -->
+<div class="pane" id="pane-cp5"><div id="cp5Content"></div></div>
+<!-- 의사별 -->
+<div class="pane" id="pane-doctor"><div id="doctorContent"></div></div>
+<!-- 재원/항생제 -->
+<div class="pane" id="pane-stay"><div id="stayContent"></div></div>
+<!-- 원시데이터 -->
 <div class="pane" id="pane-raw">
   <div class="section">
-    <div class="section-header"><span class="dot" style="background:#1B3A6B"></span>전체 데이터 <span id="raw-count" style="font-size:11px;font-weight:400;color:#94A3B8;margin-left:4px"></span></div>
+    <div class="section-header"><span class="dot" style="background:#1B3A6B"></span>전체 데이터 <span id="rawCount" style="font-size:11px;font-weight:400;color:#94A3B8;margin-left:4px"></span></div>
     <div style="overflow-x:auto"><table id="rawTable"><thead></thead><tbody></tbody></table></div>
   </div>
 </div>
 
-</div><!-- /content -->
+</div>
 
 <script>
-let allData=[], filteredData=[], currentPeriod='전체';
-const CP5_DEFAULT=['TKRA','ARCR','HWR','MENISECTOMY','VP/KP'];
-let CP5=[...CP5_DEFAULT];
-let APPLY_GOAL=80, COMPLETE_GOAL=70;
-
-function getGoals(){ return{applyGoal:APPLY_GOAL, completeGoal:COMPLETE_GOAL}; }
-
-function saveGoals(){
-  const ag=parseInt(document.getElementById('ov-applyGoal')?.textContent)||80;
-  const cg=parseInt(document.getElementById('ov-completeGoal')?.textContent)||70;
-  APPLY_GOAL=ag; COMPLETE_GOAL=cg;
-  localStorage.setItem('cp_applyGoal',ag);
-  localStorage.setItem('cp_completeGoal',cg);
-  // 목표 바 레이블 업데이트
-  document.querySelectorAll('.goal-label').forEach((el,i)=>{
-    const spans=el.querySelectorAll('span');
-    if(spans[1]) spans[1].textContent='목표 '+(i===0?ag:cg)+'%';
-  });
-  renderAll();
-}
-
-function saveCPList(){
-  const raw=document.getElementById('ov-cpList')?.textContent||'';
-  const list=raw.split(',').map(s=>s.trim().toUpperCase()).filter(Boolean);
-  if(list.length>0){
-    CP5=list;
-    localStorage.setItem('cp_list',JSON.stringify(list));
-    renderAll();
-  }
-}
-
-function loadSettings(){
-  const ag=localStorage.getItem('cp_applyGoal');
-  const cg=localStorage.getItem('cp_completeGoal');
-  const cl=localStorage.getItem('cp_list');
-  if(ag){APPLY_GOAL=parseInt(ag); const el=document.getElementById('ov-applyGoal'); if(el) el.textContent=ag;}
-  if(cg){COMPLETE_GOAL=parseInt(cg); const el=document.getElementById('ov-completeGoal'); if(el) el.textContent=cg;}
-  if(cl){try{CP5=JSON.parse(cl); const el=document.getElementById('ov-cpList'); if(el) el.textContent=CP5.join(', ');}catch(e){}}
-}
-const DROP_REASONS=['염증수치','감염','합병증','수술변경/취소','입/퇴원 일정 변경','기타'];
+'use strict';
+let allData=[],filteredData=[],currentPeriod='전체';
+let CP5=['TKRA','ARCR','HWR','MENISECTOMY','VP/KP'];
+let APPLY_GOAL=80,COMPLETE_GOAL=70;
+const DR=['염증수치','감염','합병증','수술변경/취소','입/퇴원 일정 변경','기타'];
+const PM={전체:null,'1월':[1],'2월':[2],'3월':[3],'4월':[4],'5월':[5],'6월':[6],'7월':[7],'8월':[8],'9월':[9],'10월':[10],'11월':[11],'12월':[12],'1분기':[1,2,3],'2분기':[4,5,6],'3분기':[7,8,9],'4분기':[10,11,12],'상반기':[1,2,3,4,5,6],'하반기':[7,8,9,10,11,12],'연간':[1,2,3,4,5,6,7,8,9,10,11,12]};
 let charts={};
 
-const PERIOD_MONTHS={
-  '전체':null,'1월':[1],'2월':[2],'3월':[3],'4월':[4],'5월':[5],'6월':[6],
-  '7월':[7],'8월':[8],'9월':[9],'10월':[10],'11월':[11],'12월':[12],
-  '1분기':[1,2,3],'2분기':[4,5,6],'3분기':[7,8,9],'4분기':[10,11,12],
-  '상반기':[1,2,3,4,5,6],'하반기':[7,8,9,10,11,12],'연간':[1,2,3,4,5,6,7,8,9,10,11,12]
-};
-
-// 도넛 중앙 플러그인
+// ── 플러그인 ──
 Chart.register({
   id:'doughnutCenter',
   afterDraw(chart){
     if(chart.config.type!=='doughnut') return;
-    const{ctx,chartArea}=chart; if(!chartArea) return;
-    const cx=(chartArea.left+chartArea.right)/2, cy=(chartArea.top+chartArea.bottom)/2;
+    const{ctx,chartArea:ca}=chart; if(!ca) return;
+    const cx=(ca.left+ca.right)/2,cy=(ca.top+ca.bottom)/2;
     const total=chart.data.datasets[0].data.reduce((s,v)=>s+(v||0),0);
     if(!total) return;
     ctx.save();
-    ctx.font='bold 14px Noto Sans KR,sans-serif'; ctx.fillStyle='#1E293B';
-    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.font='bold 15px Noto Sans KR,sans-serif';ctx.fillStyle='#1E293B';
+    ctx.textAlign='center';ctx.textBaseline='middle';
     ctx.fillText(total+'건',cx,cy-8);
-    ctx.font='10px Noto Sans KR,sans-serif'; ctx.fillStyle='#64748B';
+    ctx.font='10px Noto Sans KR,sans-serif';ctx.fillStyle='#64748B';
     ctx.fillText('중단 합계',cx,cy+9);
     ctx.restore();
   }
 });
 
-// 막대 위 레이블
-const topLabel={
-  id:'topLabel',
+const barLabel={
+  id:'barLabel',
   afterDatasetsDraw(chart){
     const{ctx}=chart;
     chart.data.datasets.forEach((ds,di)=>{
       chart.getDatasetMeta(di).data.forEach((bar,i)=>{
         const v=ds.data[i]; if(!v) return;
-        // 막대 위 % 표시
+        // 막대 위 %
         ctx.save();
-        ctx.font='bold 13px Noto Sans KR'; ctx.fillStyle='#1E293B';
-        ctx.textAlign='center'; ctx.textBaseline='bottom';
+        ctx.font='bold 12px Noto Sans KR';ctx.fillStyle='#1E293B';
+        ctx.textAlign='center';ctx.textBaseline='bottom';
         ctx.fillText(v+'%',bar.x,bar.y-1);
-        // 막대 안 건수 표시
+        // 막대 안 건수
         const cnt=ds.counts?.[i];
         if(cnt!==undefined&&cnt>0){
-          const barH=bar.base-bar.y;
-          if(barH>16){
-            ctx.font='bold 13px Noto Sans KR'; ctx.fillStyle='#1E293B';
+          const bh=bar.base-bar.y;
+          if(bh>18){
+            ctx.font='bold 11px Noto Sans KR';ctx.fillStyle='#1E293B';
             ctx.textBaseline='middle';
-            ctx.fillText(cnt+'건',bar.x,bar.y+barH/2);
+            ctx.fillText(cnt+'건',bar.x,bar.y+bh/2);
           }
         }
         ctx.restore();
@@ -495,51 +411,92 @@ const topLabel={
   }
 };
 
+const doughnutPctLabel={
+  id:'doughnutPctLabel',
+  afterDraw(chart){
+    if(chart.config.type!=='doughnut') return;
+    const{ctx}=chart;
+    const total=chart.data.datasets[0].data.reduce((s,v)=>s+(v||0),0);
+    if(!total) return;
+    chart.data.datasets[0].data.forEach((val,i)=>{
+      const meta=chart.getDatasetMeta(0);
+      const arc=meta.data[i];
+      const pct=Math.round(val/total*100);
+      if(pct<6) return;
+      const angle=(arc.startAngle+arc.endAngle)/2;
+      const r=arc.outerRadius*0.72;
+      const x=arc.x+Math.cos(angle)*r;
+      const y=arc.y+Math.sin(angle)*r;
+      ctx.save();
+      ctx.font='bold 13px Noto Sans KR,sans-serif';
+      ctx.fillStyle='#1E293B';
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(pct+'%',x,y);
+      ctx.restore();
+    });
+  }
+};
+
+// ── 유틸 ──
+function dc(id){if(charts[id]){try{charts[id].destroy();}catch(e){}delete charts[id];}}
+function avg(arr,key){const v=arr.filter(x=>x[key]!==null);return v.length?Math.round(v.reduce((s,x)=>s+x[key],0)/v.length*10)/10:null;}
+function pct(a,b){return b?Math.round(a/b*100):0;}
+function showStatus(msg,err){const el=document.getElementById('uploadStatus');el.style.display='block';el.style.color=err?'#DC2626':'#16A34A';el.textContent=msg;if(!err)setTimeout(()=>el.style.display='none',3500);}
+function toggleUpload(){document.getElementById('uploadToggle').classList.toggle('open');document.getElementById('uploadBody').classList.toggle('show');}
+function toggleTable(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'':'none';}
+function showTab(name,el){document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.getElementById('pane-'+name).classList.add('active');if(el)el.classList.add('active');}
+function saveInfo(){const h=document.getElementById('hospitalName')?.textContent.trim();const d=document.getElementById('deptName')?.textContent.trim();if(h)localStorage.setItem('cp_h',h);if(d)localStorage.setItem('cp_d',d);}
+
+function saveGoals(){
+  const ag=parseInt(document.getElementById('ov-applyGoal')?.textContent)||80;
+  const cg=parseInt(document.getElementById('ov-completeGoal')?.textContent)||70;
+  APPLY_GOAL=ag;COMPLETE_GOAL=cg;
+  localStorage.setItem('cp_ag',ag);localStorage.setItem('cp_cg',cg);
+  document.getElementById('lbl-applyGoal').textContent='목표 '+ag+'%';
+  document.getElementById('lbl-completeGoal').textContent='목표 '+cg+'%';
+  renderAll();
+}
+function saveCPList(){
+  const raw=document.getElementById('ov-cpList')?.textContent||'';
+  const list=raw.split(',').map(s=>s.trim().toUpperCase()).filter(Boolean);
+  if(list.length){CP5=list;localStorage.setItem('cp_list',JSON.stringify(list));renderAll();}
+}
+
+// ── 기간 ──
 function selectPeriod(p,btn){
   currentPeriod=p;
   const label=p==='전체'?'전체':'2026년 '+p;
   document.getElementById('periodLabel').textContent=label;
-  document.getElementById('printTitle').textContent='2026년 '+p+' CP 모니터링 결과 보고';
-  document.getElementById('ov-period').textContent=p==='전체'?'2026년':('2026년 '+p);
+  document.getElementById('printTitle').textContent='2026년'+(p==='전체'?'':' '+p)+' CP 모니터링 결과 보고';
+  document.getElementById('ov-period').textContent=p==='전체'?'2026년':'2026년 '+p;
   document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('pbtn-active'));
-  if(btn) btn.classList.add('pbtn-active');
+  if(btn)btn.classList.add('pbtn-active');
   applyFilter();
 }
-
 function applyFilter(){
-  const months=PERIOD_MONTHS[currentPeriod];
+  const months=PM[currentPeriod];
   filteredData=!months?[...allData]:allData.filter(x=>x.dischargeDate&&months.includes(x.dischargeDate.getMonth()+1));
   renderAll();
 }
 
+// ── 날짜 파싱 ──
 function parseDate(v){
   if(!v) return null;
   const s=String(v).trim();
-  if(/^\d{4}[-./]\d{1,2}/.test(s)){const d=new Date(s.replace(/\./g,'-')); return isNaN(d)?null:d;}
+  if(/^\d{4}[-./]\d{1,2}/.test(s)){const d=new Date(s.replace(/\./g,'-'));return isNaN(d)?null:d;}
   const n=parseFloat(s);
   if(!isNaN(n)&&n>40000) return new Date(Math.round((n-25569)*86400*1000));
   return null;
 }
 
-function toggleUpload(){
-  document.getElementById('uploadToggle').classList.toggle('open');
-  document.getElementById('uploadBody').classList.toggle('show');
-}
-
-function showStatus(msg,isErr){
-  const el=document.getElementById('uploadStatus');
-  el.style.display='block'; el.style.color=isErr?'#DC2626':'#16A34A'; el.textContent=msg;
-  if(!isErr) setTimeout(()=>el.style.display='none',4000);
-}
-
-function handleFile(e){const f=e.target.files[0]; if(f) routeFile(f);}
+// ── 파일 처리 ──
+function handleFile(e){const f=e.target.files[0];if(f)routeFile(f);}
 function routeFile(f){
   const n=f.name.toLowerCase();
-  if(n.endsWith('.xlsx')||n.endsWith('.xls')) parseXlsx(f);
-  else if(n.endsWith('.html')||n.endsWith('.htm')) parseHtml(f);
-  else showStatus('⚠️ xlsx 또는 html 파일만 지원합니다.',true);
+  if(n.endsWith('.xlsx')||n.endsWith('.xls'))parseXlsx(f);
+  else if(n.endsWith('.html')||n.endsWith('.htm'))parseHtml(f);
+  else showStatus('⚠️ xlsx 또는 html만 지원합니다.',true);
 }
-
 function parseXlsx(f){
   showStatus('📖 읽는 중...');
   const r=new FileReader();
@@ -552,7 +509,6 @@ function parseXlsx(f){
   };
   r.readAsArrayBuffer(f);
 }
-
 function parseHtml(f){
   showStatus('📖 읽는 중...');
   const r=new FileReader();
@@ -564,24 +520,20 @@ function parseHtml(f){
   };
   r.readAsText(f,'utf-8');
 }
-
 function processRows(rows,filename,sheetName){
-  let hIdx=-1,hRow=null;
+  let hi=-1,hr=null;
   for(let i=0;i<Math.min(rows.length,10);i++){
     const r=rows[i].map(c=>String(c).trim());
-    if(r.some(c=>c==='차트번호'||c==='CP코드'||c==='환자명')){hIdx=i;hRow=r;break;}
+    if(r.some(c=>c==='차트번호'||c==='CP코드'||c==='환자명')){hi=i;hr=r;break;}
   }
-  if(!hRow){showStatus('⚠️ 헤더 없음',true);return;}
-  const fi=(...n)=>{for(const x of n){const i=hRow.findIndex(h=>h.includes(x));if(i>=0)return i;}return -1;};
-  const c={
-    id:fi('차트번호'),name:fi('환자명'),dept:fi('진료과'),doctor:fi('주치의'),
-    surgery:fi('수술명'),discharge:fi('퇴원일'),los:fi('재원일수'),
-    cpCode:fi('CP코드'),cpTarget:fi('CP대상'),cpApply:fi('CP적용'),
-    complete:fi('완료여부'),dropReason:fi('중단사유'),abxDays:fi('사용일수'),note:fi('비고'),
-  };
+  if(!hr){showStatus('⚠️ 헤더 없음',true);return;}
+  const fi=(...n)=>{for(const x of n){const i=hr.findIndex(h=>h.includes(x));if(i>=0)return i;}return -1;};
+  const c={id:fi('차트번호'),name:fi('환자명'),dept:fi('진료과'),doctor:fi('주치의'),surgery:fi('수술명'),
+    discharge:fi('퇴원일'),los:fi('재원일수'),cpCode:fi('CP코드'),cpTarget:fi('CP대상'),
+    cpApply:fi('CP적용'),complete:fi('완료여부'),dropReason:fi('중단사유'),abxDays:fi('사용일수'),note:fi('비고')};
   const g=(row,ci)=>(ci>=0&&ci<row.length)?String(row[ci]).trim():'';
   const parsed=[];
-  for(let i=hIdx+1;i<rows.length;i++){
+  for(let i=hi+1;i<rows.length;i++){
     const row=rows[i];
     if(g(row,c.cpTarget).toUpperCase()!=='Y') continue;
     let cp=g(row,c.cpCode).toUpperCase().replace(/\s/g,'');
@@ -591,70 +543,50 @@ function processRows(rows,filename,sheetName){
     else if(cp.includes('ARCR')) cp='ARCR';
     else if(cp.includes('HWR')) cp='HWR';
     else if(cp.includes('MENIS')) cp='MENISECTOMY';
-    const los=parseFloat(g(row,c.los)), abx=parseFloat(g(row,c.abxDays));
+    const los=parseFloat(g(row,c.los)),abx=parseFloat(g(row,c.abxDays));
     const apply=g(row,c.cpApply).toUpperCase()==='Y';
     const comp=g(row,c.complete).toUpperCase()==='Y';
-    parsed.push({
-      id:g(row,c.id),name:g(row,c.name),dept:g(row,c.dept),doctor:g(row,c.doctor),
-      surgery:g(row,c.surgery),discharge:g(row,c.discharge),
-      dischargeDate:parseDate(g(row,c.discharge)),
+    parsed.push({id:g(row,c.id),name:g(row,c.name),dept:g(row,c.dept),doctor:g(row,c.doctor),
+      surgery:g(row,c.surgery),discharge:g(row,c.discharge),dischargeDate:parseDate(g(row,c.discharge)),
       los:isNaN(los)?null:los,cpCode:cp,cpApply:apply,complete:comp,
-      dropReason:apply&&!comp?(g(row,c.dropReason)||'기타'):'',
-      abxDays:isNaN(abx)?null:abx,note:g(row,c.note),
-    });
+      dropReason:apply&&!comp?(g(row,c.dropReason)||'기타'):'',abxDays:isNaN(abx)?null:abx,note:g(row,c.note)});
   }
   if(!parsed.length){showStatus('⚠️ CP대상(Y) 데이터 없음',true);return;}
   allData=parsed;
   document.getElementById('dropZone').innerHTML=
-    '<div style="font-size:20px;margin-bottom:6px">✅</div>'+
+    '<div style="font-size:18px;margin-bottom:4px">✅</div>'+
     '<div style="font-size:13px;font-weight:600;color:#16A34A">'+filename+(sheetName?' · '+sheetName:'')+'</div>'+
-    '<div style="font-size:11px;color:#94A3B8;margin-top:4px">총 '+parsed.length+'건 · 클릭해서 교체</div>';
+    '<div style="font-size:11px;color:#94A3B8;margin-top:3px">총 '+parsed.length+'건 · 클릭해서 교체</div>';
   showStatus('✅ '+parsed.length+'건 로드 완료!');
   applyFilter();
 }
 
+// ── 메인 렌더 ──
 function renderAll(){
-  const d=filteredData;
-  if(!d.length) return;
-  const total=d.length, applied=d.filter(x=>x.cpApply).length;
+  const d=filteredData; if(!d.length) return;
+  const total=d.length,applied=d.filter(x=>x.cpApply).length;
   const completed=d.filter(x=>x.cpApply&&x.complete).length;
   const dropped=d.filter(x=>x.cpApply&&!x.complete).length;
-  const applyR=(applied/total*100).toFixed(1);
-  const completeR=applied?(completed/applied*100).toFixed(1):'0.0';
-  const dropR=applied?(dropped/applied*100).toFixed(1):'0.0';
-  const{applyGoal,completeGoal}=getGoals();
+  const aR=(applied/total*100).toFixed(1),cR=applied?(completed/applied*100).toFixed(1):'0.0';
+  const dR=applied?(dropped/applied*100).toFixed(1):'0.0';
 
-  ['h-total','h-apply','h-applyR','h-completeR','h-drop',
-   'ov-total','ov-apply','ov-applyR','ov-completeR','ov-drop'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(!el) return;
-    if(id.includes('R')||id.includes('rate')) el.textContent=
-      id==='h-applyR'?applyR+'%':id==='h-completeR'?completeR+'%':
-      id==='ov-applyR'?applyR+'%':id==='ov-completeR'?completeR+'%':el.textContent;
-    else el.textContent=
-      id==='h-total'||id==='ov-total'?total:
-      id==='h-apply'||id==='ov-apply'?applied:
-      id==='h-drop'||id==='ov-drop'?dropped:el.textContent;
-  });
-  document.getElementById('h-applyR').textContent=applyR+'%';
-  document.getElementById('h-completeR').textContent=completeR+'%';
-  document.getElementById('h-total').textContent=total;
-  document.getElementById('h-apply').textContent=applied;
+  ['h-total','ov-total'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=total;});
+  ['h-apply','ov-apply'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=applied;});
+  document.getElementById('h-applyR').textContent=aR+'%';
+  document.getElementById('h-completeR').textContent=cR+'%';
   document.getElementById('h-drop').textContent=dropped;
-  document.getElementById('ov-total').textContent=total;
-  document.getElementById('ov-apply').textContent=applied;
-  document.getElementById('ov-applyR').textContent=applyR+'%';
-  document.getElementById('ov-completeR').textContent=completeR+'%';
+  document.getElementById('ov-applyR').textContent=aR+'%';
+  document.getElementById('ov-completeR').textContent=cR+'%';
   document.getElementById('ov-drop').textContent=dropped;
-  document.getElementById('ov-dropR').textContent='중단율 '+dropR+'%';
+  document.getElementById('ov-dropR').textContent='중단율 '+dR+'%';
   setTimeout(()=>{
     const b1=document.getElementById('bar-apply'),b2=document.getElementById('bar-complete');
-    if(b1) b1.style.width=Math.min(parseFloat(applyR),100)+'%';
-    if(b2) b2.style.width=Math.min(parseFloat(completeR),100)+'%';
+    if(b1)b1.style.width=Math.min(parseFloat(aR),100)+'%';
+    if(b2)b2.style.width=Math.min(parseFloat(cR),100)+'%';
   },100);
 
-  // 5종 요약 테이블
-  const tbody=document.getElementById('summaryTable5Body');
+  // 5종 테이블
+  const tbody=document.getElementById('tbl5Body');
   if(tbody){
     tbody.innerHTML=CP5.map(cp=>{
       const items=d.filter(x=>x.cpCode===cp);
@@ -663,6 +595,7 @@ function renderAll(){
       const drop=app-comp;
       const ar=items.length?(app/items.length*100).toFixed(1):0;
       const cr=app?(comp/app*100).toFixed(1):0;
+      const na=items.length===0;
       return`<tr>
         <td><b>${cp}</b></td>
         <td style="text-align:center">${items.length}</td>
@@ -671,78 +604,74 @@ function renderAll(){
         <td style="text-align:center">${drop}</td>
         <td style="text-align:center"><b>${ar}%</b></td>
         <td style="text-align:center"><b>${cr}%</b></td>
-        <td style="text-align:center">${items.length===0?'<span class="badge-na">해당없음</span>':parseFloat(ar)>=applyGoal?'<span class="badge-ok">✓ 달성</span>':'<span class="badge-ng">✗ 미달</span>'}</td>
-        <td style="text-align:center">${items.length===0?'<span class="badge-na">해당없음</span>':parseFloat(cr)>=completeGoal?'<span class="badge-ok">✓ 달성</span>':'<span class="badge-ng">✗ 미달</span>'}</td>
+        <td style="text-align:center">${na?'<span class="badge-na">해당없음</span>':parseFloat(ar)>=APPLY_GOAL?'<span class="badge-ok">✓ 달성</span>':'<span class="badge-ng">✗ 미달</span>'}</td>
+        <td style="text-align:center">${na?'<span class="badge-na">해당없음</span>':parseFloat(cr)>=COMPLETE_GOAL?'<span class="badge-ok">✓ 달성</span>':'<span class="badge-ng">✗ 미달</span>'}</td>
       </tr>`;
     }).join('');
   }
 
-  renderReportCharts();
-  renderStayReportTable();
+  renderCharts();
+  renderStayTable();
   renderCP5Tab();
   renderDoctorTab();
   renderStayTab();
   renderRawTab();
 }
 
-function dc(id){if(charts[id]){try{charts[id].destroy();}catch(e){}delete charts[id];}}
-
-function renderReportCharts(){
+// ── 차트 렌더 ──
+function renderCharts(){
   const d=filteredData;
-  const pieColors=['#F87171','#FB923C','#FBBF24','#4ADE80','#60A5FA','#A78BFA'];
+  const pc=['#93C5FD','#FCA5A5','#C4B5FD','#FCD34D','#67E8F9','#6EE7B7'];
 
-  // CP5 데이터 먼저 계산
+  // CP5 데이터
   const cp5D=CP5.map(cp=>{
     const items=d.filter(x=>x.cpCode===cp);
     const app=items.filter(x=>x.cpApply).length;
     const comp=items.filter(x=>x.cpApply&&x.complete).length;
-    return{total:items.length,applied:app,completed:comp,
-      ar:items.length?Math.round(app/items.length*100):0,
-      cr:app?Math.round(comp/app*100):0};
+    return{total:items.length,app,comp,ar:items.length?pct(app,items.length):0,cr:app?pct(comp,app):0};
   });
 
   // 총괄 요약 차트
-  dc('rptChartSummary');
-  const cs=document.getElementById('rptChartSummary');
-  if(cs) charts['rptChartSummary']=new Chart(cs,{
-    type:'bar',plugins:[topLabel],
+  dc('cSummary');
+  const cs=document.getElementById('cSummary');
+  if(cs) charts['cSummary']=new Chart(cs,{
+    type:'bar',plugins:[barLabel],
     data:{labels:CP5.map((c,i)=>c+'\n('+cp5D[i].total+'건)'),datasets:[
-      {label:'적용률(%)',data:cp5D.map(x=>x.ar),counts:cp5D.map(x=>x.applied),backgroundColor:'#93C5FD',borderRadius:4},
-      {label:'완료율(%)',data:cp5D.map(x=>x.cr),counts:cp5D.map(x=>x.completed),backgroundColor:'#FCA5A5',borderRadius:4},
+      {label:'적용률(%)',data:cp5D.map(x=>x.ar),counts:cp5D.map(x=>x.app),backgroundColor:'#93C5FD',borderRadius:4},
+      {label:'완료율(%)',data:cp5D.map(x=>x.cr),counts:cp5D.map(x=>x.comp),backgroundColor:'#FCA5A5',borderRadius:4},
     ]},
     options:{responsive:true,plugins:{legend:{labels:{font:{size:11}}}},
       scales:{y:{max:100,ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'#F1F5F9'}},x:{ticks:{font:{size:10}}}}}
   });
 
-  dc('rptChartCP5');
-  const c1=document.getElementById('rptChartCP5');
-  if(c1) charts['rptChartCP5']=new Chart(c1,{
-    type:'bar',plugins:[topLabel],
+  // 수술별 차트
+  dc('cCP5');
+  const c1=document.getElementById('cCP5');
+  if(c1) charts['cCP5']=new Chart(c1,{
+    type:'bar',plugins:[barLabel],
     data:{labels:CP5.map((c,i)=>c+'\n('+cp5D[i].total+'건)'),datasets:[
-      {label:'적용률(%)',data:cp5D.map(x=>x.ar),counts:cp5D.map(x=>x.applied),backgroundColor:'#93C5FD',borderRadius:4},
-      {label:'완료율(%)',data:cp5D.map(x=>x.cr),counts:cp5D.map(x=>x.completed),backgroundColor:'#FCA5A5',borderRadius:4},
+      {label:'적용률(%)',data:cp5D.map(x=>x.ar),counts:cp5D.map(x=>x.app),backgroundColor:'#93C5FD',borderRadius:4},
+      {label:'완료율(%)',data:cp5D.map(x=>x.cr),counts:cp5D.map(x=>x.comp),backgroundColor:'#FCA5A5',borderRadius:4},
     ]},
     options:{responsive:true,plugins:{legend:{labels:{font:{size:11}}}},
       scales:{y:{max:100,ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'#F1F5F9'}},x:{ticks:{font:{size:10}}}}}
   });
 
-  // 의사별
+  // 의사별 차트
   const docs=[...new Set(d.map(x=>x.doctor).filter(Boolean))];
   const docD=docs.map(doc=>{
     const items=d.filter(x=>x.doctor===doc);
     const app=items.filter(x=>x.cpApply).length;
     const comp=items.filter(x=>x.cpApply&&x.complete).length;
-    return{doc,total:items.length,applied:app,completed:comp,
-      ar:items.length?Math.round(app/items.length*100):0,
-      cr:app?Math.round(comp/app*100):0};
+    return{doc,total:items.length,app,comp,ar:items.length?pct(app,items.length):0,cr:app?pct(comp,app):0};
   });
-  dc('rptChartDoctor');
-  const c2=document.getElementById('rptChartDoctor');
-  if(c2) charts['rptChartDoctor']=new Chart(c2,{
-    type:'bar',plugins:[topLabel],
+  dc('cDoctor');
+  const c2=document.getElementById('cDoctor');
+  if(c2) charts['cDoctor']=new Chart(c2,{
+    type:'bar',plugins:[barLabel],
     data:{labels:docD.map(x=>x.doc+'\n('+x.total+'건)'),datasets:[
-      {label:'적용률(%)',data:docD.map(x=>x.ar),counts:docD.map(x=>x.applied),backgroundColor:'#C4B5FD',borderRadius:4},
-      {label:'완료율(%)',data:docD.map(x=>x.cr),counts:docD.map(x=>x.completed),backgroundColor:'#FCD34D',borderRadius:4},
+      {label:'적용률(%)',data:docD.map(x=>x.ar),counts:docD.map(x=>x.app),backgroundColor:'#C4B5FD',borderRadius:4},
+      {label:'완료율(%)',data:docD.map(x=>x.cr),counts:docD.map(x=>x.comp),backgroundColor:'#FCD34D',borderRadius:4},
     ]},
     options:{responsive:true,plugins:{legend:{labels:{font:{size:11}}}},
       scales:{y:{max:100,ticks:{callback:v=>v+'%',font:{size:10}},grid:{color:'#F1F5F9'}},x:{ticks:{font:{size:10}}}}}
@@ -751,374 +680,254 @@ function renderReportCharts(){
   // 도넛
   const dropped=d.filter(x=>x.cpApply&&!x.complete);
   const rMap={};
-  dropped.forEach(x=>{const k=DROP_REASONS.find(r=>(x.dropReason||'').includes(r))||'기타';rMap[k]=(rMap[k]||0)+1;});
+  dropped.forEach(x=>{const k=DR.find(r=>(x.dropReason||'').includes(r))||'기타';rMap[k]=(rMap[k]||0)+1;});
   const rKeys=Object.keys(rMap);
-  // 도넛 외부 레이블 플러그인
-  const doughnutLabelPlugin={
-    id:'doughnutLabel',
-    afterDraw(chart){
-      if(chart.config.type!=='doughnut') return;
-      const{ctx}=chart;
-      chart.data.datasets[0].data.forEach((val,i)=>{
-        const meta=chart.getDatasetMeta(0);
-        const arc=meta.data[i];
-        const total=chart.data.datasets[0].data.reduce((s,v)=>s+(v||0),0);
-        if(!val||!total) return;
-        const angle=(arc.startAngle+arc.endAngle)/2;
-        const r=arc.outerRadius*0.75;
-        const x=arc.x+Math.cos(angle)*r;
-        const y=arc.y+Math.sin(angle)*r;
-        const pct=Math.round(val/total*100);
-        if(pct<5) return; // 너무 작으면 생략
-        ctx.save();
-        ctx.font='bold 14px Noto Sans KR,sans-serif';
-        ctx.fillStyle='#1E293B';
-        ctx.textAlign='center';
-        ctx.textBaseline='middle';
-        ctx.fillText(pct+'%',x,y);
-        ctx.restore();
-      });
-    }
-  };
-
-  dc('rptChartDrop');
-  const c3=document.getElementById('rptChartDrop');
-  if(c3) charts['rptChartDrop']=new Chart(c3,{
+  dc('cDrop');
+  const c3=document.getElementById('cDrop');
+  if(c3) charts['cDrop']=new Chart(c3,{
     type:'doughnut',
-    plugins:[doughnutLabelPlugin],
+    plugins:[doughnutPctLabel],
     data:{labels:rKeys.map(k=>k+' ('+rMap[k]+'건)'),
-      datasets:[{data:rKeys.map(k=>rMap[k]),backgroundColor:pieColors.slice(0,rKeys.length)}]},
-    options:{responsive:true,cutout:'50%',
-      plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:12,padding:8}},
+      datasets:[{data:rKeys.map(k=>rMap[k]),backgroundColor:['#F87171','#FB923C','#FBBF24','#4ADE80','#60A5FA','#A78BFA'].slice(0,rKeys.length)}]},
+    options:{responsive:true,cutout:'52%',
+      plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:13,padding:8}},
         tooltip:{callbacks:{label:ctx=>ctx.label+' '+Math.round(ctx.parsed/dropped.length*100)+'%'}}}}
   });
+
+  // 중단 표
+  const tEl=document.getElementById('tblDrop');
+  if(tEl){
+    const rows=Object.entries(rMap).sort((a,b)=>b[1]-a[1]).map(([r,v])=>{
+      const cpB=CP5.map(cp=>{
+        const cnt=dropped.filter(x=>x.cpCode===cp&&((DR.find(k=>(x.dropReason||'').includes(k))||'기타')===r)).length;
+        return cnt>0?cp+' '+cnt+'건':null;
+      }).filter(Boolean).join(', ');
+      return`<tr><td><b>${r}</b></td><td style="text-align:center;white-space:nowrap">${v}건</td><td style="text-align:center;white-space:nowrap">${Math.round(v/dropped.length*100)}%</td><td style="color:#475569">${cpB||'—'}</td></tr>`;
+    }).join('');
+    tEl.innerHTML=`<table><thead><tr><th>사유</th><th>건수</th><th>비율</th><th>질환별</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
 
   // 재원/항생제 차트
   const stayD=CP5.map(cp=>{
     const items=d.filter(x=>x.cpCode===cp);
-    const li=items.filter(x=>x.los!==null), ai=items.filter(x=>x.abxDays!==null);
-    return{
-      avgL:li.length?Math.round(li.reduce((s,x)=>s+x.los,0)/li.length*10)/10:0,
-      avgA:ai.length?Math.round(ai.reduce((s,x)=>s+x.abxDays,0)/ai.length*10)/10:0,
-    };
+    return{avgL:avg(items,'los'),avgA:avg(items,'abxDays')};
   });
-  const stayLabelPlugin={
-    id:'stayLabel',
-    afterDatasetsDraw(chart){
+  dc('cStay');
+  const c4=document.getElementById('cStay');
+  if(c4){
+    const stayLabel={id:'stayLabel',afterDatasetsDraw(chart){
       const{ctx}=chart;
       chart.data.datasets.forEach((ds,di)=>{
         chart.getDatasetMeta(di).data.forEach((bar,i)=>{
           const v=ds.data[i]; if(!v) return;
-          ctx.save(); ctx.font='bold 11px Noto Sans KR'; ctx.fillStyle='#1E293B';
-          ctx.textAlign='center'; ctx.textBaseline='bottom';
-          ctx.fillText(v+'일',bar.x,bar.y-1); ctx.restore();
+          ctx.save();ctx.font='bold 11px Noto Sans KR';ctx.fillStyle='#1E293B';
+          ctx.textAlign='center';ctx.textBaseline='bottom';
+          ctx.fillText(v+'일',bar.x,bar.y-1);ctx.restore();
         });
       });
-    }
-  };
-  dc('rptChartStay');
-  const c4=document.getElementById('rptChartStay');
-  if(c4) charts['rptChartStay']=new Chart(c4,{
-    type:'bar',plugins:[stayLabelPlugin],
-    data:{labels:CP5,datasets:[
-      {label:'평균 재원일수',data:stayD.map(x=>x.avgL),backgroundColor:'#67E8F9',borderRadius:4},
-      {label:'평균 항생제(일)',data:stayD.map(x=>x.avgA),backgroundColor:'#6EE7B7',borderRadius:4},
-    ]},
-    options:{responsive:true,plugins:{legend:{labels:{font:{size:11}}}},
-      scales:{y:{ticks:{callback:v=>v+'일',font:{size:10}},grid:{color:'#F1F5F9'}},x:{ticks:{font:{size:10}}}}}
-  });
-
-  // 중단 표
-  const tEl=document.getElementById('rptDropTable');
-  if(tEl){
-    const rows=Object.entries(rMap).sort((a,b)=>b[1]-a[1]).map(([r,v])=>{
-      const cpB=CP5.map(cp=>{
-        const cnt=dropped.filter(x=>x.cpCode===cp&&((DROP_REASONS.find(k=>(x.dropReason||'').includes(k))||'기타')===r)).length;
-        return cnt>0?cp+' '+cnt+'건':null;
-      }).filter(Boolean).join(', ');
-      return`<tr>
-        <td style="white-space:nowrap"><b>${r}</b></td>
-        <td style="text-align:center;white-space:nowrap">${v}건</td>
-        <td style="text-align:center;white-space:nowrap">${Math.round(v/dropped.length*100)}%</td>
-        <td style="white-space:nowrap;color:#475569">${cpB||'—'}</td>
-      </tr>`;
-    }).join('');
-    tEl.innerHTML=`<table style="width:100%"><thead><tr><th style="white-space:nowrap">사유</th><th style="white-space:nowrap">건수</th><th style="white-space:nowrap">비율</th><th style="white-space:nowrap">질환별</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }};
+    charts['cStay']=new Chart(c4,{
+      type:'bar',plugins:[stayLabel],
+      data:{labels:CP5,datasets:[
+        {label:'평균 재원일수',data:stayD.map(x=>x.avgL),backgroundColor:'#67E8F9',borderRadius:4},
+        {label:'평균 항생제(일)',data:stayD.map(x=>x.avgA),backgroundColor:'#6EE7B7',borderRadius:4},
+      ]},
+      options:{responsive:true,plugins:{legend:{labels:{font:{size:11}}}},
+        scales:{y:{ticks:{callback:v=>v+'일',font:{size:10}},grid:{color:'#F1F5F9'}},x:{ticks:{font:{size:10}}}}}
+    });
   }
 }
 
-// ── AI 전체 생성 ──
-async function generateAllReports(){
-  ['summary','cp5','drop','stay','improve'].forEach(s=>{
-    const el=document.getElementById('analysis-'+s);
-    if(el){el.textContent='생성 중...';el.classList.add('loading');}
-  });
-  for(const s of ['summary','cp5','drop','stay','improve']) await genSection(s);
+// ── 재원 테이블 ──
+function renderStayTable(){
+  const d=filteredData;
+  const cpBody=document.getElementById('tblStayCPBody');
+  if(cpBody){
+    cpBody.innerHTML=CP5.map(cp=>{
+      const items=d.filter(x=>x.cpCode===cp);
+      if(!items.length) return`<tr><td><b>${cp}</b></td><td colspan="5" style="color:#94A3B8;text-align:center">해당없음</td></tr>`;
+      const li=items.filter(x=>x.los!==null),ai=items.filter(x=>x.abxDays!==null);
+      const aL=avg(items,'los'),aA=avg(items,'abxDays');
+      return`<tr><td><b>${cp}</b></td><td style="text-align:center">${items.length}</td><td style="text-align:center"><b>${aL!==null?aL+'일':'—'}</b></td><td style="text-align:center">${li.length?Math.min(...li.map(x=>x.los))+'일':'—'}</td><td style="text-align:center">${li.length?Math.max(...li.map(x=>x.los))+'일':'—'}</td><td style="text-align:center"><b>${aA!==null?aA+'일':'—'}</b></td></tr>`;
+    }).join('');
+  }
+  const docBody=document.getElementById('tblStayDocBody');
+  if(docBody){
+    const docs=[...new Set(d.map(x=>x.doctor).filter(Boolean))];
+    docBody.innerHTML=docs.map(doc=>{
+      const items=d.filter(x=>x.doctor===doc);
+      const aL=avg(items,'los'),aA=avg(items,'abxDays');
+      return`<tr><td><b>${doc}</b></td><td style="text-align:center">${items.length}</td><td style="text-align:center"><b>${aL!==null?aL+'일':'—'}</b></td><td style="text-align:center"><b>${aA!==null?aA+'일':'—'}</b></td></tr>`;
+    }).join('');
+  }
 }
 
-async function genSection(section){
-  const target=document.getElementById('analysis-'+section);
+// ── AI 생성 ──
+async function generateAll(){
+  ['summary','cp5','drop','stay','improve'].forEach(s=>{
+    const el=document.getElementById('ai-'+s);
+    if(el){el.textContent='생성 중...';el.classList.add('loading');}
+  });
+  for(const s of ['summary','cp5','drop','stay','improve']) await gen(s);
+}
+
+async function gen(section){
+  const target=document.getElementById('ai-'+section);
   if(target){target.textContent='생성 중...';target.classList.add('loading');}
   const d=filteredData;
-  if(!d.length){if(target) target.textContent='데이터를 먼저 업로드해주세요.';return;}
+  if(!d.length){if(target)target.textContent='데이터를 먼저 업로드해주세요.';return;}
 
-  const total=d.length, applied=d.filter(x=>x.cpApply).length;
+  const total=d.length,applied=d.filter(x=>x.cpApply).length;
   const completed=d.filter(x=>x.cpApply&&x.complete).length;
   const dropped=d.filter(x=>x.cpApply&&!x.complete).length;
-  const applyR=(applied/total*100).toFixed(1), completeR=applied?(completed/applied*100).toFixed(1):'0.0';
+  const aR=(applied/total*100).toFixed(1),cR=applied?(completed/applied*100).toFixed(1):'0.0';
   const hospital=document.getElementById('hospitalName')?.textContent.trim()||'병원';
   const period=currentPeriod;
 
   const cp5Lines=CP5.map(cp=>{
     const items=d.filter(x=>x.cpCode===cp);
-    if(!items.length) return null;
-    const app=items.filter(x=>x.cpApply).length, comp=items.filter(x=>x.cpApply&&x.complete).length;
-    return`${cp}: 대상 ${items.length}건, 적용 ${app}건(${items.length?Math.round(app/items.length*100):0}%), 완료 ${comp}건(${app?Math.round(comp/app*100):0}%), 중단 ${app-comp}건`;
-  }).filter(Boolean).join('\n');
+    if(!items.length) return`${cp}: 대상없음`;
+    const app=items.filter(x=>x.cpApply).length;
+    const comp=items.filter(x=>x.cpApply&&x.complete).length;
+    return`${cp}: 대상 ${items.length}건, 적용 ${app}건(${pct(app,items.length)}%), 완료 ${comp}건(${app?pct(comp,app):0}%), 중단 ${app-comp}건`;
+  }).join('\n');
 
   const rMap={};
-  d.filter(x=>x.cpApply&&!x.complete).forEach(x=>{
-    const k=DROP_REASONS.find(r=>(x.dropReason||'').includes(r))||'기타';rMap[k]=(rMap[k]||0)+1;
-  });
+  d.filter(x=>x.cpApply&&!x.complete).forEach(x=>{const k=DR.find(r=>(x.dropReason||'').includes(r))||'기타';rMap[k]=(rMap[k]||0)+1;});
   const reasonLines=Object.entries(rMap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${k} ${v}건(${Math.round(v/dropped*100)}%)`).join(', ');
 
-  const{applyGoal:AG,completeGoal:CG}=getGoals();
-  const RULE='[필수 규칙] 1) 순한글+숫자+CP명만 사용. 한자·일본어·베트남어·중국어·영어 단어 절대 금지. 2) **볼드**, *기울임*, # 제목 등 마크다운 기호 절대 사용 금지 - 일반 텍스트만. 3) 제공된 수치 그대로 사용(임의변경 금지). 4) 경어체. 5) 분석 문구만 작성.';
+  const stayLines=CP5.map(cp=>{
+    const items=d.filter(x=>x.cpCode===cp);
+    const aL=avg(items,'los'),aA=avg(items,'abxDays');
+    return`${cp}: 평균 재원 ${aL!==null?aL+'일':'해당없음'}, 평균 항생제 ${aA!==null?aA+'일':'해당없음'}`;
+  }).join('\n');
+
+  const RULE='[필수] 순한글+숫자+CP명만 사용. 한자·일본어·베트남어·중국어·영어 절대 금지. **볼드** 등 마크다운 기호 절대 금지. 제공 수치 그대로 사용(임의변경 금지). 경어체. 분석 문구만 작성.';
 
   const prompts={
     summary:`${hospital} 2026년 ${period} CP 모니터링 총괄 현황을 3~4문장으로 요약하라.
-전체 현황: 대상 ${total}건, 적용 ${applied}건(${applyR}%), 완료 ${completed}건(${completeR}%), 중단 ${dropped}건
-적용률 목표 ${AG}%, 완료율 목표 ${CG}% 달성 여부를 명시하라.
+데이터: 대상 ${total}건, 적용 ${applied}건(${aR}%), 완료 ${completed}건(${cR}%), 중단 ${dropped}건
+적용률 목표 ${APPLY_GOAL}%, 완료율 목표 ${COMPLETE_GOAL}% 달성 여부 명시.
 ${RULE}`,
-
-    cp5:`다음 CP 질환별 및 의사별 현황을 4~6문장으로 분석하라.
-【질환별】
+    cp5:`CP 질환별 및 의사별 현황을 4~5문장으로 분석하라.
 ${cp5Lines}
-적용률 ${AG}% 미만, 완료율 ${CG}% 미만 질환 및 원인을 구체적으로 언급하라.
-의사별 편차 및 특이사항도 포함하라.
+적용률 ${APPLY_GOAL}% 미만, 완료율 ${COMPLETE_GOAL}% 미만 질환 언급. 의사별 편차 포함.
 ${RULE}`,
-
-    drop:`CP 중단 사유 분석 결과를 3~4문장으로 서술하라.
+    drop:`CP 중단 사유를 3~4문장으로 분석하라.
 중단 현황: 총 ${dropped}건 / ${reasonLines}
-주요 중단 원인인 염증수치 관련 질환별 특성(TKRA, ARCR 등)을 분석하라.
+TKRA, ARCR 등 질환별 염증수치 관련 특성 분석 포함.
 ${RULE}`,
-
-    stay:`다음 CP 질환별 평균 재원일수 및 항생제 사용일수를 3~4문장으로 분석하라.
-${CP5.map(cp=>{
-  const items=d.filter(x=>x.cpCode===cp);
-  const li=items.filter(x=>x.los!==null), ai=items.filter(x=>x.abxDays!==null);
-  const avgL=li.length?(Math.round(li.reduce((s,x)=>s+x.los,0)/li.length*10)/10)+'일':'해당없음';
-  const avgA=ai.length?(Math.round(ai.reduce((s,x)=>s+x.abxDays,0)/ai.length*10)/10)+'일':'해당없음';
-  return`${cp}: 평균 재원 ${avgL}, 평균 항생제 ${avgA}`;
-}).join('\n')}
-주의사항:
-- TKRA 재원일수는 편측(한쪽) 수술 기준임을 명시할 것
-- 재원일수는 "길다/짧다", 항생제는 "많다/적다"로 표현할 것
-- 숫자는 위 데이터 그대로 사용할 것 (임의로 변경 금지)
-질환 간 차이 분석, 항생제 사용 적정성 언급 포함.
+    stay:`CP 질환별 평균 재원일수 및 항생제 사용일수를 3~4문장으로 분석하라.
+${stayLines}
+주의: TKRA 재원일수는 편측(한쪽) 수술 기준임을 명시.
+재원일수는 "길다/짧다", 항생제는 "많다/적다" 표현 사용.
+제공된 수치 그대로 사용(임의변경 절대 금지).
 ${RULE}`,
-
-    improve:`위 분석 결과를 바탕으로 향후 CP 모니터링 개선 방향을 3~4가지 항목으로 제시하라.
-주요 미달 현황: 적용률 ${applyR}%(목표 ${AG}%), 완료율 ${completeR}%(목표 ${CG}%), 중단 주사유: ${Object.entries(rMap).sort((a,b)=>b[1]-a[1])[0]?.[0]||'염증수치'}
-구체적이고 실행 가능한 개선 방향을 제시하라.
+    improve:`분석 결과를 바탕으로 향후 CP 모니터링 개선 방향을 3~4가지로 제시하라.
+적용률 ${aR}%(목표 ${APPLY_GOAL}%), 완료율 ${cR}%(목표 ${COMPLETE_GOAL}%), 주요 중단 사유: ${Object.entries(rMap).sort((a,b)=>b[1]-a[1])[0]?.[0]||'염증수치'}
+구체적이고 실행 가능한 방향 제시.
 ${RULE}`,
   };
 
   try{
-    const res=await fetch('/api/claude',{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:600,messages:[{role:'user',content:prompts[section]}]})
-    });
+    const res=await fetch('/api/claude',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:600,messages:[{role:'user',content:prompts[section]}]})});
     const data=await res.json();
-    const rawText=data.content?.[0]?.text||data.choices?.[0]?.message?.content||'응답 없음';
-    // 마크다운 기호 제거
-    const text=rawText
-      .replace(/\*\*(.*?)\*\*/g,'$1')
-      .replace(/\*(.*?)\*/g,'$1')
-      .replace(/^#{1,6}\s+/gm,'')
-      .replace(/^[\-\*]\s+/gm,'• ')
-      .trim();
+    const raw=data.content?.[0]?.text||data.choices?.[0]?.message?.content||'응답 없음';
+    const text=raw.replace(/\*\*(.*?)\*\*/g,'$1').replace(/\*(.*?)\*/g,'$1').replace(/^#{1,6}\s+/gm,'').trim();
     if(target){target.textContent=text;target.classList.remove('loading');}
   }catch(err){
     if(target){target.textContent='⚠️ 오류: '+err.message;target.classList.remove('loading');}
   }
 }
 
-function renderStayReportTable(){
-  const d=filteredData;
-  // 질환별
-  const cpBody=document.getElementById('stayTableCPBody');
-  if(cpBody){
-    cpBody.innerHTML=CP5.map(cp=>{
-      const items=d.filter(x=>x.cpCode===cp);
-      if(!items.length) return`<tr><td><b>${cp}</b></td><td colspan="5" style="color:#94A3B8;text-align:center">데이터 없음</td></tr>`;
-      const li=items.filter(x=>x.los!==null), ai=items.filter(x=>x.abxDays!==null);
-      const avgL=li.length?(li.reduce((s,x)=>s+x.los,0)/li.length).toFixed(1):'—';
-      const avgA=ai.length?(ai.reduce((s,x)=>s+x.abxDays,0)/ai.length).toFixed(1):'—';
-      const minL=li.length?Math.min(...li.map(x=>x.los)):'—';
-      const maxL=li.length?Math.max(...li.map(x=>x.los)):'—';
-      return`<tr><td><b>${cp}</b></td><td style="text-align:center">${items.length}</td><td style="text-align:center"><b>${avgL}일</b></td><td style="text-align:center">${minL}일</td><td style="text-align:center">${maxL}일</td><td style="text-align:center"><b>${avgA}일</b></td></tr>`;
-    }).join('');
-  }
-  // 의사별
-  const docBody=document.getElementById('stayTableDocBody');
-  if(docBody){
-    const docs=[...new Set(d.map(x=>x.doctor).filter(Boolean))];
-    docBody.innerHTML=docs.map(doc=>{
-      const li=d.filter(x=>x.doctor===doc&&x.los!==null);
-      const ai=d.filter(x=>x.doctor===doc&&x.abxDays!==null);
-      const avgL=li.length?(li.reduce((s,x)=>s+x.los,0)/li.length).toFixed(1):'—';
-      const avgA=ai.length?(ai.reduce((s,x)=>s+x.abxDays,0)/ai.length).toFixed(1):'—';
-      return`<tr><td><b>${doc}</b></td><td style="text-align:center">${li.length}</td><td style="text-align:center"><b>${avgL}일</b></td><td style="text-align:center"><b>${avgA}일</b></td></tr>`;
-    }).join('');
-  }
-}
-
 // ── 5종 CP 상세 탭 ──
 function renderCP5Tab(){
-  const container=document.getElementById('cp5-content');
+  const container=document.getElementById('cp5Content');
   container.innerHTML='';
   CP5.forEach(cp=>{
     const items=filteredData.filter(x=>x.cpCode===cp);
     if(!items.length) return;
-    const app=items.filter(x=>x.cpApply).length, comp=items.filter(x=>x.cpApply&&x.complete).length;
-    const ar=(app/items.length*100).toFixed(1), cr=app?(comp/app*100).toFixed(1):'0.0';
-    const{applyGoal,completeGoal}=getGoals();
+    const app=items.filter(x=>x.cpApply).length,comp=items.filter(x=>x.cpApply&&x.complete).length;
+    const ar=(app/items.length*100).toFixed(1),cr=app?(comp/app*100).toFixed(1):'0.0';
     const tid='cp5-'+cp.replace(/\//g,'');
-    const rows=items.map(x=>`<tr>
-      <td>${x.id}</td><td>${x.name}</td><td>${x.doctor}</td>
-      <td style="font-size:11px">${x.surgery.substring(0,30)}</td>
-      <td>${x.discharge}</td>
-      <td style="text-align:center">${x.los!==null?x.los+'일':'—'}</td>
-      <td style="text-align:center">${x.cpApply?'<span class="badge-ok">적용</span>':'<span class="badge-ng">미적용</span>'}</td>
-      <td style="text-align:center">${x.cpApply?(x.complete?'<span class="badge-ok">완료</span>':'<span class="badge-ng">중단</span>'):'—'}</td>
-      <td>${x.dropReason||'—'}</td>
-      <td style="text-align:center">${x.abxDays!==null?x.abxDays+'일':'—'}</td>
-    </tr>`).join('');
-    const s=document.createElement('div'); s.className='section';
-    s.innerHTML=`<div class="section-header">
-      <span class="dot" style="background:#3B82F6"></span><b>${cp}</b>
-      <span style="font-size:11px;font-weight:400;color:#64748B">${items.length}건</span>
-      <span style="display:flex;gap:6px;align-items:center;font-size:12px;font-weight:400">
-        적용률 <b>${ar}%</b>${parseFloat(ar)>=applyGoal?'<span class="badge-ok">✓</span>':'<span class="badge-ng">✗</span>'}
-        완료율 <b>${cr}%</b>${parseFloat(cr)>=completeGoal?'<span class="badge-ok">✓</span>':'<span class="badge-ng">✗</span>'}
-      </span>
-      <button class="toggle-btn" onclick="toggleTable('${tid}')">환자 상세 보기/숨기기</button>
-    </div>
-    <div id="${tid}" style="display:none;overflow-x:auto">
-      <table><thead><tr><th>차트번호</th><th>환자명</th><th>주치의</th><th>수술명</th><th>퇴원일</th><th>재원일수</th><th>CP적용</th><th>완료</th><th>중단사유</th><th>항생제(일)</th></tr></thead>
-      <tbody>${rows}</tbody></table>
-    </div>`;
+    const rows=items.map(x=>`<tr><td>${x.id}</td><td>${x.name}</td><td>${x.doctor}</td><td style="font-size:11px">${x.surgery.substring(0,28)}</td><td>${x.discharge}</td><td style="text-align:center">${x.los!==null?x.los+'일':'—'}</td><td style="text-align:center">${x.cpApply?'<span class="badge-ok">적용</span>':'<span class="badge-ng">미적용</span>'}</td><td style="text-align:center">${x.cpApply?(x.complete?'<span class="badge-ok">완료</span>':'<span class="badge-ng">중단</span>'):'—'}</td><td>${x.dropReason||'—'}</td><td style="text-align:center">${x.abxDays!==null?x.abxDays+'일':'—'}</td></tr>`).join('');
+    const s=document.createElement('div');s.className='section';
+    s.innerHTML=`<div class="section-header"><span class="dot" style="background:#3B82F6"></span><b>${cp}</b><span style="font-size:11px;font-weight:400;color:#64748B">${items.length}건</span><span style="display:flex;gap:6px;align-items:center;font-size:12px;font-weight:400">적용률 <b>${ar}%</b>${parseFloat(ar)>=APPLY_GOAL?'<span class="badge-ok">✓</span>':'<span class="badge-ng">✗</span>'} 완료율 <b>${cr}%</b>${parseFloat(cr)>=COMPLETE_GOAL?'<span class="badge-ok">✓</span>':'<span class="badge-ng">✗</span>'}</span><button class="toggle-btn" onclick="toggleTable('${tid}')">환자 상세</button></div><div id="${tid}" style="display:none;overflow-x:auto"><table><thead><tr><th>차트번호</th><th>환자명</th><th>주치의</th><th>수술명</th><th>퇴원일</th><th>재원일수</th><th>CP적용</th><th>완료</th><th>중단사유</th><th>항생제(일)</th></tr></thead><tbody>${rows}</tbody></table></div>`;
     container.appendChild(s);
   });
-  if(!container.innerHTML) container.innerHTML='<div class="empty"><div class="emoji">📂</div><p>데이터를 업로드해주세요</p></div>';
+  if(!container.innerHTML) container.innerHTML='<div class="empty">📂 데이터를 업로드해주세요</div>';
 }
 
 // ── 의사별 탭 ──
 function renderDoctorTab(){
-  const container=document.getElementById('doctor-content');
-  const{applyGoal,completeGoal}=getGoals();
+  const container=document.getElementById('doctorContent');
   const docs=[...new Set(filteredData.map(x=>x.doctor).filter(Boolean))];
-  if(!docs.length){container.innerHTML='<div class="empty"><div class="emoji">📂</div><p>데이터를 업로드해주세요</p></div>';return;}
+  if(!docs.length){container.innerHTML='<div class="empty">📂 데이터를 업로드해주세요</div>';return;}
   const rows=docs.map(doc=>{
     const items=filteredData.filter(x=>x.doctor===doc);
+    const app=items.filter(x=>x.cpApply).length,comp=items.filter(x=>x.cpApply&&x.complete).length;
+    const ar=items.length?pct(app,items.length):0,cr=app?pct(comp,app):0;
     const cpCells=CP5.map(cp=>{
       const sub=items.filter(x=>x.cpCode===cp);
       if(!sub.length) return'<td style="color:#94A3B8;text-align:center">—</td>';
-      const app=sub.filter(x=>x.cpApply).length, comp=sub.filter(x=>x.cpApply&&x.complete).length;
-      return`<td style="text-align:center;font-size:11px"><b>${Math.round(app/sub.length*100)}%</b><br><span style="color:#64748B">${app?Math.round(comp/app*100):0}%</span></td>`;
+      const a=sub.filter(x=>x.cpApply).length,c=sub.filter(x=>x.cpApply&&x.complete).length;
+      return`<td style="text-align:center;font-size:11px"><b>${pct(a,sub.length)}%</b><br><span style="color:#64748B">${a?pct(c,a):0}%</span></td>`;
     }).join('');
-    const tot=items.length, app=items.filter(x=>x.cpApply).length, comp=items.filter(x=>x.cpApply&&x.complete).length;
-    const ar=tot?Math.round(app/tot*100):0, cr=app?Math.round(comp/app*100):0;
     const tid='doc-'+doc.replace(/\s/g,'');
-    const drows=items.map(x=>`<tr><td>${x.id}</td><td>${x.name}</td><td>${x.cpCode}</td><td style="font-size:11px">${x.surgery.substring(0,25)}</td><td>${x.discharge}</td><td style="text-align:center">${x.los!==null?x.los+'일':'—'}</td><td style="text-align:center">${x.cpApply?'<span class="badge-ok">Y</span>':'<span class="badge-ng">N</span>'}</td><td style="text-align:center">${x.cpApply?(x.complete?'<span class="badge-ok">Y</span>':'<span class="badge-ng">N</span>'):'—'}</td><td>${x.dropReason||'—'}</td></tr>`).join('');
-    return`<tr style="background:#F8FAFC">
-      <td><b>${doc}</b></td><td style="text-align:center">${tot}</td><td style="text-align:center">${app}</td>
-      <td style="text-align:center"><b>${ar}%</b> ${ar>=applyGoal?'<span class="badge-ok">✓</span>':'<span class="badge-ng">✗</span>'}</td>
-      <td style="text-align:center"><b>${cr}%</b> ${cr>=completeGoal?'<span class="badge-ok">✓</span>':'<span class="badge-ng">✗</span>'}</td>
-      ${cpCells}<td><button class="toggle-btn" onclick="toggleTable('${tid}')">상세</button></td>
-    </tr>
-    <tr id="${tid}" style="display:none"><td colspan="11" style="padding:0;background:#FAFBFD">
-      <table><thead><tr style="background:#EFF6FF"><th>차트번호</th><th>환자명</th><th>CP</th><th>수술명</th><th>퇴원일</th><th>재원일수</th><th>CP적용</th><th>완료</th><th>중단사유</th></tr></thead>
-      <tbody>${drows}</tbody></table></td></tr>`;
+    const drows=items.map(x=>`<tr><td>${x.id}</td><td>${x.name}</td><td>${x.cpCode}</td><td style="font-size:11px">${x.surgery.substring(0,23)}</td><td>${x.discharge}</td><td style="text-align:center">${x.los!==null?x.los+'일':'—'}</td><td style="text-align:center">${x.cpApply?'<span class="badge-ok">Y</span>':'<span class="badge-ng">N</span>'}</td><td style="text-align:center">${x.cpApply?(x.complete?'<span class="badge-ok">Y</span>':'<span class="badge-ng">N</span>'):'—'}</td><td>${x.dropReason||'—'}</td></tr>`).join('');
+    return`<tr style="background:#F8FAFC"><td><b>${doc}</b></td><td style="text-align:center">${items.length}</td><td style="text-align:center">${app}</td><td style="text-align:center"><b>${ar}%</b> ${ar>=APPLY_GOAL?'<span class="badge-ok">✓</span>':'<span class="badge-ng">✗</span>'}</td><td style="text-align:center"><b>${cr}%</b> ${cr>=COMPLETE_GOAL?'<span class="badge-ok">✓</span>':'<span class="badge-ng">✗</span>'}</td>${cpCells}<td><button class="toggle-btn" onclick="toggleTable('${tid}')">상세</button></td></tr><tr id="${tid}" style="display:none"><td colspan="11" style="padding:0"><table><thead><tr style="background:#EFF6FF"><th>차트번호</th><th>환자명</th><th>CP</th><th>수술명</th><th>퇴원일</th><th>재원</th><th>적용</th><th>완료</th><th>중단사유</th></tr></thead><tbody>${drows}</tbody></table></td></tr>`;
   }).join('');
-  container.innerHTML=`<div class="section"><div class="section-header"><span class="dot" style="background:#8B5CF6"></span>의사별 CP 현황</div>
-    <div style="overflow-x:auto"><table><thead><tr><th>주치의</th><th>전체</th><th>적용</th><th>적용률</th><th>완료율</th>
-    <th>TKRA<br><small>적용/완료</small></th><th>ARCR</th><th>HWR</th><th>MENIS</th><th>VP/KP</th><th></th></tr></thead>
-    <tbody>${rows}</tbody></table></div></div>`;
+  container.innerHTML=`<div class="section"><div class="section-header"><span class="dot" style="background:#8B5CF6"></span>의사별 CP 현황</div><div style="overflow-x:auto"><table><thead><tr><th>주치의</th><th>전체</th><th>적용</th><th>적용률</th><th>완료율</th><th>TKRA</th><th>ARCR</th><th>HWR</th><th>MENIS</th><th>VP/KP</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
 }
 
 // ── 재원/항생제 탭 ──
 function renderStayTab(){
-  const container=document.getElementById('stay-content');
-  if(!filteredData.length){container.innerHTML='<div class="empty"><div class="emoji">📂</div><p>데이터를 업로드해주세요</p></div>';return;}
+  const container=document.getElementById('stayContent');
+  if(!filteredData.length){container.innerHTML='<div class="empty">📂 데이터를 업로드해주세요</div>';return;}
   const cpRows=CP5.map(cp=>{
     const items=filteredData.filter(x=>x.cpCode===cp);
-    if(!items.length) return '';
-    const li=items.filter(x=>x.los!==null), ai=items.filter(x=>x.abxDays!==null);
-    const avgL=li.length?(li.reduce((s,x)=>s+x.los,0)/li.length).toFixed(1):'—';
-    const avgA=ai.length?(ai.reduce((s,x)=>s+x.abxDays,0)/ai.length).toFixed(1):'—';
-    return`<tr><td><b>${cp}</b></td><td style="text-align:center">${items.length}</td><td style="text-align:center"><b>${avgL}일</b></td><td style="text-align:center">${li.length?Math.min(...li.map(x=>x.los)):'—'}일</td><td style="text-align:center">${li.length?Math.max(...li.map(x=>x.los)):'—'}일</td><td style="text-align:center"><b>${avgA}일</b></td></tr>`;
+    if(!items.length) return`<tr><td><b>${cp}</b></td><td colspan="5" style="color:#94A3B8;text-align:center">해당없음</td></tr>`;
+    const aL=avg(items,'los'),aA=avg(items,'abxDays');
+    const li=items.filter(x=>x.los!==null);
+    return`<tr><td><b>${cp}</b></td><td style="text-align:center">${items.length}</td><td style="text-align:center"><b>${aL!==null?aL+'일':'—'}</b></td><td style="text-align:center">${li.length?Math.min(...li.map(x=>x.los))+'일':'—'}</td><td style="text-align:center">${li.length?Math.max(...li.map(x=>x.los))+'일':'—'}</td><td style="text-align:center"><b>${aA!==null?aA+'일':'—'}</b></td></tr>`;
   }).join('');
   const docs=[...new Set(filteredData.map(x=>x.doctor).filter(Boolean))];
   const docRows=docs.map(doc=>{
-    const li=filteredData.filter(x=>x.doctor===doc&&x.los!==null);
-    const ai=filteredData.filter(x=>x.doctor===doc&&x.abxDays!==null);
-    return`<tr><td><b>${doc}</b></td><td style="text-align:center">${li.length}</td><td style="text-align:center"><b>${li.length?(li.reduce((s,x)=>s+x.los,0)/li.length).toFixed(1):'—'}일</b></td><td style="text-align:center"><b>${ai.length?(ai.reduce((s,x)=>s+x.abxDays,0)/ai.length).toFixed(1):'—'}일</b></td></tr>`;
+    const items=filteredData.filter(x=>x.doctor===doc);
+    const aL=avg(items,'los'),aA=avg(items,'abxDays');
+    return`<tr><td><b>${doc}</b></td><td style="text-align:center">${items.length}</td><td style="text-align:center"><b>${aL!==null?aL+'일':'—'}</b></td><td style="text-align:center"><b>${aA!==null?aA+'일':'—'}</b></td></tr>`;
   }).join('');
-  container.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-    <div class="section"><div class="section-header"><span class="dot" style="background:#06B6D4"></span>질환별 평균 재원 / 항생제</div>
-      <table><thead><tr><th>CP</th><th>건수</th><th>평균재원</th><th>최소</th><th>최대</th><th>평균항생제</th></tr></thead><tbody>${cpRows}</tbody></table></div>
-    <div class="section"><div class="section-header"><span class="dot" style="background:#10B981"></span>의사별 평균 재원 / 항생제</div>
-      <table><thead><tr><th>주치의</th><th>건수</th><th>평균재원</th><th>평균항생제</th></tr></thead><tbody>${docRows}</tbody></table></div>
-  </div>`;
+  container.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px"><div class="section"><div class="section-header"><span class="dot" style="background:#06B6D4"></span>질환별 평균 재원/항생제</div><table><thead><tr><th>CP</th><th>건수</th><th>평균재원</th><th>최소</th><th>최대</th><th>평균항생제</th></tr></thead><tbody>${cpRows}</tbody></table></div><div class="section"><div class="section-header"><span class="dot" style="background:#10B981"></span>의사별 평균 재원/항생제</div><table><thead><tr><th>주치의</th><th>건수</th><th>평균재원</th><th>평균항생제</th></tr></thead><tbody>${docRows}</tbody></table></div></div>`;
 }
 
 // ── 원시데이터 탭 ──
 function renderRawTab(){
-  document.getElementById('raw-count').textContent=filteredData.length+'건';
+  document.getElementById('rawCount').textContent=filteredData.length+'건';
   document.querySelector('#rawTable thead').innerHTML='<tr><th>차트번호</th><th>환자명</th><th>주치의</th><th>CP코드</th><th>퇴원일</th><th>재원일수</th><th>CP적용</th><th>완료</th><th>중단사유</th><th>항생제(일)</th></tr>';
-  document.querySelector('#rawTable tbody').innerHTML=filteredData.map(x=>`<tr>
-    <td>${x.id}</td><td>${x.name}</td><td>${x.doctor}</td><td>${x.cpCode}</td><td>${x.discharge}</td>
-    <td style="text-align:center">${x.los!==null?x.los:'—'}</td>
-    <td style="text-align:center">${x.cpApply?'<span class="badge-ok">Y</span>':'<span class="badge-ng">N</span>'}</td>
-    <td style="text-align:center">${x.cpApply?(x.complete?'<span class="badge-ok">Y</span>':'<span class="badge-ng">N</span>'):'—'}</td>
-    <td>${x.dropReason||'—'}</td><td style="text-align:center">${x.abxDays!==null?x.abxDays:'—'}</td>
-  </tr>`).join('');
+  document.querySelector('#rawTable tbody').innerHTML=filteredData.map(x=>`<tr><td>${x.id}</td><td>${x.name}</td><td>${x.doctor}</td><td>${x.cpCode}</td><td>${x.discharge}</td><td style="text-align:center">${x.los!==null?x.los:'—'}</td><td style="text-align:center">${x.cpApply?'<span class="badge-ok">Y</span>':'<span class="badge-ng">N</span>'}</td><td style="text-align:center">${x.cpApply?(x.complete?'<span class="badge-ok">Y</span>':'<span class="badge-ng">N</span>'):'—'}</td><td>${x.dropReason||'—'}</td><td style="text-align:center">${x.abxDays!==null?x.abxDays:'—'}</td></tr>`).join('');
 }
 
-function toggleTable(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'':'none';}
-
-function showTab(name,el){
-  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('pane-'+name).classList.add('active');
-  if(el) el.classList.add('active');
-}
-
-function saveInfo(){
-  const h=document.getElementById('hospitalName')?.textContent.trim();
-  const d=document.getElementById('deptName')?.textContent.trim();
-  if(h) localStorage.setItem('cp_hospital',h);
-  if(d) localStorage.setItem('cp_dept',d);
+// ── 초기화 ──
+function loadSettings(){
+  const ag=localStorage.getItem('cp_ag'),cg=localStorage.getItem('cp_cg'),cl=localStorage.getItem('cp_list');
+  if(ag){APPLY_GOAL=parseInt(ag);const el=document.getElementById('ov-applyGoal');if(el)el.textContent=ag;document.getElementById('lbl-applyGoal').textContent='목표 '+ag+'%';}
+  if(cg){COMPLETE_GOAL=parseInt(cg);const el=document.getElementById('ov-completeGoal');if(el)el.textContent=cg;document.getElementById('lbl-completeGoal').textContent='목표 '+cg+'%';}
+  if(cl){try{CP5=JSON.parse(cl);const el=document.getElementById('ov-cpList');if(el)el.textContent=CP5.join(', ');}catch(e){}}
 }
 
 window.onload=()=>{
   loadSettings();
-  const h=localStorage.getItem('cp_hospital'), d=localStorage.getItem('cp_dept');
-  if(h) document.getElementById('hospitalName').textContent=h;
-  if(d) document.getElementById('deptName').textContent=d;
-  // 기본 제목
+  const h=localStorage.getItem('cp_h'),d=localStorage.getItem('cp_d');
+  if(h)document.getElementById('hospitalName').textContent=h;
+  if(d)document.getElementById('deptName').textContent=d;
   document.getElementById('printTitle').textContent='2026년 CP 모니터링 결과 보고';
   toggleUpload();
   const zone=document.getElementById('dropZone');
   if(zone){
     zone.addEventListener('dragover',e=>{e.preventDefault();e.stopPropagation();zone.classList.add('dragover');});
     zone.addEventListener('dragleave',e=>{e.preventDefault();zone.classList.remove('dragover');});
-    zone.addEventListener('drop',e=>{
-      e.preventDefault();e.stopPropagation();zone.classList.remove('dragover');
-      const f=e.dataTransfer.files[0]; if(f) routeFile(f);
-    });
+    zone.addEventListener('drop',e=>{e.preventDefault();e.stopPropagation();zone.classList.remove('dragover');const f=e.dataTransfer.files[0];if(f)routeFile(f);});
   }
   document.addEventListener('dragover',e=>e.preventDefault());
   document.addEventListener('drop',e=>e.preventDefault());

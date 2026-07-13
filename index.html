@@ -579,20 +579,19 @@ function processRows(rows,filename,sheetName){
   const g=(row,ci)=>(ci>=0&&ci<row.length)?String(row[ci]).trim():'';
   const parsed=[];
   
-  // 데이터 행 반복
   for(let i=hi+1;i<rows.length;i++){
     const row=rows[i];
     
     if(g(row,c.cpTarget).toUpperCase()!=='Y') continue;
     
-    // ⭐ 수정된 부분: 공백과 (DM)을 함께 제거합니다.
+    // (DM) 투명인간 처리 로직 반영
     let cp=g(row,c.cpCode).toUpperCase().replace(/\s/g,'');
-    cp = cp.replace(/\(DM\)/g, ''); // (DM) 투명인간 처리
+    cp = cp.replace(/\(DM\)/g, ''); 
 
     if(!cp||cp==='CP코드') continue;
     if(cp==='VP'||cp==='KP') cp='VP/KP';
     
-    const cpRaw=cp; // 편측/양측 구분용 원본 (TKRA vs TKRAB)
+    const cpRaw=cp; // 편측/양측 구분용 원본
     
     if(cp.includes('TKRA')) cp='TKRA';
     else if(cp.includes('ARCR')) cp='ARCR';
@@ -603,6 +602,7 @@ function processRows(rows,filename,sheetName){
     const apply=g(row,c.cpApply).toUpperCase()==='Y';
     const comp=g(row,c.complete).toUpperCase()==='Y';
     const docName=g(row,c.doctor).trim();
+    
     if(docName==='김대경') continue;
     
     const chartNo=g(row,c.id); // 차트번호
@@ -823,20 +823,22 @@ function renderCharts(){
   }
 
   // 재원/항생제 차트 - TKRA 편측/양측 분리, 환자수 기준
+  // ⭐ 재원일수 그래프 오류 수정 반영 완료
   const stayLabels=[];
   const stayAvgL=[], stayAvgA=[];
   CP5.forEach(cp=>{
     if(cp==='TKRA'){
       const tkraS=toPatients(d.filter(x=>x.cpCode==='TKRA'&&!x.isBilateral));
       const tkraB=toPatients(d.filter(x=>x.cpCode==='TKRA'&&x.isBilateral));
-      if(tkraS.length){stayLabels.push('TKRA(편측)');stayAvgL.push(avg(tkraS,'abxDays'));stayAvgA.push(avg(tkraS,'abxDays'));}
-      if(tkraB.length){stayLabels.push('TKRA(양측)');stayAvgL.push(avg(tkraB,'abxDays'));stayAvgA.push(avg(tkraB,'abxDays'));}
+      if(tkraS.length){stayLabels.push('TKRA(편측)');stayAvgL.push(avg(tkraS,'los'));stayAvgA.push(avg(tkraS,'abxDays'));}
+      if(tkraB.length){stayLabels.push('TKRA(양측)');stayAvgL.push(avg(tkraB,'los'));stayAvgA.push(avg(tkraB,'abxDays'));}
       if(!tkraS.length&&!tkraB.length){stayLabels.push('TKRA');stayAvgL.push(null);stayAvgA.push(null);}
     } else {
       const pats=toPatients(d.filter(x=>x.cpCode===cp));
       stayLabels.push(cp);stayAvgL.push(avg(pats,'los'));stayAvgA.push(avg(pats,'abxDays'));
     }
   });
+  
   dc('cStay');
   const c4=document.getElementById('cStay');
   if(c4){
@@ -924,7 +926,7 @@ async function gen(section){
   const stayLines=CP5.map(cp=>{
     const items=d.filter(x=>x.cpCode===cp);
     const aL=avg(items,'los'),aA=avg(items,'abxDays');
-    return`${cp}: 평균 재원 ${aL!==null?aL+'일':'해당없음'}, 평균 항생 ${aA!==null?aA+'일':'해당없음'}`;
+    return`${cp}: 평균 재원 ${aL!==null?aL+'일':'해당없음'}, 평균 항생제 ${aA!==null?aA+'일':'해당없음'}`;
   }).join('\n');
 
   const RULE='[절대규칙] 반드시 한국어로만 작성. 외국어(영어·일본어·중국어·베트남어·한자) 단어 하나도 포함 금지. CP명(TKRA·ARCR·HWR 등) 제외. 마크다운(**볼드** 등) 절대 금지. 숫자는 제공된 값 그대로. 경어체.';

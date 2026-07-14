@@ -495,10 +495,8 @@ function toPatients(data){
     map[key].rows.push(x);
   });
   
-  // 1. CP대상 Y가 단 한 번이라도 있는 '진짜' 환자만 남기기 
   let validList = Object.values(map).filter(p => p.rows.some(r => r.isTargetY));
   
-  // 2. 환자별 대표 정보 방어 로직 (항생제 행이 대표 수술명을 지우지 않도록 보호)
   validList.forEach(p=>{
     const mainRow = p.rows.find(r => r.isTargetY && r.cpCode !== '-') || p.rows.find(r => r.isTargetY) || p.rows[0];
     
@@ -515,9 +513,7 @@ function toPatients(data){
     const losRows=p.rows.filter(r=>r.los!==null);
     p.los = losRows.length ? Math.max(...losRows.map(r=>r.los)) : null;
     
-    // DM 여부 (I열 DM: 'Y' 인지)
     p.isDMPatient = p.rows.some(r=>r.isDMPatient);
-    // 실제 처방된 코드가 (DM) 전용 코드인지
     p.hasDMCode = p.rows.some(r=>r.hasDMCode);
     p.isBilateral = p.rows.some(r=>r.isBilateral);
   });
@@ -609,7 +605,6 @@ function processRows(rows,filename,sheetName){
   }
   if(!hr){showStatus('⚠️ 헤더 없음',true);return;}
   
-  // DM 열 추가 파싱
   const fi=(...n)=>{for(const x of n){const i=hr.findIndex(h=>h.includes(x));if(i>=0)return i;}return -1;};
   const c={id:fi('차트번호'),name:fi('환자명'),dept:fi('진료과'),doctor:fi('주치의'),surgery:fi('수술명'),
     discharge:fi('퇴원일'),los:fi('재원일수'),cpCode:fi('CP코드'),cpTarget:fi('CP대상'),
@@ -640,10 +635,7 @@ function processRows(rows,filename,sheetName){
     
     let cpRawCode = g(row,c.cpCode).toUpperCase().replace(/\s/g,'');
     
-    // I열 DM 파싱
     const isDMPatient = c.dmCol >= 0 ? (g(row, c.dmCol).toUpperCase() === 'Y') : false;
-    
-    // CP코드에 (DM)이 명시적으로 붙어있는지 확인 (CP 적용용)
     const hasDMCode = cpRawCode.includes('(DM)');
     
     let cp = cpRawCode.replace(/\(DM\)/g, ''); 
@@ -752,25 +744,18 @@ function renderAll(){
     }).join('');
   }
 
-  // ⭐ 당뇨(DM) 통계 세부 필터링 기준 완벽 반영
+  // ⭐ 당뇨(DM) 통계 (5종 CP에 한정하여 추출)
   const dmBody = document.getElementById('tblDMBody');
   if(dmBody){
-    // <대상> I열 DM - Y, K열 CP대상 - Y, M열 CP적용 - Y, J열 CP 코드 전체(TKRA, ARCR, HWR, MN, VP/KP)
-    // ※ 여기서 J열 코드가 5종 CP에 속하는 환자는 이미 toPatients() 전에 걸러졌음.
-    const dmTargetPats = allPats.filter(p => p.isDMPatient && p.cpApply);
+    const dmTargetPats = allPats.filter(p => CP5.includes(p.cpCode) && p.isDMPatient && p.cpApply);
     const dmTot = dmTargetPats.length;
     
-    // <적용> 위 대상 환자 중에서, 실제로 (DM) 코드가 부여된 환자
     const dmAppPats = dmTargetPats.filter(p => p.hasDMCode);
     const dmApp = dmAppPats.length;
     
-    // <완료> 적용 환자 중 완료(S열 Y)인 환자
     const dmComp = dmAppPats.filter(p => p.complete).length;
-    
-    // <중단>
     const dmDrop = dmApp - dmComp;
     
-    // <적용률/완료율>
     const dmAr = dmTot ? (dmApp/dmTot*100).toFixed(1) : '0.0';
     const dmCr = dmApp ? (dmComp/dmApp*100).toFixed(1) : '0.0';
     
@@ -1056,7 +1041,7 @@ async function gen(section){
   const dropped=allPats.filter(x=>x.cpApply&&!x.complete).length;
   const aR=(applied/total*100).toFixed(1),cR=applied?(completed/applied*100).toFixed(1):'0.0';
   
-  const dmPats = allPats.filter(p=>p.isDMPatient && p.cpApply);
+  const dmPats = allPats.filter(p=>CP5.includes(p.cpCode) && p.isDMPatient && p.cpApply);
   const dmApp = dmPats.filter(p=>p.hasDMCode).length;
   const dmComp = dmPats.filter(p=>p.hasDMCode && p.complete).length;
 
@@ -1150,12 +1135,15 @@ function renderDoctorTab(){
     const items=allPats.filter(x=>x.doctor===doc);
     const app=items.filter(x=>x.cpApply).length,comp=items.filter(x=>x.cpApply&&x.complete).length;
     const ar=items.length?pct(app,items.length):0,cr=app?pct(comp,app):0;
+    
+    // ⭐ 의사별 탭 퍼센티지 표기 명확화 (적용 / 완료 텍스트 추가)
     const cpCells=CP5.map(cp=>{
       const sub=items.filter(x=>x.cpCode===cp);
       if(!sub.length) return'<td style="color:#94A3B8;text-align:center">—</td>';
       const a=sub.filter(x=>x.cpApply).length,c=sub.filter(x=>x.cpApply&&x.complete).length;
-      return`<td style="text-align:center;font-size:11px"><b>${pct(a,sub.length)}%</b><br><span style="color:#64748B">${a?pct(c,a):0}%</span></td>`;
+      return`<td style="text-align:center;font-size:11px"><span style="color:#1B3A6B">적용 <b>${pct(a,sub.length)}%</b></span><br><span style="color:#64748B">완료 ${a?pct(c,a):0}%</span></td>`;
     }).join('');
+    
     const tid='doc-'+doc.replace(/\s/g,'');
     const drows=items.map(x=>`<tr><td>${x.id}</td><td>${x.name}</td><td>${x.cpCode}</td><td style="font-size:11px">${x.surgery.substring(0,23)}</td><td>${x.discharge}</td><td style="text-align:center">${x.los!==null?x.los+'일':'—'}</td><td style="text-align:center">${x.cpApply?'<span class="badge-ok">Y</span>':'<span class="badge-ng">N</span>'}</td><td style="text-align:center">${x.cpApply?(x.complete?'<span class="badge-ok">Y</span>':'<span class="badge-ng">N</span>'):'—'}</td><td>${x.dropReason||'—'}</td></tr>`).join('');
     return`<tr style="background:#F8FAFC"><td><b>${doc}</b></td><td style="text-align:center">${items.length}</td><td style="text-align:center">${app}</td><td style="text-align:center"><b>${ar}%</b> ${ar>=APPLY_GOAL?'<span class="badge-ok">✓</span>':'<span class="badge-ng">✗</span>'}</td><td style="text-align:center"><b>${cr}%</b> ${cr>=COMPLETE_GOAL?'<span class="badge-ok">✓</span>':'<span class="badge-ng">✗</span>'}</td>${cpCells}<td><button class="toggle-btn" onclick="toggleTable('${tid}')">상세</button></td></tr><tr id="${tid}" style="display:none"><td colspan="11" style="padding:0"><table><thead><tr style="background:#EFF6FF"><th>차트번호</th><th>환자명</th><th>CP</th><th>수술명</th><th>퇴원일</th><th>재원</th><th>적용</th><th>완료</th><th>중단사유</th></tr></thead><tbody>${drows}</tbody></table></td></tr>`;

@@ -95,7 +95,7 @@ tr:last-child td{border-bottom:none;}
 .ov-table th{background:#1B3A6B;color:#fff;padding:8px 12px;text-align:left;white-space:nowrap;width:130px;}
 .ov-table td{padding:8px 12px;border-bottom:1px solid #F1F5F9;}
 
-/* 의사별 재원 미니카드 (세로 레이아웃) */
+/* 의사별 재원 미니카드 (세로 레이아웃 보호) */
 .doc-stay-card {
   page-break-inside: avoid;
   margin-bottom: 12px;
@@ -489,14 +489,21 @@ function toPatients(data){
   const map={};
   data.forEach(x=>{
     const key=x.id+'_'+(x.discharge||'');
-    if(!map[key]) map[key]={...x, rows:[x]};
-    else map[key].rows.push(x);
+    if(!map[key]) {
+        map[key]={...x, rows:[]};
+    }
+    map[key].rows.push(x);
+    // ⭐ 모호한 항생제 행이 아닌, 'CP대상 Y' 메인 행의 정보로 대표 정보 고정!
+    if(x.isTargetY) {
+        map[key].cpCode = x.cpCode;
+        map[key].surgery = x.surgery;
+        map[key].doctor = x.doctor;
+        map[key].isBilateral = x.isBilateral;
+        map[key].isDM = x.isDM;
+    }
   });
   
-  // ⭐ 핵심 필터: CP대상(Y)가 1건이라도 있는 환자만 추려냄 (단순 - 만 있는 무관한 환자 완전 제거)
-  let validList = Object.values(map).filter(p => p.rows.some(r => r.cpTargetVal === 'Y'));
-  
-  validList.forEach(p=>{
+  Object.values(map).forEach(p=>{
     p.cpApply = p.rows.some(r=>r.cpApply);
     p.complete = p.rows.some(r=>r.cpApply) && p.rows.filter(r=>r.cpApply).every(r=>r.complete);
     p.dropped  = p.rows.some(r=>r.cpApply) && !p.complete;
@@ -507,7 +514,7 @@ function toPatients(data){
     p.los = losRows.length ? Math.max(...losRows.map(r=>r.los)) : null;
     p.isDM = p.rows.some(r=>r.isDM);
   });
-  return validList;
+  return Object.values(map);
 }
 function showStatus(msg,err){const el=document.getElementById('uploadStatus');el.style.display='block';el.style.color=err?'#DC2626':'#16A34A';el.textContent=msg;if(!err)setTimeout(()=>el.style.display='none',3500);}
 function toggleUpload(){document.getElementById('uploadToggle').classList.toggle('open');document.getElementById('uploadBody').classList.toggle('show');}
@@ -598,10 +605,25 @@ function processRows(rows,filename,sheetName){
     discharge:fi('퇴원일'),los:fi('재원일수'),cpCode:fi('CP코드'),cpTarget:fi('CP대상'),
     cpApply:fi('CP적용'),complete:fi('완료여부'),dropReason:fi('중단사유'),abxDays:fi('사용일수'),note:fi('비고')};
   const g=(row,ci)=>(ci>=0&&ci<row.length)?String(row[ci]).trim():'';
+  
+  // ⭐ 1차 철벽 필터: 'CP대상 Y'인 환자만 추출하여 고스트 환자 원천 차단
+  const validKeys = new Set();
+  for(let i=hi+1; i<rows.length; i++){
+      if(g(rows[i], c.cpTarget).toUpperCase() === 'Y'){
+          validKeys.add(g(rows[i], c.id) + '_' + g(rows[i], c.discharge));
+      }
+  }
+
   const parsed=[];
   
   for(let i=hi+1;i<rows.length;i++){
     const row=rows[i];
+    const id = g(row, c.id);
+    const dis = g(row, c.discharge);
+    const key = id + '_' + dis;
+    
+    // Y 대상자가 아니면 완벽히 제외 (전체 건수 오류 해결)
+    if(!validKeys.has(key)) continue;
     
     const targetVal = g(row,c.cpTarget).toUpperCase();
     if(targetVal === 'N') continue; 
@@ -618,7 +640,8 @@ function processRows(rows,filename,sheetName){
     if(cp.includes('TKRA')) cp='TKRA';
     else if(cp.includes('ARCR')) cp='ARCR';
     else if(cp.includes('HWR')) cp='HWR';
-    else if(cp.includes('MENIS')||cp.includes('MN')) cp='MENISECTOMY';
+    // ⭐ Micro fx 누락 방지: 원래 12건이었던 기준과 일치하도록 MENIS에 편입
+    else if(cp.includes('MENIS')||cp.includes('MN')||cp.includes('MICROFX')) cp='MENISECTOMY';
     
     const los=parseFloat(g(row,c.los)),abx=parseFloat(g(row,c.abxDays));
     const apply=g(row,c.cpApply).toUpperCase()==='Y';
@@ -627,42 +650,37 @@ function processRows(rows,filename,sheetName){
     
     if(docName==='김대경') continue;
     
-    const chartNo=g(row,c.id);
     parsed.push({
-      id:chartNo, name:g(row,c.name), dept:g(row,c.dept), doctor:docName,
-      surgery:g(row,c.surgery), discharge:g(row,c.discharge), dischargeDate:parseDate(g(row,c.discharge)),
+      id:id, name:g(row,c.name), dept:g(row,c.dept), doctor:docName,
+      surgery:g(row,c.surgery), discharge:dis, dischargeDate:parseDate(dis),
       los:isNaN(los)?null:los, cpCode:cp, cpRaw:cpRaw, cpApply:apply, complete:comp,
       dropReason:apply&&!comp?(g(row,c.dropReason)||'기타'):'', abxDays:isNaN(abx)?null:abx, note:g(row,c.note),
-      isBilateral:false, isDM:isDM, cpTargetVal:targetVal
+      isBilateral:false, isDM:isDM, isTargetY:(targetVal==='Y')
     });
   }
 
-  // ⭐ 불필요한 '순수 항생제 행'만 있는 환자들을 원천 차단하는 이중 필터링
-  const validKeys = new Set(parsed.filter(x => x.cpTargetVal === 'Y').map(x => x.id + '_' + x.discharge));
-  const finalParsed = parsed.filter(x => validKeys.has(x.id + '_' + x.discharge));
-
-  if(!finalParsed.length){showStatus('⚠️ CP대상(Y) 데이터 없음',true);return;}
+  if(!parsed.length){showStatus('⚠️ CP대상(Y) 데이터 없음',true);return;}
 
   // ── 양측 판별 ──
   const chartApplyCnt={};
-  finalParsed.forEach(x=>{
+  parsed.forEach(x=>{
     if(x.cpCode==='TKRA'&&x.cpApply){
       chartApplyCnt[x.id]=(chartApplyCnt[x.id]||0)+1;
     }
   });
-  finalParsed.forEach(x=>{
+  parsed.forEach(x=>{
     if(x.cpCode!=='TKRA') return;
     const raw=x.cpRaw.replace(/\s/g,'').toUpperCase();
     if(raw.includes('TKRAB')||raw.includes('TKRA(B)')){x.isBilateral=true;return;}
     if(x.cpApply&&(chartApplyCnt[x.id]||0)>=2) x.isBilateral=true;
   });
 
-  allData=finalParsed;
+  allData=parsed;
   document.getElementById('dropZone').innerHTML=
     '<div style="font-size:18px;margin-bottom:4px">✅</div>'+
     '<div style="font-size:13px;font-weight:600;color:#16A34A">'+filename+(sheetName?' · '+sheetName:'')+'</div>'+
-    '<div style="font-size:11px;color:#94A3B8;margin-top:3px">총 데이터 변환 성공 · 클릭해서 교체</div>';
-  showStatus('✅ 데이터 파싱 완료!');
+    '<div style="font-size:11px;color:#94A3B8;margin-top:3px">데이터 파싱 완료 · 클릭해서 교체</div>';
+  showStatus('✅ 데이터 처리 완료!');
   applyFilter();
 }
 
@@ -718,7 +736,6 @@ function renderAll(){
     }).join('');
   }
 
-  // ⭐ 당뇨(DM) 통계 미니 테이블 업데이트
   const dmBody = document.getElementById('tblDMBody');
   if(dmBody){
     const dmPats = allPats.filter(p=>p.isDM);

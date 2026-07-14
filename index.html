@@ -434,12 +434,10 @@ const barLabel={
     chart.data.datasets.forEach((ds,di)=>{
       chart.getDatasetMeta(di).data.forEach((bar,i)=>{
         const v=ds.data[i]; if(!v) return;
-        // 막대 위 %
         ctx.save();
         ctx.font='bold 12px Noto Sans KR';ctx.fillStyle='#1E293B';
         ctx.textAlign='center';ctx.textBaseline='bottom';
         ctx.fillText(v+'%',bar.x,bar.y-1);
-        // 막대 안 건수
         const cnt=ds.counts?.[i];
         if(cnt!==undefined&&cnt>0){
           const bh=bar.base-bar.y;
@@ -487,7 +485,6 @@ function avg(arr,key){const v=arr.filter(x=>x[key]!==null);return v.length?Math.
 function pct(a,b){return b?Math.round(a/b*100):0;}
 
 // ── 환자수 기준 집계 (차트번호+퇴원일 동일 = 1명) ──
-// 반환: [{key, rows, cpApply, complete, doctor, cpCode, ...}]
 function toPatients(data){
   const map={};
   data.forEach(x=>{
@@ -495,22 +492,22 @@ function toPatients(data){
     if(!map[key]) map[key]={...x, rows:[x]};
     else map[key].rows.push(x);
   });
-  // 환자 단위 적용/완료 판정
-  Object.values(map).forEach(p=>{
+  
+  // ⭐ 핵심 필터: CP대상(Y)가 1건이라도 있는 환자만 추려냄 (단순 - 만 있는 무관한 환자 완전 제거)
+  let validList = Object.values(map).filter(p => p.rows.some(r => r.cpTargetVal === 'Y'));
+  
+  validList.forEach(p=>{
     p.cpApply = p.rows.some(r=>r.cpApply);
     p.complete = p.rows.some(r=>r.cpApply) && p.rows.filter(r=>r.cpApply).every(r=>r.complete);
     p.dropped  = p.rows.some(r=>r.cpApply) && !p.complete;
-    // 중단사유: 적용됐지만 미완료인 첫 번째 행의 사유
     p.dropReason = p.rows.find(r=>r.cpApply&&!r.complete)?.dropReason||'';
-    // 항생제/재원은 합산
     const abxRows=p.rows.filter(r=>r.abxDays!==null);
     p.abxDays = abxRows.length ? Math.round(abxRows.reduce((s,r)=>s+r.abxDays,0)/abxRows.length*10)/10 : null;
     const losRows=p.rows.filter(r=>r.los!==null);
     p.los = losRows.length ? Math.max(...losRows.map(r=>r.los)) : null;
-    // DM 여부 꼬리표 유지
     p.isDM = p.rows.some(r=>r.isDM);
   });
-  return Object.values(map);
+  return validList;
 }
 function showStatus(msg,err){const el=document.getElementById('uploadStatus');el.style.display='block';el.style.color=err?'#DC2626':'#16A34A';el.textContent=msg;if(!err)setTimeout(()=>el.style.display='none',3500);}
 function toggleUpload(){document.getElementById('uploadToggle').classList.toggle('open');document.getElementById('uploadBody').classList.toggle('show');}
@@ -533,7 +530,6 @@ function saveCPList(){
   if(list.length){CP5=list;localStorage.setItem('cp_list',JSON.stringify(list));renderAll();}
 }
 
-// ── 기간 ──
 function selectPeriod(p,btn){
   currentPeriod=p;
   const label=p==='전체'?'전체':'2026년 '+p;
@@ -550,7 +546,6 @@ function applyFilter(){
   renderAll();
 }
 
-// ── 날짜 파싱 ──
 function parseDate(v){
   if(!v) return null;
   const s=String(v).trim();
@@ -560,7 +555,6 @@ function parseDate(v){
   return null;
 }
 
-// ── 파일 처리 ──
 function handleFile(e){const f=e.target.files[0];if(f)routeFile(f);}
 function routeFile(f){
   const n=f.name.toLowerCase();
@@ -591,6 +585,7 @@ function parseHtml(f){
   };
   r.readAsText(f,'utf-8');
 }
+
 function processRows(rows,filename,sheetName){
   let hi=-1,hr=null;
   for(let i=0;i<Math.min(rows.length,10);i++){
@@ -608,11 +603,9 @@ function processRows(rows,filename,sheetName){
   for(let i=hi+1;i<rows.length;i++){
     const row=rows[i];
     
-    // ⭐ 수정된 필터 조건: "N"이 입력된 행만 제외 (Y, 빈칸, - 등은 통과시켜 항생제 누락 방지)
     const targetVal = g(row,c.cpTarget).toUpperCase();
-    if(targetVal === 'N') continue;
+    if(targetVal === 'N') continue; 
     
-    // ⭐ DM 태그 달기 & (DM) 투명인간 처리
     let cpRawCode = g(row,c.cpCode).toUpperCase().replace(/\s/g,'');
     const isDM = cpRawCode.includes('(DM)');
     let cp = cpRawCode.replace(/\(DM\)/g, ''); 
@@ -620,7 +613,7 @@ function processRows(rows,filename,sheetName){
     if(!cp||cp==='CP코드') continue;
     if(cp==='VP'||cp==='KP') cp='VP/KP';
     
-    const cpRaw=cp; // 편측/양측 구분용 원본
+    const cpRaw=cp; 
     
     if(cp.includes('TKRA')) cp='TKRA';
     else if(cp.includes('ARCR')) cp='ARCR';
@@ -635,34 +628,41 @@ function processRows(rows,filename,sheetName){
     if(docName==='김대경') continue;
     
     const chartNo=g(row,c.id);
-    parsed.push({id:chartNo,name:g(row,c.name),dept:g(row,c.dept),doctor:docName,
-      surgery:g(row,c.surgery),discharge:g(row,c.discharge),dischargeDate:parseDate(g(row,c.discharge)),
-      los:isNaN(los)?null:los,cpCode:cp,cpRaw:cpRaw,cpApply:apply,complete:comp,
-      dropReason:apply&&!comp?(g(row,c.dropReason)||'기타'):'',abxDays:isNaN(abx)?null:abx,note:g(row,c.note),
-      isBilateral:false, isDM:isDM});
+    parsed.push({
+      id:chartNo, name:g(row,c.name), dept:g(row,c.dept), doctor:docName,
+      surgery:g(row,c.surgery), discharge:g(row,c.discharge), dischargeDate:parseDate(g(row,c.discharge)),
+      los:isNaN(los)?null:los, cpCode:cp, cpRaw:cpRaw, cpApply:apply, complete:comp,
+      dropReason:apply&&!comp?(g(row,c.dropReason)||'기타'):'', abxDays:isNaN(abx)?null:abx, note:g(row,c.note),
+      isBilateral:false, isDM:isDM, cpTargetVal:targetVal
+    });
   }
-  if(!parsed.length){showStatus('⚠️ CP대상(Y) 데이터 없음',true);return;}
+
+  // ⭐ 불필요한 '순수 항생제 행'만 있는 환자들을 원천 차단하는 이중 필터링
+  const validKeys = new Set(parsed.filter(x => x.cpTargetVal === 'Y').map(x => x.id + '_' + x.discharge));
+  const finalParsed = parsed.filter(x => validKeys.has(x.id + '_' + x.discharge));
+
+  if(!finalParsed.length){showStatus('⚠️ CP대상(Y) 데이터 없음',true);return;}
 
   // ── 양측 판별 ──
   const chartApplyCnt={};
-  parsed.forEach(x=>{
+  finalParsed.forEach(x=>{
     if(x.cpCode==='TKRA'&&x.cpApply){
       chartApplyCnt[x.id]=(chartApplyCnt[x.id]||0)+1;
     }
   });
-  parsed.forEach(x=>{
+  finalParsed.forEach(x=>{
     if(x.cpCode!=='TKRA') return;
     const raw=x.cpRaw.replace(/\s/g,'').toUpperCase();
     if(raw.includes('TKRAB')||raw.includes('TKRA(B)')){x.isBilateral=true;return;}
     if(x.cpApply&&(chartApplyCnt[x.id]||0)>=2) x.isBilateral=true;
   });
 
-  allData=parsed;
+  allData=finalParsed;
   document.getElementById('dropZone').innerHTML=
     '<div style="font-size:18px;margin-bottom:4px">✅</div>'+
     '<div style="font-size:13px;font-weight:600;color:#16A34A">'+filename+(sheetName?' · '+sheetName:'')+'</div>'+
-    '<div style="font-size:11px;color:#94A3B8;margin-top:3px">총 '+parsed.length+'건 · 클릭해서 교체</div>';
-  showStatus('✅ '+parsed.length+'건 로드 완료!');
+    '<div style="font-size:11px;color:#94A3B8;margin-top:3px">총 데이터 변환 성공 · 클릭해서 교체</div>';
+  showStatus('✅ 데이터 파싱 완료!');
   applyFilter();
 }
 
@@ -670,7 +670,6 @@ function processRows(rows,filename,sheetName){
 function renderAll(){
   const d=filteredData; if(!d.length) return;
 
-  // 전체 환자수 기준 집계
   const allPats=toPatients(d);
   const total=allPats.length;
   const applied=allPats.filter(p=>p.cpApply).length;
@@ -694,7 +693,6 @@ function renderAll(){
     if(b2)b2.style.width=Math.min(parseFloat(cR),100)+'%';
   },100);
 
-  // 5종 테이블
   const tbody=document.getElementById('tbl5Body');
   if(tbody){
     tbody.innerHTML=CP5.map(cp=>{
@@ -741,7 +739,6 @@ function renderAll(){
     </tr>`;
   }
 
-  // 렌더링 순서 보장 (StayTab이 구조를 먼저 만들고, StayTable이 속을 채우도록)
   renderCharts();
   renderCP5Tab();
   renderDoctorTab();
@@ -756,7 +753,6 @@ function renderCharts(){
   const allPats = toPatients(d);
   const pc=['#93C5FD','#FCA5A5','#C4B5FD','#FCD34D','#67E8F9','#6EE7B7'];
 
-  // CP5 데이터
   const cp5D=CP5.map(cp=>{
     const pats=allPats.filter(x=>x.cpCode===cp);
     const app=pats.filter(p=>p.cpApply).length;
@@ -764,7 +760,6 @@ function renderCharts(){
     return{total:pats.length,app,comp,ar:pats.length?pct(app,pats.length):0,cr:app?pct(comp,app):0};
   });
 
-  // 총괄 요약 차트
   dc('cSummary');
   const cs=document.getElementById('cSummary');
   if(cs) charts['cSummary']=new Chart(cs,{
@@ -777,7 +772,6 @@ function renderCharts(){
       scales:{y:{max:100,ticks:{display:false},grid:{display:false}},x:{ticks:{font:{size:11,weight:'bold'},maxRotation:0}}},barPercentage:0.6,categoryPercentage:0.7}
   });
 
-  // 수술별 차트 - TKRA 편측/양측 분리
   const tkraPatsAll=allPats.filter(x=>x.cpCode==='TKRA');
   const uniPats=tkraPatsAll.filter(p=>!p.isBilateral);
   const biPats=tkraPatsAll.filter(p=>p.isBilateral);
@@ -820,7 +814,6 @@ function renderCharts(){
       scales:{y:{max:100,ticks:{display:false},grid:{display:false}},x:{ticks:{font:{size:11,weight:'bold'},maxRotation:0}}},barPercentage:0.6,categoryPercentage:0.7}
   });
 
-  // 의사별 차트 - OS만
   const EXCLUDE_DEPT=['진효승','박상규']; 
   const osDocs=[...new Set(d.filter(x=>!EXCLUDE_DEPT.includes(x.doctor)).map(x=>x.doctor).filter(Boolean))];
   const docD=osDocs.map(doc=>{
@@ -841,7 +834,6 @@ function renderCharts(){
       scales:{y:{max:100,ticks:{display:false},grid:{display:false}},x:{ticks:{font:{size:11,weight:'bold'},maxRotation:0}}},barPercentage:0.6,categoryPercentage:0.7}
   });
 
-  // 도넛 
   const droppedPats=allPats.filter(p=>p.dropped);
   const rMap={};
   droppedPats.forEach(x=>{const k=DR.find(r=>(x.dropReason||'').includes(r))||'기타';rMap[k]=(rMap[k]||0)+1;});
@@ -858,7 +850,6 @@ function renderCharts(){
         tooltip:{callbacks:{label:ctx=>ctx.label+' '+Math.round(ctx.parsed/droppedPats.length*100)+'%'}}}}
   });
 
-  // 중단 표
   const tEl=document.getElementById('tblDrop');
   if(tEl){
     const rows=Object.entries(rMap).sort((a,b)=>b[1]-a[1]).map(([r,v])=>{
@@ -871,7 +862,6 @@ function renderCharts(){
     tEl.innerHTML=`<table><thead><tr><th>사유</th><th>건수</th><th>비율</th><th>질환별</th></tr></thead><tbody>${rows}</tbody></table>`;
   }
 
-  // 재원/항생제 차트 - ⭐ TKRA los 버그 수정 반영 완료
   const stayLabels=[];
   const stayAvgL=[], stayAvgA=[];
   CP5.forEach(cp=>{
@@ -886,6 +876,7 @@ function renderCharts(){
       stayLabels.push(cp);stayAvgL.push(avg(pats,'los'));stayAvgA.push(avg(pats,'abxDays'));
     }
   });
+  
   dc('cStay');
   const c4=document.getElementById('cStay');
   if(c4){
@@ -912,11 +903,10 @@ function renderCharts(){
   }
 }
 
-// ── 재원 테이블 ── (⭐ 의사별/수술별 세로형 레이아웃 업데이트)
+// ── 재원 테이블 ──
 function renderStayTable(){
   const allPats = toPatients(filteredData);
   
-  // 1. CP별 표 (기존 유지)
   const cpBody=document.getElementById('tblStayCPBody');
   if(cpBody){
     cpBody.innerHTML=CP5.map(cp=>{
@@ -928,14 +918,12 @@ function renderStayTable(){
     }).join('');
   }
   
-  // 2. 의사별 & 수술별 세로형 그룹화 생성
   const docs=[...new Set(allPats.map(x=>x.doctor).filter(Boolean))];
   let docHtml = '';
   docs.forEach(doc=>{
     const docPats = allPats.filter(x=>x.doctor===doc);
     if(!docPats.length) return;
     
-    // 해당 의사가 진행한 CP 목록 추출
     const cps = [...new Set(docPats.map(x=>x.cpCode))];
     let subRows = '';
     
@@ -954,7 +942,6 @@ function renderStayTable(){
     const aL_tot = avg(docPats, 'los');
     const aA_tot = avg(docPats, 'abxDays');
     
-    // 인쇄 잘림 방지를 위한 미니 카드 구조
     docHtml += `
       <div class="doc-stay-card">
         <div class="doc-stay-card-h">
@@ -989,7 +976,6 @@ function renderStayTab(){
     return`<tr><td><b>${cp}</b></td><td style="text-align:center">${items.length}</td><td style="text-align:center"><b>${aL!==null?aL+'일':'—'}</b></td><td style="text-align:center">${li.length?Math.min(...li.map(x=>x.los))+'일':'—'}</td><td style="text-align:center">${li.length?Math.max(...li.map(x=>x.los))+'일':'—'}</td><td style="text-align:center"><b>${aA!==null?aA+'일':'—'}</b></td></tr>`;
   }).join('');
   
-  // 의사별 표는 renderStayTable()에서 divStayDoc_tab을 채워줍니다.
   container.innerHTML=`
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;">
       <div class="section">
@@ -1093,8 +1079,9 @@ ${RULE}`,
 function renderCP5Tab(){
   const container=document.getElementById('cp5Content');
   container.innerHTML='';
+  const allPats = toPatients(filteredData);
   CP5.forEach(cp=>{
-    const items=filteredData.filter(x=>x.cpCode===cp);
+    const items=allPats.filter(x=>x.cpCode===cp);
     if(!items.length) return;
     const app=items.filter(x=>x.cpApply).length,comp=items.filter(x=>x.cpApply&&x.complete).length;
     const ar=(app/items.length*100).toFixed(1),cr=app?(comp/app*100).toFixed(1):'0.0';
@@ -1110,10 +1097,11 @@ function renderCP5Tab(){
 // ── 의사별 탭 ──
 function renderDoctorTab(){
   const container=document.getElementById('doctorContent');
-  const docs=[...new Set(filteredData.map(x=>x.doctor).filter(Boolean))];
+  const allPats = toPatients(filteredData);
+  const docs=[...new Set(allPats.map(x=>x.doctor).filter(Boolean))];
   if(!docs.length){container.innerHTML='<div class="empty">📂 데이터를 업로드해주세요</div>';return;}
   const rows=docs.map(doc=>{
-    const items=filteredData.filter(x=>x.doctor===doc);
+    const items=allPats.filter(x=>x.doctor===doc);
     const app=items.filter(x=>x.cpApply).length,comp=items.filter(x=>x.cpApply&&x.complete).length;
     const ar=items.length?pct(app,items.length):0,cr=app?pct(comp,app):0;
     const cpCells=CP5.map(cp=>{

@@ -495,18 +495,13 @@ function toPatients(data){
     map[key].rows.push(x);
   });
   
-  // 1. CP대상 Y가 단 한 번이라도 있는 '진짜' 환자만 남기기 (빈칸/항생제만 있는 고스트 환자 제거)
+  // 1. CP대상 Y가 단 한 번이라도 있는 '진짜' 환자만 남기기 
   let validList = Object.values(map).filter(p => p.rows.some(r => r.isTargetY));
   
   // 2. 환자별 대표 정보 방어 로직 (항생제 행이 대표 수술명을 지우지 않도록 보호)
   validList.forEach(p=>{
-    // 가장 믿을만한 대표 행(mainRow)을 찾습니다. 
-    // 우선순위 1: 대상이 Y이면서, CP코드가 빈칸이나 '-'가 아닌 정상 코드인 행
-    // 우선순위 2: 대상이 Y인 아무 행 (정상 코드가 없을 때 최후의 수단)
-    // 우선순위 3: 그냥 첫 번째 행
     const mainRow = p.rows.find(r => r.isTargetY && r.cpCode !== '-') || p.rows.find(r => r.isTargetY) || p.rows[0];
     
-    // 찾아낸 가장 정확한 정보를 이 환자의 대표 정보로 고정
     p.cpCode = mainRow.cpCode;
     p.surgery = mainRow.surgery;
     p.doctor = mainRow.doctor;
@@ -519,11 +514,16 @@ function toPatients(data){
     p.abxDays = abxRows.length ? Math.round(abxRows.reduce((s,r)=>s+r.abxDays,0)/abxRows.length*10)/10 : null;
     const losRows=p.rows.filter(r=>r.los!==null);
     p.los = losRows.length ? Math.max(...losRows.map(r=>r.los)) : null;
-    p.isDM = p.rows.some(r=>r.isDM);
+    
+    // DM 여부 (I열 DM: 'Y' 인지)
+    p.isDMPatient = p.rows.some(r=>r.isDMPatient);
+    // 실제 처방된 코드가 (DM) 전용 코드인지
+    p.hasDMCode = p.rows.some(r=>r.hasDMCode);
     p.isBilateral = p.rows.some(r=>r.isBilateral);
   });
   return validList;
 }
+
 function showStatus(msg,err){const el=document.getElementById('uploadStatus');el.style.display='block';el.style.color=err?'#DC2626':'#16A34A';el.textContent=msg;if(!err)setTimeout(()=>el.style.display='none',3500);}
 function toggleUpload(){document.getElementById('uploadToggle').classList.toggle('open');document.getElementById('uploadBody').classList.toggle('show');}
 function toggleTable(id){const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'':'none';}
@@ -608,13 +608,16 @@ function processRows(rows,filename,sheetName){
     if(r.some(c=>c==='차트번호'||c==='CP코드'||c==='환자명')){hi=i;hr=r;break;}
   }
   if(!hr){showStatus('⚠️ 헤더 없음',true);return;}
+  
+  // DM 열 추가 파싱
   const fi=(...n)=>{for(const x of n){const i=hr.findIndex(h=>h.includes(x));if(i>=0)return i;}return -1;};
   const c={id:fi('차트번호'),name:fi('환자명'),dept:fi('진료과'),doctor:fi('주치의'),surgery:fi('수술명'),
     discharge:fi('퇴원일'),los:fi('재원일수'),cpCode:fi('CP코드'),cpTarget:fi('CP대상'),
-    cpApply:fi('CP적용'),complete:fi('완료여부'),dropReason:fi('중단사유'),abxDays:fi('사용일수'),note:fi('비고')};
+    cpApply:fi('CP적용'),complete:fi('완료여부'),dropReason:fi('중단사유'),abxDays:fi('사용일수'),note:fi('비고'),
+    dmCol:fi('DM')};
+    
   const g=(row,ci)=>(ci>=0&&ci<row.length)?String(row[ci]).trim():'';
   
-  // 1차 철벽 필터: 'CP대상 Y' 기록이 한 번이라도 존재하는 확실한 차트번호+퇴원일 조합만 먼저 수집 (330건 오류 방지용)
   const validKeys = new Set();
   for(let i=hi+1; i<rows.length; i++){
       if(g(rows[i], c.cpTarget).toUpperCase() === 'Y'){
@@ -630,17 +633,21 @@ function processRows(rows,filename,sheetName){
     const dis = g(row, c.discharge);
     const key = id + '_' + dis;
     
-    // 대상 Y 이력이 아예 없는 무관한 행은 여기서 완벽 차단
     if(!validKeys.has(key)) continue;
     
     const targetVal = g(row,c.cpTarget).toUpperCase();
     if(targetVal === 'N') continue; 
     
     let cpRawCode = g(row,c.cpCode).toUpperCase().replace(/\s/g,'');
-    const isDM = cpRawCode.includes('(DM)');
+    
+    // I열 DM 파싱
+    const isDMPatient = c.dmCol >= 0 ? (g(row, c.dmCol).toUpperCase() === 'Y') : false;
+    
+    // CP코드에 (DM)이 명시적으로 붙어있는지 확인 (CP 적용용)
+    const hasDMCode = cpRawCode.includes('(DM)');
+    
     let cp = cpRawCode.replace(/\(DM\)/g, ''); 
 
-    // 항생제 추가 기입란처럼 CP코드가 빈칸으로 남겨져 있는 경우 스킵되지 않도록 '-'로 임시 보호
     if(cp==='CP코드') continue;
     if(!cp) cp = '-'; 
 
@@ -651,7 +658,6 @@ function processRows(rows,filename,sheetName){
     if(cp.includes('TKRA')) cp='TKRA';
     else if(cp.includes('ARCR')) cp='ARCR';
     else if(cp.includes('HWR')) cp='HWR';
-    // ⭐ Micro fx 제외하고 원래 기준(MENIS, MN)으로 완벽 복원
     else if(cp.includes('MENIS')||cp.includes('MN')) cp='MENISECTOMY';
     
     const los=parseFloat(g(row,c.los)),abx=parseFloat(g(row,c.abxDays));
@@ -666,13 +672,12 @@ function processRows(rows,filename,sheetName){
       surgery:g(row,c.surgery), discharge:dis, dischargeDate:parseDate(dis),
       los:isNaN(los)?null:los, cpCode:cp, cpRaw:cpRaw, cpApply:apply, complete:comp,
       dropReason:apply&&!comp?(g(row,c.dropReason)||'기타'):'', abxDays:isNaN(abx)?null:abx, note:g(row,c.note),
-      isBilateral:false, isDM:isDM, isTargetY:(targetVal==='Y')
+      isBilateral:false, isDMPatient:isDMPatient, hasDMCode:hasDMCode, isTargetY:(targetVal==='Y')
     });
   }
 
   if(!parsed.length){showStatus('⚠️ CP대상(Y) 데이터 없음',true);return;}
 
-  // ── 양측 판별 ──
   const chartApplyCnt={};
   parsed.forEach(x=>{
     if(x.cpCode==='TKRA'&&x.cpApply){
@@ -747,15 +752,28 @@ function renderAll(){
     }).join('');
   }
 
+  // ⭐ 당뇨(DM) 통계 세부 필터링 기준 완벽 반영
   const dmBody = document.getElementById('tblDMBody');
   if(dmBody){
-    const dmPats = allPats.filter(p=>p.isDM);
-    const dmTot = dmPats.length;
-    const dmApp = dmPats.filter(p=>p.cpApply).length;
-    const dmComp = dmPats.filter(p=>p.complete).length;
+    // <대상> I열 DM - Y, K열 CP대상 - Y, M열 CP적용 - Y, J열 CP 코드 전체(TKRA, ARCR, HWR, MN, VP/KP)
+    // ※ 여기서 J열 코드가 5종 CP에 속하는 환자는 이미 toPatients() 전에 걸러졌음.
+    const dmTargetPats = allPats.filter(p => p.isDMPatient && p.cpApply);
+    const dmTot = dmTargetPats.length;
+    
+    // <적용> 위 대상 환자 중에서, 실제로 (DM) 코드가 부여된 환자
+    const dmAppPats = dmTargetPats.filter(p => p.hasDMCode);
+    const dmApp = dmAppPats.length;
+    
+    // <완료> 적용 환자 중 완료(S열 Y)인 환자
+    const dmComp = dmAppPats.filter(p => p.complete).length;
+    
+    // <중단>
     const dmDrop = dmApp - dmComp;
+    
+    // <적용률/완료율>
     const dmAr = dmTot ? (dmApp/dmTot*100).toFixed(1) : '0.0';
     const dmCr = dmApp ? (dmComp/dmApp*100).toFixed(1) : '0.0';
+    
     dmBody.innerHTML = `<tr>
       <td style="background:#F8FAFC;"><b>당뇨(DM) 동반 환자</b></td>
       <td style="text-align:center">${dmTot}</td>
@@ -1038,9 +1056,9 @@ async function gen(section){
   const dropped=allPats.filter(x=>x.cpApply&&!x.complete).length;
   const aR=(applied/total*100).toFixed(1),cR=applied?(completed/applied*100).toFixed(1):'0.0';
   
-  const dmPats = allPats.filter(p=>p.isDM);
-  const dmApp = dmPats.filter(p=>p.cpApply).length;
-  const dmComp = dmPats.filter(p=>p.complete).length;
+  const dmPats = allPats.filter(p=>p.isDMPatient && p.cpApply);
+  const dmApp = dmPats.filter(p=>p.hasDMCode).length;
+  const dmComp = dmPats.filter(p=>p.hasDMCode && p.complete).length;
 
   const hospital=document.getElementById('hospitalName')?.textContent.trim()||'병원';
   const period=currentPeriod;

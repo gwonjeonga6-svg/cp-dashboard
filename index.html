@@ -95,6 +95,26 @@ tr:last-child td{border-bottom:none;}
 .ov-table th{background:#1B3A6B;color:#fff;padding:8px 12px;text-align:left;white-space:nowrap;width:130px;}
 .ov-table td{padding:8px 12px;border-bottom:1px solid #F1F5F9;}
 
+/* 의사별 재원 미니카드 (세로 레이아웃) */
+.doc-stay-card {
+  page-break-inside: avoid;
+  margin-bottom: 12px;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+.doc-stay-card-h {
+  background: #F8FAFC; 
+  padding: 8px 12px; 
+  font-weight: bold; 
+  border-bottom: 1px solid #E2E8F0; 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center;
+}
+.doc-stay-card table { border: none; margin: 0; }
+
 @media(max-width:900px){
   .summary{grid-template-columns:repeat(3,1fr);}
   .chart-grid{grid-template-columns:1fr;}
@@ -298,7 +318,14 @@ tr:last-child td{border-bottom:none;}
       <thead><tr><th>CP명</th><th>대상</th><th>적용</th><th>완료</th><th>중단</th><th>적용률</th><th>완료율</th><th>달성(적용)</th><th>달성(완료)</th></tr></thead>
       <tbody id="tbl5Body"></tbody>
     </table></div>
-    <div class="rpt-sub" style="margin-top:20px">2-2. CP별 적용률 / 완료율</div>
+    
+    <div class="rpt-sub" style="margin-top:20px">2-2. 당뇨(DM) 동반 환자 CP 적용 현황</div>
+    <div style="overflow-x:auto"><table id="tblDM">
+      <thead><tr><th>구분</th><th>대상</th><th>적용</th><th>완료</th><th>중단</th><th>적용률</th><th>완료율</th></tr></thead>
+      <tbody id="tblDMBody"></tbody>
+    </table></div>
+
+    <div class="rpt-sub" style="margin-top:20px">2-3. CP별 적용률 / 완료율</div>
     <canvas id="cSummary" style="max-height:160px"></canvas>
     <div class="rpt-ai loading" id="ai-summary" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
     <button class="regen-btn" onclick="gen('summary')">↺ 재생성</button>
@@ -342,11 +369,8 @@ tr:last-child td{border-bottom:none;}
         <thead><tr><th>CP명</th><th>건수</th><th>평균재원(일)</th><th>최소</th><th>최대</th><th>평균항생제(일)</th></tr></thead>
         <tbody id="tblStayCPBody"></tbody>
       </table></div>
-      <div class="rpt-sub" style="margin-top:10px">의사별 평균 재원일수 / 항생제 사용일수</div>
-      <div style="overflow-x:auto"><table id="tblStayDoc">
-        <thead><tr><th>주치의</th><th>건수</th><th>평균재원(일)</th><th>평균항생제(일)</th></tr></thead>
-        <tbody id="tblStayDocBody"></tbody>
-      </table></div>
+      <div class="rpt-sub" style="margin-top:14px">의사별/수술별 평균 재원일수 및 항생제 사용일수</div>
+      <div id="divStayDoc"></div>
     </div>
     <div class="rpt-ai loading" id="ai-stay" contenteditable="true">AI 보고서 생성 버튼을 눌러주세요.</div>
     <button class="regen-btn" onclick="gen('stay')">↺ 재생성</button>
@@ -483,6 +507,8 @@ function toPatients(data){
     p.abxDays = abxRows.length ? Math.round(abxRows.reduce((s,r)=>s+r.abxDays,0)/abxRows.length*10)/10 : null;
     const losRows=p.rows.filter(r=>r.los!==null);
     p.los = losRows.length ? Math.max(...losRows.map(r=>r.los)) : null;
+    // DM 여부 꼬리표 유지
+    p.isDM = p.rows.some(r=>r.isDM);
   });
   return Object.values(map);
 }
@@ -582,11 +608,14 @@ function processRows(rows,filename,sheetName){
   for(let i=hi+1;i<rows.length;i++){
     const row=rows[i];
     
-    if(g(row,c.cpTarget).toUpperCase()!=='Y') continue;
+    // ⭐ 수정된 필터 조건: "N"이 입력된 행만 제외 (Y, 빈칸, - 등은 통과시켜 항생제 누락 방지)
+    const targetVal = g(row,c.cpTarget).toUpperCase();
+    if(targetVal === 'N') continue;
     
-    // (DM) 투명인간 처리 로직 반영
-    let cp=g(row,c.cpCode).toUpperCase().replace(/\s/g,'');
-    cp = cp.replace(/\(DM\)/g, ''); 
+    // ⭐ DM 태그 달기 & (DM) 투명인간 처리
+    let cpRawCode = g(row,c.cpCode).toUpperCase().replace(/\s/g,'');
+    const isDM = cpRawCode.includes('(DM)');
+    let cp = cpRawCode.replace(/\(DM\)/g, ''); 
 
     if(!cp||cp==='CP코드') continue;
     if(cp==='VP'||cp==='KP') cp='VP/KP';
@@ -605,18 +634,16 @@ function processRows(rows,filename,sheetName){
     
     if(docName==='김대경') continue;
     
-    const chartNo=g(row,c.id); // 차트번호
+    const chartNo=g(row,c.id);
     parsed.push({id:chartNo,name:g(row,c.name),dept:g(row,c.dept),doctor:docName,
       surgery:g(row,c.surgery),discharge:g(row,c.discharge),dischargeDate:parseDate(g(row,c.discharge)),
       los:isNaN(los)?null:los,cpCode:cp,cpRaw:cpRaw,cpApply:apply,complete:comp,
       dropReason:apply&&!comp?(g(row,c.dropReason)||'기타'):'',abxDays:isNaN(abx)?null:abx,note:g(row,c.note),
-      isBilateral:false});
+      isBilateral:false, isDM:isDM});
   }
   if(!parsed.length){showStatus('⚠️ CP대상(Y) 데이터 없음',true);return;}
 
   // ── 양측 판별 ──
-  // 조건1: cpRaw에 TKRAB 포함
-  // 조건2: 동일 차트번호 + TKRA + 적용Y 2건 이상
   const chartApplyCnt={};
   parsed.forEach(x=>{
     if(x.cpCode==='TKRA'&&x.cpApply){
@@ -671,7 +698,7 @@ function renderAll(){
   const tbody=document.getElementById('tbl5Body');
   if(tbody){
     tbody.innerHTML=CP5.map(cp=>{
-      const pats=toPatients(d.filter(x=>x.cpCode===cp));
+      const pats=allPats.filter(x=>x.cpCode===cp);
       const tot=pats.length;
       const app=pats.filter(p=>p.cpApply).length;
       const comp=pats.filter(p=>p.complete).length;
@@ -693,22 +720,45 @@ function renderAll(){
     }).join('');
   }
 
+  // ⭐ 당뇨(DM) 통계 미니 테이블 업데이트
+  const dmBody = document.getElementById('tblDMBody');
+  if(dmBody){
+    const dmPats = allPats.filter(p=>p.isDM);
+    const dmTot = dmPats.length;
+    const dmApp = dmPats.filter(p=>p.cpApply).length;
+    const dmComp = dmPats.filter(p=>p.complete).length;
+    const dmDrop = dmApp - dmComp;
+    const dmAr = dmTot ? (dmApp/dmTot*100).toFixed(1) : '0.0';
+    const dmCr = dmApp ? (dmComp/dmApp*100).toFixed(1) : '0.0';
+    dmBody.innerHTML = `<tr>
+      <td style="background:#F8FAFC;"><b>당뇨(DM) 동반 환자</b></td>
+      <td style="text-align:center">${dmTot}</td>
+      <td style="text-align:center">${dmApp}</td>
+      <td style="text-align:center">${dmComp}</td>
+      <td style="text-align:center">${dmDrop}</td>
+      <td style="text-align:center; color:#1B3A6B;"><b>${dmAr}%</b></td>
+      <td style="text-align:center; color:#1B3A6B;"><b>${dmCr}%</b></td>
+    </tr>`;
+  }
+
+  // 렌더링 순서 보장 (StayTab이 구조를 먼저 만들고, StayTable이 속을 채우도록)
   renderCharts();
-  renderStayTable();
   renderCP5Tab();
   renderDoctorTab();
   renderStayTab();
+  renderStayTable();
   renderRawTab();
 }
 
 // ── 차트 렌더 ──
 function renderCharts(){
   const d=filteredData;
+  const allPats = toPatients(d);
   const pc=['#93C5FD','#FCA5A5','#C4B5FD','#FCD34D','#67E8F9','#6EE7B7'];
 
-  // CP5 데이터 (전체 환자수 기준)
+  // CP5 데이터
   const cp5D=CP5.map(cp=>{
-    const pats=toPatients(d.filter(x=>x.cpCode===cp));
+    const pats=allPats.filter(x=>x.cpCode===cp);
     const app=pats.filter(p=>p.cpApply).length;
     const comp=pats.filter(p=>p.complete).length;
     return{total:pats.length,app,comp,ar:pats.length?pct(app,pats.length):0,cr:app?pct(comp,app):0};
@@ -727,8 +777,8 @@ function renderCharts(){
       scales:{y:{max:100,ticks:{display:false},grid:{display:false}},x:{ticks:{font:{size:11,weight:'bold'},maxRotation:0}}},barPercentage:0.6,categoryPercentage:0.7}
   });
 
-  // 수술별 차트 - TKRA 편측/양측 분리, 환자수 기준
-  const tkraPatsAll=toPatients(d.filter(x=>x.cpCode==='TKRA'));
+  // 수술별 차트 - TKRA 편측/양측 분리
+  const tkraPatsAll=allPats.filter(x=>x.cpCode==='TKRA');
   const uniPats=tkraPatsAll.filter(p=>!p.isBilateral);
   const biPats=tkraPatsAll.filter(p=>p.isBilateral);
   const uniApp=uniPats.filter(p=>p.cpApply).length;
@@ -740,10 +790,9 @@ function renderCharts(){
   const biAr=biPats.length?pct(biApp,biPats.length):0;
   const biCr=biApp?pct(biComp,biApp):0;
 
-  // TKRA 제외한 나머지 CP - 환자수 기준
   const otherCPs=CP5.filter(c=>c!=='TKRA');
   const otherD=otherCPs.map(cp=>{
-    const pats=toPatients(d.filter(x=>x.cpCode===cp));
+    const pats=allPats.filter(x=>x.cpCode===cp);
     const app=pats.filter(p=>p.cpApply).length;
     const comp=pats.filter(p=>p.complete).length;
     return{total:pats.length,app,comp,ar:pats.length?pct(app,pats.length):0,cr:app?pct(comp,app):0};
@@ -771,11 +820,11 @@ function renderCharts(){
       scales:{y:{max:100,ticks:{display:false},grid:{display:false}},x:{ticks:{font:{size:11,weight:'bold'},maxRotation:0}}},barPercentage:0.6,categoryPercentage:0.7}
   });
 
-  // 의사별 차트 - OS만, 환자수 기준
-  const EXCLUDE_DEPT=['진효승','박상규']; // ENT, IM 제외
+  // 의사별 차트 - OS만
+  const EXCLUDE_DEPT=['진효승','박상규']; 
   const osDocs=[...new Set(d.filter(x=>!EXCLUDE_DEPT.includes(x.doctor)).map(x=>x.doctor).filter(Boolean))];
   const docD=osDocs.map(doc=>{
-    const pats=toPatients(d.filter(x=>x.doctor===doc));
+    const pats=allPats.filter(x=>x.doctor===doc);
     const app=pats.filter(p=>p.cpApply).length;
     const comp=pats.filter(p=>p.complete).length;
     return{doc,total:pats.length,app,comp,ar:pats.length?pct(app,pats.length):0,cr:app?pct(comp,app):0};
@@ -792,8 +841,8 @@ function renderCharts(){
       scales:{y:{max:100,ticks:{display:false},grid:{display:false}},x:{ticks:{font:{size:11,weight:'bold'},maxRotation:0}}},barPercentage:0.6,categoryPercentage:0.7}
   });
 
-  // 도넛 - 환자수 기준
-  const droppedPats=toPatients(d).filter(p=>p.dropped);
+  // 도넛 
+  const droppedPats=allPats.filter(p=>p.dropped);
   const rMap={};
   droppedPats.forEach(x=>{const k=DR.find(r=>(x.dropReason||'').includes(r))||'기타';rMap[k]=(rMap[k]||0)+1;});
   const rKeys=Object.keys(rMap);
@@ -809,7 +858,7 @@ function renderCharts(){
         tooltip:{callbacks:{label:ctx=>ctx.label+' '+Math.round(ctx.parsed/droppedPats.length*100)+'%'}}}}
   });
 
-  // 중단 표 - 환자수 기준
+  // 중단 표
   const tEl=document.getElementById('tblDrop');
   if(tEl){
     const rows=Object.entries(rMap).sort((a,b)=>b[1]-a[1]).map(([r,v])=>{
@@ -822,23 +871,21 @@ function renderCharts(){
     tEl.innerHTML=`<table><thead><tr><th>사유</th><th>건수</th><th>비율</th><th>질환별</th></tr></thead><tbody>${rows}</tbody></table>`;
   }
 
-  // 재원/항생제 차트 - TKRA 편측/양측 분리, 환자수 기준
-  // ⭐ 재원일수 그래프 오류 수정 반영 완료
+  // 재원/항생제 차트 - ⭐ TKRA los 버그 수정 반영 완료
   const stayLabels=[];
   const stayAvgL=[], stayAvgA=[];
   CP5.forEach(cp=>{
     if(cp==='TKRA'){
-      const tkraS=toPatients(d.filter(x=>x.cpCode==='TKRA'&&!x.isBilateral));
-      const tkraB=toPatients(d.filter(x=>x.cpCode==='TKRA'&&x.isBilateral));
+      const tkraS=allPats.filter(x=>x.cpCode==='TKRA'&&!x.isBilateral);
+      const tkraB=allPats.filter(x=>x.cpCode==='TKRA'&&x.isBilateral);
       if(tkraS.length){stayLabels.push('TKRA(편측)');stayAvgL.push(avg(tkraS,'los'));stayAvgA.push(avg(tkraS,'abxDays'));}
       if(tkraB.length){stayLabels.push('TKRA(양측)');stayAvgL.push(avg(tkraB,'los'));stayAvgA.push(avg(tkraB,'abxDays'));}
       if(!tkraS.length&&!tkraB.length){stayLabels.push('TKRA');stayAvgL.push(null);stayAvgA.push(null);}
     } else {
-      const pats=toPatients(d.filter(x=>x.cpCode===cp));
+      const pats=allPats.filter(x=>x.cpCode===cp);
       stayLabels.push(cp);stayAvgL.push(avg(pats,'los'));stayAvgA.push(avg(pats,'abxDays'));
     }
   });
-  
   dc('cStay');
   const c4=document.getElementById('cStay');
   if(c4){
@@ -865,28 +912,95 @@ function renderCharts(){
   }
 }
 
-// ── 재원 테이블 ──
+// ── 재원 테이블 ── (⭐ 의사별/수술별 세로형 레이아웃 업데이트)
 function renderStayTable(){
-  const d=filteredData;
+  const allPats = toPatients(filteredData);
+  
+  // 1. CP별 표 (기존 유지)
   const cpBody=document.getElementById('tblStayCPBody');
   if(cpBody){
     cpBody.innerHTML=CP5.map(cp=>{
-      const items=d.filter(x=>x.cpCode===cp);
+      const items=allPats.filter(x=>x.cpCode===cp);
       if(!items.length) return`<tr><td><b>${cp}</b></td><td colspan="5" style="color:#94A3B8;text-align:center">해당없음</td></tr>`;
-      const li=items.filter(x=>x.los!==null),ai=items.filter(x=>x.abxDays!==null);
+      const li=items.filter(x=>x.los!==null);
       const aL=avg(items,'los'),aA=avg(items,'abxDays');
       return`<tr><td><b>${cp}</b></td><td style="text-align:center">${items.length}</td><td style="text-align:center"><b>${aL!==null?aL+'일':'—'}</b></td><td style="text-align:center">${li.length?Math.min(...li.map(x=>x.los))+'일':'—'}</td><td style="text-align:center">${li.length?Math.max(...li.map(x=>x.los))+'일':'—'}</td><td style="text-align:center"><b>${aA!==null?aA+'일':'—'}</b></td></tr>`;
     }).join('');
   }
-  const docBody=document.getElementById('tblStayDocBody');
-  if(docBody){
-    const docs=[...new Set(d.map(x=>x.doctor).filter(Boolean))];
-    docBody.innerHTML=docs.map(doc=>{
-      const items=d.filter(x=>x.doctor===doc);
-      const aL=avg(items,'los'),aA=avg(items,'abxDays');
-      return`<tr><td><b>${doc}</b></td><td style="text-align:center">${items.length}</td><td style="text-align:center"><b>${aL!==null?aL+'일':'—'}</b></td><td style="text-align:center"><b>${aA!==null?aA+'일':'—'}</b></td></tr>`;
-    }).join('');
-  }
+  
+  // 2. 의사별 & 수술별 세로형 그룹화 생성
+  const docs=[...new Set(allPats.map(x=>x.doctor).filter(Boolean))];
+  let docHtml = '';
+  docs.forEach(doc=>{
+    const docPats = allPats.filter(x=>x.doctor===doc);
+    if(!docPats.length) return;
+    
+    // 해당 의사가 진행한 CP 목록 추출
+    const cps = [...new Set(docPats.map(x=>x.cpCode))];
+    let subRows = '';
+    
+    cps.forEach(cp => {
+       const sub = docPats.filter(x=>x.cpCode===cp);
+       const aL = avg(sub, 'los');
+       const aA = avg(sub, 'abxDays');
+       subRows += `<tr>
+         <td style="color:#475569; font-size:12px; padding:6px 12px;">${cp}</td>
+         <td style="text-align:center; padding:6px 12px;">${sub.length}</td>
+         <td style="text-align:center; padding:6px 12px; font-weight:bold;">${aL!==null?aL+'일':'—'}</td>
+         <td style="text-align:center; padding:6px 12px; font-weight:bold;">${aA!==null?aA+'일':'—'}</td>
+       </tr>`;
+    });
+    
+    const aL_tot = avg(docPats, 'los');
+    const aA_tot = avg(docPats, 'abxDays');
+    
+    // 인쇄 잘림 방지를 위한 미니 카드 구조
+    docHtml += `
+      <div class="doc-stay-card">
+        <div class="doc-stay-card-h">
+            <span>👨‍⚕️ ${doc} 주치의</span>
+            <span style="font-size:11px; color:#64748B; font-weight:400;">총 ${docPats.length}건 (평균 재원 <b>${aL_tot!==null?aL_tot:'-'}</b>일 / 항생제 <b>${aA_tot!==null?aA_tot:'-'}</b>일)</span>
+        </div>
+        <table>
+            <thead><tr><th style="padding:6px 12px;">수술명(CP)</th><th style="padding:6px 12px;text-align:center;">건수</th><th style="padding:6px 12px;text-align:center;">평균재원</th><th style="padding:6px 12px;text-align:center;">평균항생제</th></tr></thead>
+            <tbody>${subRows}</tbody>
+        </table>
+      </div>`;
+  });
+  
+  const divDoc = document.getElementById('divStayDoc');
+  if(divDoc) divDoc.innerHTML = docHtml;
+  
+  const divDocTab = document.getElementById('divStayDoc_tab');
+  if(divDocTab) divDocTab.innerHTML = docHtml;
+}
+
+// ── 재원/항생제 탭 ──
+function renderStayTab(){
+  const container=document.getElementById('stayContent');
+  if(!filteredData.length){container.innerHTML='<div class="empty">📂 데이터를 업로드해주세요</div>';return;}
+  const allPats = toPatients(filteredData);
+  
+  const cpRows=CP5.map(cp=>{
+    const items=allPats.filter(x=>x.cpCode===cp);
+    if(!items.length) return`<tr><td><b>${cp}</b></td><td colspan="5" style="color:#94A3B8;text-align:center">해당없음</td></tr>`;
+    const aL=avg(items,'los'),aA=avg(items,'abxDays');
+    const li=items.filter(x=>x.los!==null);
+    return`<tr><td><b>${cp}</b></td><td style="text-align:center">${items.length}</td><td style="text-align:center"><b>${aL!==null?aL+'일':'—'}</b></td><td style="text-align:center">${li.length?Math.min(...li.map(x=>x.los))+'일':'—'}</td><td style="text-align:center">${li.length?Math.max(...li.map(x=>x.los))+'일':'—'}</td><td style="text-align:center"><b>${aA!==null?aA+'일':'—'}</b></td></tr>`;
+  }).join('');
+  
+  // 의사별 표는 renderStayTable()에서 divStayDoc_tab을 채워줍니다.
+  container.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start;">
+      <div class="section">
+        <div class="section-header"><span class="dot" style="background:#06B6D4"></span>질환별 평균 재원/항생제</div>
+        <table><thead><tr><th>CP</th><th>건수</th><th>평균재원</th><th>최소</th><th>최대</th><th>평균항생제</th></tr></thead><tbody>${cpRows}</tbody></table>
+      </div>
+      <div class="section" style="background:transparent;box-shadow:none;">
+        <div class="section-header" style="background:#fff;border-radius:12px 12px 0 0;"><span class="dot" style="background:#10B981"></span>의사별/수술별 평균 재원/항생제</div>
+        <div id="divStayDoc_tab" style="padding:14px 0;"></div>
+      </div>
+    </div>`;
 }
 
 // ── AI 생성 ──
@@ -904,15 +1018,21 @@ async function gen(section){
   const d=filteredData;
   if(!d.length){if(target)target.textContent='데이터를 먼저 업로드해주세요.';return;}
 
-  const total=d.length,applied=d.filter(x=>x.cpApply).length;
-  const completed=d.filter(x=>x.cpApply&&x.complete).length;
-  const dropped=d.filter(x=>x.cpApply&&!x.complete).length;
+  const allPats = toPatients(d);
+  const total=allPats.length,applied=allPats.filter(x=>x.cpApply).length;
+  const completed=allPats.filter(x=>x.cpApply&&x.complete).length;
+  const dropped=allPats.filter(x=>x.cpApply&&!x.complete).length;
   const aR=(applied/total*100).toFixed(1),cR=applied?(completed/applied*100).toFixed(1):'0.0';
+  
+  const dmPats = allPats.filter(p=>p.isDM);
+  const dmApp = dmPats.filter(p=>p.cpApply).length;
+  const dmComp = dmPats.filter(p=>p.complete).length;
+
   const hospital=document.getElementById('hospitalName')?.textContent.trim()||'병원';
   const period=currentPeriod;
 
   const cp5Lines=CP5.map(cp=>{
-    const items=d.filter(x=>x.cpCode===cp);
+    const items=allPats.filter(x=>x.cpCode===cp);
     if(!items.length) return`${cp}: 대상없음`;
     const app=items.filter(x=>x.cpApply).length;
     const comp=items.filter(x=>x.cpApply&&x.complete).length;
@@ -920,11 +1040,11 @@ async function gen(section){
   }).join('\n');
 
   const rMap={};
-  d.filter(x=>x.cpApply&&!x.complete).forEach(x=>{const k=DR.find(r=>(x.dropReason||'').includes(r))||'기타';rMap[k]=(rMap[k]||0)+1;});
+  allPats.filter(x=>x.cpApply&&!x.complete).forEach(x=>{const k=DR.find(r=>(x.dropReason||'').includes(r))||'기타';rMap[k]=(rMap[k]||0)+1;});
   const reasonLines=Object.entries(rMap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${k} ${v}건(${Math.round(v/dropped*100)}%)`).join(', ');
 
   const stayLines=CP5.map(cp=>{
-    const items=d.filter(x=>x.cpCode===cp);
+    const items=allPats.filter(x=>x.cpCode===cp);
     const aL=avg(items,'los'),aA=avg(items,'abxDays');
     return`${cp}: 평균 재원 ${aL!==null?aL+'일':'해당없음'}, 평균 항생제 ${aA!==null?aA+'일':'해당없음'}`;
   }).join('\n');
@@ -934,6 +1054,7 @@ async function gen(section){
   const prompts={
     summary:`${hospital} 2026년 ${period} CP 모니터링 총괄 현황을 3~4문장으로 요약하라.
 데이터: 대상 ${total}건, 적용 ${applied}건(${aR}%), 완료 ${completed}건(${cR}%), 중단 ${dropped}건
+당뇨(DM) 동반 환자 현황: 대상 ${dmPats.length}건, 적용 ${dmApp}건, 완료 ${dmComp}건
 적용률 목표 ${APPLY_GOAL}%, 완료율 목표 ${COMPLETE_GOAL}% 달성 여부 명시.
 ${RULE}`,
     cp5:`CP 질환별 및 의사별 현황을 4~5문장으로 분석하라.
@@ -1006,26 +1127,6 @@ function renderDoctorTab(){
     return`<tr style="background:#F8FAFC"><td><b>${doc}</b></td><td style="text-align:center">${items.length}</td><td style="text-align:center">${app}</td><td style="text-align:center"><b>${ar}%</b> ${ar>=APPLY_GOAL?'<span class="badge-ok">✓</span>':'<span class="badge-ng">✗</span>'}</td><td style="text-align:center"><b>${cr}%</b> ${cr>=COMPLETE_GOAL?'<span class="badge-ok">✓</span>':'<span class="badge-ng">✗</span>'}</td>${cpCells}<td><button class="toggle-btn" onclick="toggleTable('${tid}')">상세</button></td></tr><tr id="${tid}" style="display:none"><td colspan="11" style="padding:0"><table><thead><tr style="background:#EFF6FF"><th>차트번호</th><th>환자명</th><th>CP</th><th>수술명</th><th>퇴원일</th><th>재원</th><th>적용</th><th>완료</th><th>중단사유</th></tr></thead><tbody>${drows}</tbody></table></td></tr>`;
   }).join('');
   container.innerHTML=`<div class="section"><div class="section-header"><span class="dot" style="background:#8B5CF6"></span>의사별 CP 현황</div><div style="overflow-x:auto"><table><thead><tr><th>주치의</th><th>전체</th><th>적용</th><th>적용률</th><th>완료율</th><th>TKRA</th><th>ARCR</th><th>HWR</th><th>MENIS</th><th>VP/KP</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
-}
-
-// ── 재원/항생제 탭 ──
-function renderStayTab(){
-  const container=document.getElementById('stayContent');
-  if(!filteredData.length){container.innerHTML='<div class="empty">📂 데이터를 업로드해주세요</div>';return;}
-  const cpRows=CP5.map(cp=>{
-    const items=filteredData.filter(x=>x.cpCode===cp);
-    if(!items.length) return`<tr><td><b>${cp}</b></td><td colspan="5" style="color:#94A3B8;text-align:center">해당없음</td></tr>`;
-    const aL=avg(items,'los'),aA=avg(items,'abxDays');
-    const li=items.filter(x=>x.los!==null);
-    return`<tr><td><b>${cp}</b></td><td style="text-align:center">${items.length}</td><td style="text-align:center"><b>${aL!==null?aL+'일':'—'}</b></td><td style="text-align:center">${li.length?Math.min(...li.map(x=>x.los))+'일':'—'}</td><td style="text-align:center">${li.length?Math.max(...li.map(x=>x.los))+'일':'—'}</td><td style="text-align:center"><b>${aA!==null?aA+'일':'—'}</b></td></tr>`;
-  }).join('');
-  const docs=[...new Set(filteredData.map(x=>x.doctor).filter(Boolean))];
-  const docRows=docs.map(doc=>{
-    const items=filteredData.filter(x=>x.doctor===doc);
-    const aL=avg(items,'los'),aA=avg(items,'abxDays');
-    return`<tr><td><b>${doc}</b></td><td style="text-align:center">${items.length}</td><td style="text-align:center"><b>${aL!==null?aL+'일':'—'}</b></td><td style="text-align:center"><b>${aA!==null?aA+'일':'—'}</b></td></tr>`;
-  }).join('');
-  container.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px"><div class="section"><div class="section-header"><span class="dot" style="background:#06B6D4"></span>질환별 평균 재원/항생제</div><table><thead><tr><th>CP</th><th>건수</th><th>평균재원</th><th>최소</th><th>최대</th><th>평균항생제</th></tr></thead><tbody>${cpRows}</tbody></table></div><div class="section"><div class="section-header"><span class="dot" style="background:#10B981"></span>의사별 평균 재원/항생제</div><table><thead><tr><th>주치의</th><th>건수</th><th>평균재원</th><th>평균항생제</th></tr></thead><tbody>${docRows}</tbody></table></div></div>`;
 }
 
 // ── 원시데이터 탭 ──

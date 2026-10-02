@@ -505,9 +505,20 @@ function toPatients(data){
     p.doctor = mainRow.doctor;
     
     p.cpApply = p.rows.some(r=>r.cpApply);
-    p.complete = p.rows.some(r=>r.cpApply) && p.rows.filter(r=>r.cpApply).every(r=>r.complete);
+
+    // [수정] 완료여부에 Y/N이 명시된 적용 행만 보고 판정.
+    // 양측 수술(TKRA B)의 둘째 행은 완료여부가 '-'이므로 판정에서 제외 (명시된 행이 없을 때만 전체 적용 행 사용)
+    const appRows = p.rows.filter(r=>r.cpApply);
+    const expRows = appRows.filter(r=>r.completeRaw==='Y'||r.completeRaw==='N');
+    const useRows = expRows.length ? expRows : appRows;
+    p.complete = appRows.length>0 && useRows.every(r=>r.complete);
+
     p.dropped  = p.rows.some(r=>r.cpApply) && !p.complete;
-    p.dropReason = p.rows.find(r=>r.cpApply&&!r.complete)?.dropReason||'';
+
+    // [수정] 중단사유는 완료여부가 명시적으로 N인 행을 우선 사용 ('-' 행의 사유가 '기타'로 잡히는 것 방지)
+    const dropRow = p.rows.find(r=>r.cpApply&&r.completeRaw==='N') || p.rows.find(r=>r.cpApply&&!r.complete);
+    p.dropReason = dropRow?.dropReason||'';
+
     const abxRows=p.rows.filter(r=>r.abxDays!==null);
     p.abxDays = abxRows.length ? Math.round(abxRows.reduce((s,r)=>s+r.abxDays,0)/abxRows.length*10)/10 : null;
     const losRows=p.rows.filter(r=>r.los!==null);
@@ -601,15 +612,18 @@ function processRows(rows,filename,sheetName){
   let hi=-1,hr=null;
   for(let i=0;i<Math.min(rows.length,10);i++){
     const r=rows[i].map(c=>String(c).trim());
-    if(r.some(c=>c==='차트번호'||c==='CP코드'||c==='환자명')){hi=i;hr=r;break;}
+    if(r.some(c=>c==='차트번호'||c==='등록번호'||c==='CP코드'||c==='환자명')){hi=i;hr=r;break;}
   }
   if(!hr){showStatus('⚠️ 헤더 없음',true);return;}
   
   const fi=(...n)=>{for(const x of n){const i=hr.findIndex(h=>h.includes(x));if(i>=0)return i;}return -1;};
-  const c={id:fi('차트번호'),name:fi('환자명'),dept:fi('진료과'),doctor:fi('주치의'),surgery:fi('수술명'),
+  const c={id:fi('차트번호','등록번호'),name:fi('환자명'),dept:fi('진료과'),doctor:fi('주치의'),surgery:fi('수술명'),
     discharge:fi('퇴원일'),los:fi('재원일수'),cpCode:fi('CP코드'),cpTarget:fi('CP대상'),
     cpApply:fi('CP적용'),complete:fi('완료여부'),dropReason:fi('중단사유'),abxDays:fi('사용일수'),note:fi('비고'),
     dmCol:fi('DM')};
+
+  // [수정] 환자 ID 열을 찾지 못하면 환자가 날짜별로 합쳐져 수치가 크게 낮아지므로 즉시 중단
+  if(c.id<0){showStatus('⚠️ 환자 ID 열(차트번호/등록번호)을 찾을 수 없습니다. 헤더를 확인해주세요.',true);return;}
     
   const g=(row,ci)=>(ci>=0&&ci<row.length)?String(row[ci]).trim():'';
   
@@ -663,6 +677,7 @@ function processRows(rows,filename,sheetName){
       id:id, name:g(row,c.name), dept:g(row,c.dept), doctor:docName,
       surgery:g(row,c.surgery), discharge:dis, dischargeDate:parseDate(dis),
       los:isNaN(los)?null:los, cpCode:cp, cpRaw:cpRaw, cpApply:apply, complete:comp,
+      completeRaw:g(row,c.complete).toUpperCase(),
       dropReason:apply&&!comp?(g(row,c.dropReason)||'기타'):'', abxDays:isNaN(abx)?null:abx, note:g(row,c.note),
       isBilateral:false, isDMPatient:isDMPatient, hasDMCode:hasDMCode, isTargetY:(targetVal==='Y')
     });
